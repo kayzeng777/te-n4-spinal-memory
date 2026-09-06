@@ -83,8 +83,8 @@ open(os.path.join(REPO, 'index.html'), 'w').write(repo_doc)
 FX = open(os.path.join(HERE, 'fx.template.html')).read()
 fx_repo = ('<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8">\n'
            '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
-           + FX.replace('__FONTS__', font_faces(False)).replace('</style>', '</style>\n</head>\n<body>', 1) + '</body>\n</html>\n')
+           + FX.replace('__FONTS__', font_faces(False)).replace('__SPINE__', SPINE).replace('</style>', '</style>\n</head>\n<body>', 1) + '</body>\n</html>\n')
 open(os.path.join(REPO, 'fx.html'), 'w').write(fx_repo)
-art = FX.replace('__FONTS__', font_faces(True))
+art = FX.replace('__FONTS__', font_faces(True)).replace('__SPINE__', SPINE)
 open(os.path.join(HERE, '..', 'artifact.html'), 'w').write(art)
 print('index.html', len(repo_doc)//1024, 'KB; fx.html', len(fx_repo)//1024, 'KB; artifact', len(art)//1024, 'KB')
