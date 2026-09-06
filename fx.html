@@ -97,13 +97,15 @@
 <aside class="panel" id="panel">
   <header><span id="panelTitle">layers</span><button class="btn" id="toggle" type="button">收起</button></header>
   <section>
+    <div class="row"><label>组名</label><input type="text" id="name"></div>
     <div class="row"><label>文字</label><textarea id="text" rows="2" style="height:auto;font:inherit"></textarea></div>
     <div class="row"><label for="size">字号</label><input type="range" id="size" min="12" max="240" step="1"><output id="sizeOut"></output></div>
     <div class="row"><label for="weight">字重</label><input type="range" id="weight" min="100" max="900" step="1"><output id="weightOut"></output></div>
     <div class="row"><label for="lh">行高</label><input type="range" id="lh" min="0.6" max="2.2" step="0.01"><output id="lhOut"></output></div>
     <div class="row"><label for="ls">字距</label><input type="range" id="ls" min="-0.1" max="0.6" step="0.005"><output id="lsOut"></output></div>
     <div class="row" id="italRow"><label for="ital">斜体轴</label><input type="range" id="ital" min="0" max="100" step="1"><output id="italOut"></output></div>
-    <div class="btns"><button class="btn" id="copyTier" type="button">复制到同字体其他字号</button><button class="btn" id="copyAll" type="button">复制到全部九组</button></div>
+    <div class="btns"><button class="btn" id="dup" type="button">＋ 复制成新的一组</button><button class="btn" id="del" type="button">删除这组</button></div>
+    <div class="btns"><button class="btn" id="copyTier" type="button">六层复制到同字体各组</button><button class="btn" id="copyAll" type="button">六层复制到全部</button></div>
   </section>
   <section id="layers"></section>
   <section>
@@ -137,14 +139,19 @@
     {key:'cn',   name:'Source Han Serif',  family:'var(--font-cn)',      text:'脊柱的记忆',    weight:700, wmin:200, wmax:900, lh:1.2, ls:0.05}];
   const TIERS=[{key:'L',size:160,base:M},{key:'M',size:72,base:M},{key:'S',size:28,base:S}];
   const clone=o=>JSON.parse(JSON.stringify(o));
+  let uid=0; const newKey=f=>f+'-'+(Date.now().toString(36))+(uid++);
   function defaults(){
-    const p={noise:clone(NOISE),presets:{}};
-    FONTS.forEach(f=>TIERS.forEach(t=>{p.presets[f.key+'-'+t.key]={text:f.text,size:t.size,weight:f.weight,ital:f.ital||0,lh:f.lh,ls:f.ls,layers:clone(t.base)};}));
+    const p={noise:clone(NOISE),presets:{},order:[]};
+    FONTS.forEach(f=>TIERS.forEach(t=>{const k=f.key+'-'+t.key;p.order.push(k);
+      p.presets[k]={font:f.key,name:t.key,text:f.text,size:t.size,weight:f.weight,ital:f.ital||0,lh:f.lh,ls:f.ls,layers:clone(t.base)};}));
     return p;
   }
   let state; try{state=JSON.parse(localStorage.getItem('fx-state'))}catch(e){} if(!state||!state.presets) state=defaults();
-  Object.entries(state.presets).forEach(([k,p])=>{const f=FONTS.find(f=>k.startsWith(f.key+'-'));if(p.lh==null)p.lh=f.lh;if(p.ls==null)p.ls=f.ls;});
-  let cur=FONTS[0].key+'-'+TIERS[0].key;
+  if(!state.order) state.order=Object.keys(state.presets);
+  Object.entries(state.presets).forEach(([k,p])=>{if(!p.font)p.font=k.split('-')[0];if(!p.name)p.name=k.split('-')[1];
+    const f=FONTS.find(f=>f.key===p.font);if(p.lh==null)p.lh=f.lh;if(p.ls==null)p.ls=f.ls;});
+  const fontOf=k=>FONTS.find(f=>f.key===state.presets[k].font);
+  let cur=state.order[0];
   const $=id=>document.getElementById(id);
 
   function noiseURL(n){
@@ -170,12 +177,12 @@ ${sel} .l${i+1} .n{display:${l.noise?'block':'none'}}`;
   function allCSS(){
     const n=state.noise;
     let css=`.fx .n{background-image:${noiseURL(n)};background-size:80px 80px;opacity:${n.opacity/100}}\n`;
-    FONTS.forEach(f=>TIERS.forEach(t=>{const k=f.key+'-'+t.key;css+=presetCSS(k,state.presets[k],f)+'\n';}));
+    state.order.forEach(k=>{css+=presetCSS(k,state.presets[k],fontOf(k))+'\n';});
     return css;
   }
   function buildSamples(){
-    $('samples').innerHTML=FONTS.map(f=>`<div class="font-row"><h2>${f.name}</h2><div class="tiers">${TIERS.map(t=>{
-      const k=f.key+'-'+t.key;return `<div class="tier" data-key="${k}"><small>${t.key} · <span class="sz"></span></small><span class="fx fx-${k}" data-key="${k}"></span></div>`;}).join('')}</div></div>`).join('');
+    $('samples').innerHTML=FONTS.map(f=>`<div class="font-row"><h2>${f.name}</h2><div class="tiers">${state.order.filter(k=>state.presets[k].font===f.key).map(k=>
+      `<div class="tier" data-key="${k}"><small><span class="nm"></span> · <span class="sz"></span></small><span class="fx fx-${k}" data-key="${k}"></span></div>`).join('')}</div></div>`).join('');
     document.querySelectorAll('.tier').forEach(el=>el.addEventListener('click',()=>{cur=el.dataset.key;drawPanel();render();}));
   }
   function render(){
@@ -184,7 +191,7 @@ ${sel} .l${i+1} .n{display:${l.noise?'block':'none'}}`;
       const p=state.presets[el.dataset.key];const html=p.text.replace(/</g,'&lt;').replace(/\n/g,'<br>');
       el.innerHTML=[1,2,3,4,5,6].map(i=>`<span class="l l${i}"><span class="t">${html}</span><span class="n">${html}</span></span>`).join('');
       el.closest('.tier').classList.toggle('active',el.dataset.key===cur);
-      el.closest('.tier').querySelector('.sz').textContent=p.size+'px';
+      el.closest('.tier').querySelector('.sz').textContent=p.size+'px';el.closest('.tier').querySelector('.nm').textContent=p.name;
     });
     $('out').value=JSON.stringify({noise:state.noise,[cur]:state.presets[cur]},null,1).replace(/\n\s+/g,' ');
     try{localStorage.setItem('fx-state',JSON.stringify(state));$('saved').textContent='已自动保存在本机';}catch(e){}
@@ -203,8 +210,8 @@ ${sel} .l${i+1} .n{display:${l.noise?'block':'none'}}`;
     const i=r.querySelector('input'),o=r.querySelector('output');i.addEventListener('input',()=>{o.textContent=fmt(+i.value);cb(+i.value);});return r;
   }
   function drawPanel(){
-    const p=state.presets[cur], font=FONTS.find(f=>cur.startsWith(f.key+'-'));
-    $('panelTitle').textContent=`${font.name} · ${cur.split('-')[1]}`;
+    const p=state.presets[cur], font=fontOf(cur);
+    $('panelTitle').textContent=`${font.name} · ${p.name}`;$('name').value=p.name;
     $('text').value=p.text;$('size').value=p.size;$('sizeOut').textContent=p.size+'px';
     $('weight').min=font.wmin;$('weight').max=font.wmax;$('weight').value=p.weight;$('weightOut').textContent=p.weight;
     $('lh').value=p.lh;$('lhOut').textContent=p.lh;$('ls').value=p.ls;$('lsOut').textContent=p.ls+'em';
@@ -229,17 +236,20 @@ ${sel} .l${i+1} .n{display:${l.noise?'block':'none'}}`;
       box.appendChild(d);
     });
   }
+  $('name').addEventListener('input',e=>{state.presets[cur].name=e.target.value;$('panelTitle').textContent=`${fontOf(cur).name} · ${e.target.value}`;render();});
+  $('dup').addEventListener('click',()=>{const src=state.presets[cur];const k=newKey(src.font);state.presets[k]=clone(src);state.presets[k].name=src.name+' copy';state.order.splice(state.order.indexOf(cur)+1,0,k);cur=k;buildSamples();drawPanel();render();});
+  $('del').addEventListener('click',()=>{if(state.order.length<=1)return;if(!confirm('删除这组？'))return;const i=state.order.indexOf(cur);state.order.splice(i,1);delete state.presets[cur];cur=state.order[Math.max(0,i-1)];buildSamples();drawPanel();render();});
   $('text').addEventListener('input',e=>{state.presets[cur].text=e.target.value;render();});
   $('size').addEventListener('input',e=>{state.presets[cur].size=+e.target.value;$('sizeOut').textContent=e.target.value+'px';render();});
   $('weight').addEventListener('input',e=>{state.presets[cur].weight=+e.target.value;$('weightOut').textContent=e.target.value;render();});
   $('lh').addEventListener('input',e=>{state.presets[cur].lh=+e.target.value;$('lhOut').textContent=e.target.value;render();});
   $('ls').addEventListener('input',e=>{state.presets[cur].ls=+e.target.value;$('lsOut').textContent=e.target.value+'em';render();});
   $('ital').addEventListener('input',e=>{state.presets[cur].ital=+e.target.value;$('italOut').textContent=e.target.value;render();});
-  $('copyTier').addEventListener('click',()=>{const f=cur.split('-')[0];TIERS.forEach(t=>{const k=f+'-'+t.key;if(k!==cur)state.presets[k].layers=clone(state.presets[cur].layers);});render();});
+  $('copyTier').addEventListener('click',()=>{const f=state.presets[cur].font;state.order.forEach(k=>{if(k!==cur&&state.presets[k].font===f)state.presets[k].layers=clone(state.presets[cur].layers);});render();});
   $('copyAll').addEventListener('click',()=>{Object.keys(state.presets).forEach(k=>{if(k!==cur)state.presets[k].layers=clone(state.presets[cur].layers);});render();});
-  $('copy').addEventListener('click',async()=>{const all=JSON.stringify(state);try{await navigator.clipboard.writeText(all);$('copy').textContent='已复制全部九组';}catch(e){$('out').value=all;$('out').select();$('copy').textContent='请手动复制';}setTimeout(()=>$('copy').textContent='复制参数',1500);});
-  $('reset').addEventListener('click',()=>{if(confirm('重置全部九组为初始值？'))
-{state=defaults();drawPanel();render();}});
+  $('copy').addEventListener('click',async()=>{const all=JSON.stringify(state);try{await navigator.clipboard.writeText(all);$('copy').textContent='已复制全部';}catch(e){$('out').value=all;$('out').select();$('copy').textContent='请手动复制';}setTimeout(()=>$('copy').textContent='复制参数',1500);});
+  $('reset').addEventListener('click',()=>{if(confirm('重置为初始的九组？'))
+{state=defaults();cur=state.order[0];buildSamples();drawPanel();render();}});
   $('toggle').addEventListener('click',()=>{const p=$('panel');p.classList.toggle('collapsed');$('toggle').textContent=p.classList.contains('collapsed')?'展开':'收起';});
   const st=document.createElement('style');st.id='fxcss';document.head.appendChild(st);
   buildSamples();drawPanel();render();
