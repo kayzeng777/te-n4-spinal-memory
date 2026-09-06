@@ -68,6 +68,7 @@
   .row{display:grid;grid-template-columns:5.5em 1fr auto;gap:8px;align-items:center}
   .row label{color:#C8D4C2}
   .row output{color:#9BA39A;font-variant-numeric:tabular-nums;min-width:3.5ch;text-align:right}
+  .row.num input[type=number]{width:5.5em;text-align:right;padding:3px 4px}
   .panel input[type=range]{width:100%;accent-color:#C8D4C2;margin:0}
   .panel input[type=text],.panel input[type=number],.panel select{background:#0D0F0D;border:1px solid #2A2E2A;color:#ECEEE9;font:inherit;padding:4px 6px;border-radius:3px;width:100%}
   .panel input[type=color]{width:24px;height:22px;padding:0;border:1px solid #2A2E2A;border-radius:3px;background:none}
@@ -99,11 +100,11 @@
   <section>
     <div class="row"><label>组名</label><input type="text" id="name"></div>
     <div class="row"><label>文字</label><textarea id="text" rows="2" style="height:auto;font:inherit"></textarea></div>
-    <div class="row"><label for="size">字号</label><input type="range" id="size" min="12" max="240" step="1"><output id="sizeOut"></output></div>
-    <div class="row"><label for="weight">字重</label><input type="range" id="weight" min="100" max="900" step="1"><output id="weightOut"></output></div>
-    <div class="row"><label for="lh">行高</label><input type="range" id="lh" min="0.6" max="2.2" step="0.01"><output id="lhOut"></output></div>
-    <div class="row"><label for="ls">字距</label><input type="range" id="ls" min="-0.1" max="0.6" step="0.005"><output id="lsOut"></output></div>
-    <div class="row" id="italRow"><label for="ital">斜体轴</label><input type="range" id="ital" min="0" max="100" step="1"><output id="italOut"></output></div>
+    <div class="row num"><label for="size">字号 px</label><input type="range" id="size" min="8" max="320" step="1"><input type="number" id="sizeN" step="1"></div>
+    <div class="row"><label for="weight">字重</label><select id="weight"></select><label id="italRow2" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="italic"> 斜体</label></div>
+    <div class="row num"><label for="lh">行高 ×</label><input type="range" id="lh" min="0.6" max="2.2" step="0.01"><input type="number" id="lhN" step="0.01"></div>
+    <div class="row num"><label for="ls">字距 em</label><input type="range" id="ls" min="-0.1" max="0.6" step="0.005"><input type="number" id="lsN" step="0.005"></div>
+    <div class="row num" id="italRow"><label for="ital">斜体轴</label><input type="range" id="ital" min="0" max="100" step="1"><input type="number" id="italN" step="1"></div>
     <div class="btns"><button class="btn" id="dup" type="button">＋ 复制成新的一组</button><button class="btn" id="del" type="button">删除这组</button></div>
     <div class="btns"><button class="btn" id="copyTier" type="button">六层复制到同字体各组</button><button class="btn" id="copyAll" type="button">六层复制到全部</button></div>
   </section>
@@ -134,9 +135,12 @@
     {on:1,opacity:100,fill:YELLOW, stroke:1, strokeColor:YELLOW, noise:0, blur:20}];
   const NOISE={opacity:20,density:50,size:0.5,color:YELLOW};
   const FONTS=[
-    {key:'apoc', name:'Apoc',              family:'var(--font-display)', text:'N°4',          weight:106, wmin:80,  wmax:145, ital:0, lh:0.95, ls:0},
-    {key:'pp',   name:'PP Neue Montreal',  family:'var(--font-sans)',    text:'Spinal Memory',weight:400, wmin:100, wmax:700, lh:1.0, ls:0},
-    {key:'cn',   name:'Source Han Serif',  family:'var(--font-cn)',      text:'脊柱的记忆',    weight:700, wmin:200, wmax:900, lh:1.2, ls:0.05}];
+    {key:'apoc', name:'Apoc',              family:'var(--font-display)', text:'N°4',          weight:106, lh:0.95, ls:0, italic:'axis',
+      weights:[['Hairline',80],['Light',96],['Regular',106],['Bold',121],['UltraBold',131],['Dark',145]]},
+    {key:'pp',   name:'PP Neue Montreal',  family:'var(--font-sans)',    text:'Spinal Memory',weight:400, lh:1.0, ls:0, italic:'style',
+      weights:[['Thin',100],['Light',300],['Book',350],['Regular',400],['Medium',500],['SemiBold',600],['Bold',700]]},
+    {key:'cn',   name:'Source Han Serif',  family:'var(--font-cn)',      text:'脊柱的记忆',    weight:700, lh:1.2, ls:0.05, italic:null,
+      weights:[['ExtraLight',200],['Light',300],['Regular',400],['Medium',500],['SemiBold',600],['Bold',700],['Heavy',900]]}];
   const TIERS=[{key:'L',size:160,base:M},{key:'M',size:72,base:M},{key:'S',size:28,base:S}];
   const clone=o=>JSON.parse(JSON.stringify(o));
   let uid=0; const newKey=f=>f+'-'+(Date.now().toString(36))+(uid++);
@@ -170,7 +174,7 @@ ${sel} .l${i+1} .n{display:${l.noise?'block':'none'}}`;
   }
   function presetCSS(key,p,font){
     const sel=`.fx-${key}`;
-    const ital=font.key==='apoc'?`font-variation-settings:"ital" ${p.ital};`:'';
+    const ital=font.italic==='axis'?`font-variation-settings:"ital" ${p.ital||0};`:(font.italic==='style'&&p.italicOn?'font-style:italic;':'');
     return [`${sel}{font-family:${font.family};font-size:${p.size}px;font-weight:${p.weight};line-height:${p.lh};letter-spacing:${p.ls}em;${ital}}`,
       ...p.layers.map((_,i)=>layerCSS(sel,p.layers,i))].join('\n');
   }
@@ -205,17 +209,26 @@ ${sel} .l${i+1} .n{display:${l.noise?'block':'none'}}`;
     return w;
   }
   function range(label,val,min,max,step,fmt,cb){
-    const r=document.createElement('div');r.className='row';
-    r.innerHTML=`<label>${label}</label><input type="range" min="${min}" max="${max}" step="${step}" value="${val}"><output>${fmt(val)}</output>`;
-    const i=r.querySelector('input'),o=r.querySelector('output');i.addEventListener('input',()=>{o.textContent=fmt(+i.value);cb(+i.value);});return r;
+    const r=document.createElement('div');r.className='row num';
+    r.innerHTML=`<label>${label}</label><input type="range" min="${min}" max="${max}" step="${step}" value="${val}"><input type="number" step="${step}" value="${val}">`;
+    const i=r.querySelector('input[type=range]'),n=r.querySelector('input[type=number]');
+    i.addEventListener('input',()=>{n.value=i.value;cb(+i.value);});
+    n.addEventListener('input',()=>{if(n.value==='')return;i.value=n.value;cb(+n.value);});return r;
+  }
+  function pair(id,get,set){ // sync a top-level slider with its number box
+    const i=$(id),n=$(id+'N');
+    i.addEventListener('input',()=>{n.value=i.value;set(+i.value);});
+    n.addEventListener('input',()=>{if(n.value==='')return;i.value=n.value;set(+n.value);});
+    return v=>{i.value=v;n.value=v;};
   }
   function drawPanel(){
     const p=state.presets[cur], font=fontOf(cur);
     $('panelTitle').textContent=`${font.name} · ${p.name}`;$('name').value=p.name;
-    $('text').value=p.text;$('size').value=p.size;$('sizeOut').textContent=p.size+'px';
-    $('weight').min=font.wmin;$('weight').max=font.wmax;$('weight').value=p.weight;$('weightOut').textContent=p.weight;
-    $('lh').value=p.lh;$('lhOut').textContent=p.lh;$('ls').value=p.ls;$('lsOut').textContent=p.ls+'em';
-    $('italRow').style.display=font.key==='apoc'?'':'none';$('ital').value=p.ital;$('italOut').textContent=p.ital;
+    $('text').value=p.text;setSize(p.size);setLh(p.lh);setLs(p.ls);setItal(p.ital||0);
+    const w=$('weight');w.innerHTML=font.weights.map(([n,v])=>`<option value="${v}">${n} · ${v}</option>`).join('');
+    if(!font.weights.some(([,v])=>v===p.weight))p.weight=font.weight;w.value=p.weight;
+    $('italRow').style.display=font.italic==='axis'?'':'none';
+    $('italRow2').style.display=font.italic==='style'?'':'none';$('italic').checked=!!p.italicOn;
     const box=$('layers');box.innerHTML='<h3>六层 · 上 → 下</h3>';
     const n=state.noise;const nb=document.createElement('div');nb.className='layer';nb.innerHTML='<h4>Noise（全局）</h4>';
     nb.appendChild(range('不透明度',n.opacity,0,100,1,v=>v+'%',v=>{n.opacity=v;render();}));
@@ -240,11 +253,12 @@ ${sel} .l${i+1} .n{display:${l.noise?'block':'none'}}`;
   $('dup').addEventListener('click',()=>{const src=state.presets[cur];const k=newKey(src.font);state.presets[k]=clone(src);state.presets[k].name=src.name+' copy';state.order.splice(state.order.indexOf(cur)+1,0,k);cur=k;buildSamples();drawPanel();render();});
   $('del').addEventListener('click',()=>{if(state.order.length<=1)return;if(!confirm('删除这组？'))return;const i=state.order.indexOf(cur);state.order.splice(i,1);delete state.presets[cur];cur=state.order[Math.max(0,i-1)];buildSamples();drawPanel();render();});
   $('text').addEventListener('input',e=>{state.presets[cur].text=e.target.value;render();});
-  $('size').addEventListener('input',e=>{state.presets[cur].size=+e.target.value;$('sizeOut').textContent=e.target.value+'px';render();});
-  $('weight').addEventListener('input',e=>{state.presets[cur].weight=+e.target.value;$('weightOut').textContent=e.target.value;render();});
-  $('lh').addEventListener('input',e=>{state.presets[cur].lh=+e.target.value;$('lhOut').textContent=e.target.value;render();});
-  $('ls').addEventListener('input',e=>{state.presets[cur].ls=+e.target.value;$('lsOut').textContent=e.target.value+'em';render();});
-  $('ital').addEventListener('input',e=>{state.presets[cur].ital=+e.target.value;$('italOut').textContent=e.target.value;render();});
+  const setSize=pair('size',null,v=>{state.presets[cur].size=v;render();});
+  const setLh=pair('lh',null,v=>{state.presets[cur].lh=v;render();});
+  const setLs=pair('ls',null,v=>{state.presets[cur].ls=v;render();});
+  const setItal=pair('ital',null,v=>{state.presets[cur].ital=v;render();});
+  $('weight').addEventListener('change',e=>{state.presets[cur].weight=+e.target.value;render();});
+  $('italic').addEventListener('change',e=>{state.presets[cur].italicOn=e.target.checked;render();});
   $('copyTier').addEventListener('click',()=>{const f=state.presets[cur].font;state.order.forEach(k=>{if(k!==cur&&state.presets[k].font===f)state.presets[k].layers=clone(state.presets[cur].layers);});render();});
   $('copyAll').addEventListener('click',()=>{Object.keys(state.presets).forEach(k=>{if(k!==cur)state.presets[k].layers=clone(state.presets[cur].layers);});render();});
   $('copy').addEventListener('click',async()=>{const all=JSON.stringify(state);try{await navigator.clipboard.writeText(all);$('copy').textContent='已复制全部';}catch(e){$('out').value=all;$('out').select();$('copy').textContent='请手动复制';}setTimeout(()=>$('copy').textContent='复制参数',1500);});
