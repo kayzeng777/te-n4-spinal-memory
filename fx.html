@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>te online lecture · fx</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;300;400;500;600;700;900&display=swap">
+<style>
+  @font-face{font-family:'Apoc';src:url(fonts/Apoc-Variable.woff2) format('woff2');font-weight:80 145;font-display:swap}
+  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-Thin.woff2) format('woff2');font-weight:100;font-style:normal;font-display:swap}
+  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-ThinItalic.woff2) format('woff2');font-weight:100;font-style:italic;font-display:swap}
+  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-Light.woff2) format('woff2');font-weight:300;font-style:normal;font-display:swap}
+  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-LightItalic.woff2) format('woff2');font-weight:300;font-style:italic;font-display:swap}
+  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-Book.woff2) format('woff2');font-weight:350;font-style:normal;font-display:swap}
+  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-BookItalic.woff2) format('woff2');font-weight:350;font-style:italic;font-display:swap}
+  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-Regular.woff2) format('woff2');font-weight:400;font-style:normal;font-display:swap}
+  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-Italic.woff2) format('woff2');font-weight:400;font-style:italic;font-display:swap}
+  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-Medium.woff2) format('woff2');font-weight:500;font-style:normal;font-display:swap}
+  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-MediumItalic.woff2) format('woff2');font-weight:500;font-style:italic;font-display:swap}
+  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-SemiBold.woff2) format('woff2');font-weight:600;font-style:normal;font-display:swap}
+  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-SemiBolditalic.woff2) format('woff2');font-weight:600;font-style:italic;font-display:swap}
+  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-Bold.woff2) format('woff2');font-weight:700;font-style:normal;font-display:swap}
+  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-BoldItalic.woff2) format('woff2');font-weight:700;font-style:italic;font-display:swap}
+
+  :root{
+    --font-cn:"Noto Serif SC","Source Han Serif CN",serif;
+    --font-display:"Apoc",Georgia,serif;
+    --font-sans:"PP Neue Montreal",-apple-system,"Helvetica Neue",Arial,sans-serif;
+    --cell:12px;
+    --accent-orange:#F28331;--accent-yellow:#FDF48E;
+  }
+  @media (max-width:760px){:root{--cell:7px}}
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%}
+  body{min-height:100vh;background:#92CA87;color:#101410;position:relative;font-family:var(--font-sans)}
+  .bg{position:fixed;inset:0;z-index:-1;background:linear-gradient(180deg,#66BF8C 0%,#92CA87 31%,#BED881 63%,#A8D184 74%,#92CA87 87%,#68C08D 100%)}
+  .bg::after{content:"";position:absolute;inset:0;opacity:.03;mix-blend-mode:multiply;background-size:200px 200px;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='2.00' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.09  0 0 0 0 0.10  0 0 0 0 0.09  0 0 0 1 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+  .grid{position:absolute;inset:0;pointer-events:none;z-index:0;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'><path d='M0 0H1M0 0V1' fill='none' stroke='%23cccccc' stroke-width='.05' stroke-dasharray='.14 .1'/></svg>");
+    background-size:var(--cell) var(--cell);background-position:calc(50% + var(--cell)/2) 8vh}
+  main{position:relative;z-index:1;padding:8vh 40px 12vh 40px;max-width:1100px}
+  @media (max-width:760px){main{padding:24px 16px 60vh}}
+
+  .samples{display:grid;gap:56px}
+  .font-row{display:grid;gap:20px}
+  .font-row h2{margin:0;font:500 11px/1 var(--font-sans);letter-spacing:.14em;text-transform:uppercase;opacity:.55}
+  .tiers{display:flex;align-items:baseline;gap:56px;flex-wrap:wrap}
+  .tier{cursor:pointer;padding:12px 16px;border:1px dashed transparent;border-radius:2px}
+  .tier.active{border-color:rgba(16,20,16,.35)}
+  .tier small{display:block;font:400 10px/1 var(--font-sans);letter-spacing:.1em;opacity:.5;margin-bottom:10px}
+
+  .fx{position:relative;display:inline-block;line-height:1;white-space:nowrap}
+  .fx .l{position:absolute;inset:0}
+  .fx .l:first-child{position:relative}
+  .fx .l>span{display:block}
+  .fx .n{position:absolute;inset:0;color:transparent;-webkit-background-clip:text;background-clip:text}
+  .fx .t{paint-order:stroke fill}
+
+  /* panel */
+  .panel{position:fixed;right:16px;top:16px;z-index:5;width:340px;max-height:calc(100vh - 32px);overflow:auto;
+    background:#141614;color:#ECEEE9;border-radius:4px;font:12px/1.4 var(--font-sans);box-shadow:0 12px 40px rgba(0,0,0,.3)}
+  .panel header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #2A2E2A;letter-spacing:.08em;text-transform:uppercase;font-size:11px}
+  .panel section{padding:12px 14px;border-bottom:1px solid #2A2E2A;display:grid;gap:8px}
+  .panel h3{margin:0 0 2px;font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:#9BA39A;display:flex;justify-content:space-between}
+  .row{display:grid;grid-template-columns:5.5em 1fr auto;gap:8px;align-items:center}
+  .row label{color:#C8D4C2}
+  .row output{color:#9BA39A;font-variant-numeric:tabular-nums;min-width:3.5ch;text-align:right}
+  .panel input[type=range]{width:100%;accent-color:#C8D4C2;margin:0}
+  .panel input[type=text],.panel input[type=number],.panel select{background:#0D0F0D;border:1px solid #2A2E2A;color:#ECEEE9;font:inherit;padding:4px 6px;border-radius:3px;width:100%}
+  .panel input[type=color]{width:24px;height:22px;padding:0;border:1px solid #2A2E2A;border-radius:3px;background:none}
+  .swatches{display:flex;gap:6px;align-items:center}
+  .swatches button{width:22px;height:22px;border:1px solid #2A2E2A;border-radius:3px;cursor:pointer;padding:0}
+  .swatches button.on{outline:2px solid #ECEEE9;outline-offset:1px}
+  .layer{border:1px solid #2A2E2A;border-radius:3px;padding:8px 10px;display:grid;gap:6px}
+  .layer.off{opacity:.45}
+  .layer h4{margin:0;font-size:11px;font-weight:500;display:flex;justify-content:space-between;align-items:center}
+  .layer h4 label{font-weight:400;color:#9BA39A;display:flex;gap:6px;align-items:center}
+  .btn{background:none;border:1px solid #2A2E2A;color:#C8D4C2;font:inherit;padding:5px 10px;border-radius:3px;cursor:pointer}
+  .btn.primary{background:#ECEEE9;color:#141614;border-color:#ECEEE9}
+  .btns{display:flex;gap:8px;flex-wrap:wrap}
+  textarea{width:100%;height:120px;background:#0D0F0D;color:#C8D4C2;border:1px solid #2A2E2A;border-radius:3px;font:10.5px/1.45 ui-monospace,Menlo,monospace;padding:8px;resize:vertical}
+  .panel.collapsed section{display:none}
+  @media (max-width:760px){.panel{left:10px;right:10px;top:auto;bottom:10px;width:auto;max-height:55vh}}
+</style>
+</head>
+<body>
+
+<div class="bg"></div>
+<div class="grid"></div>
+<main>
+  <div class="samples" id="samples"></div>
+</main>
+
+<aside class="panel" id="panel">
+  <header><span id="panelTitle">layers</span><button class="btn" id="toggle" type="button">收起</button></header>
+  <section>
+    <div class="row"><label>文字</label><input type="text" id="text"></div>
+    <div class="row"><label for="size">字号</label><input type="range" id="size" min="12" max="240" step="1"><output id="sizeOut"></output></div>
+    <div class="row"><label for="weight">字重</label><input type="range" id="weight" min="100" max="900" step="1"><output id="weightOut"></output></div>
+    <div class="row" id="italRow"><label for="ital">斜体轴</label><input type="range" id="ital" min="0" max="100" step="1"><output id="italOut"></output></div>
+    <div class="btns"><button class="btn" id="copyTier" type="button">复制到同字体其他字号</button><button class="btn" id="copyAll" type="button">复制到全部九组</button></div>
+  </section>
+  <section id="layers"></section>
+  <section>
+    <h3>导出 <span id="saved"></span></h3>
+    <textarea id="out" readonly spellcheck="false"></textarea>
+    <div class="btns"><button class="btn primary" id="copy" type="button">复制参数</button><button class="btn" id="reset" type="button">重置为初始值</button></div>
+  </section>
+</aside>
+
+<script>
+(function(){
+  const ORANGE='#F28331', YELLOW='#FDF48E';
+  const M=[ // medium preset, top → bottom
+    {on:1,opacity:10, fill:ORANGE, stroke:0, strokeColor:YELLOW, noise:1, blur:0},
+    {on:1,opacity:100,fill:ORANGE, stroke:1, strokeColor:YELLOW, noise:1, blur:5},
+    {on:1,opacity:100,fill:ORANGE, stroke:0, strokeColor:YELLOW, noise:1, blur:12},
+    {on:1,opacity:100,fill:'',     stroke:4, strokeColor:YELLOW, noise:0, blur:40},
+    {on:1,opacity:100,fill:YELLOW, stroke:1, strokeColor:YELLOW, noise:0, blur:28},
+    {on:1,opacity:100,fill:YELLOW, stroke:1, strokeColor:YELLOW, noise:0, blur:36}];
+  const S=[
+    {on:1,opacity:10, fill:ORANGE, stroke:0, strokeColor:YELLOW, noise:1, blur:0},
+    {on:1,opacity:100,fill:ORANGE, stroke:1, strokeColor:YELLOW, noise:1, blur:4},
+    {on:1,opacity:100,fill:ORANGE, stroke:0, strokeColor:YELLOW, noise:1, blur:4},
+    {on:1,opacity:100,fill:'',     stroke:2, strokeColor:YELLOW, noise:0, blur:15},
+    {on:1,opacity:100,fill:YELLOW, stroke:1, strokeColor:YELLOW, noise:0, blur:16},
+    {on:1,opacity:100,fill:YELLOW, stroke:1, strokeColor:YELLOW, noise:0, blur:20}];
+  const NOISE={opacity:20,density:50,size:0.5,color:YELLOW};
+  const FONTS=[
+    {key:'apoc', name:'Apoc',              family:'var(--font-display)', text:'N°4',          weight:106, wmin:80,  wmax:145, ital:0},
+    {key:'pp',   name:'PP Neue Montreal',  family:'var(--font-sans)',    text:'Spinal Memory',weight:400, wmin:100, wmax:700},
+    {key:'cn',   name:'Source Han Serif',  family:'var(--font-cn)',      text:'脊柱的记忆',    weight:700, wmin:200, wmax:900}];
+  const TIERS=[{key:'L',size:160,base:M},{key:'M',size:72,base:M},{key:'S',size:28,base:S}];
+  const clone=o=>JSON.parse(JSON.stringify(o));
+  function defaults(){
+    const p={noise:clone(NOISE),presets:{}};
+    FONTS.forEach(f=>TIERS.forEach(t=>{p.presets[f.key+'-'+t.key]={text:f.text,size:t.size,weight:f.weight,ital:f.ital||0,layers:clone(t.base)};}));
+    return p;
+  }
+  let state; try{state=JSON.parse(localStorage.getItem('fx-state'))}catch(e){} if(!state||!state.presets) state=defaults();
+  let cur=FONTS[0].key+'-'+TIERS[0].key;
+  const $=id=>document.getElementById(id);
+
+  function noiseURL(n){
+    const [r,g,b]=[1,3,5].map(i=>parseInt(n.color.slice(i,i+2),16)/255);
+    const freq=(0.8/Math.max(0.05,n.size)).toFixed(2);            // smaller "noise size" → higher frequency
+    const d=n.density/100, slope=(1.2+d*1.2).toFixed(2), off=(-(1-d)*0.55).toFixed(2); // density → alpha curve
+    return `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='${freq}' numOctaves='1' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 ${r.toFixed(2)}  0 0 0 0 ${g.toFixed(2)}  0 0 0 0 ${b.toFixed(2)}  0 0 0 ${slope} ${off}'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")`;
+  }
+  function layerCSS(sel,L,i){
+    const l=L[i]; if(!l.on) return `${sel} .l${i+1}{display:none}`;
+    const blur=l.blur?`filter:blur(${(l.blur/2).toFixed(2)}px);`:'';
+    const stroke=l.stroke?`-webkit-text-stroke:${l.stroke*2}px ${l.strokeColor};`:'-webkit-text-stroke:0;';
+    return `${sel} .l${i+1}{z-index:${6-i};opacity:${l.opacity/100};${blur}}
+${sel} .l${i+1} .t{color:${l.fill||'transparent'};${stroke}}
+${sel} .l${i+1} .n{display:${l.noise?'block':'none'}}`;
+  }
+  function presetCSS(key,p,font){
+    const sel=`.fx-${key}`;
+    const ital=font.key==='apoc'?`font-variation-settings:"ital" ${p.ital};`:'';
+    return [`${sel}{font-family:${font.family};font-size:${p.size}px;font-weight:${p.weight};${ital}}`,
+      ...p.layers.map((_,i)=>layerCSS(sel,p.layers,i))].join('\n');
+  }
+  function allCSS(){
+    const n=state.noise;
+    let css=`.fx .n{background-image:${noiseURL(n)};background-size:80px 80px;opacity:${n.opacity/100}}\n`;
+    FONTS.forEach(f=>TIERS.forEach(t=>{const k=f.key+'-'+t.key;css+=presetCSS(k,state.presets[k],f)+'\n';}));
+    return css;
+  }
+  function buildSamples(){
+    $('samples').innerHTML=FONTS.map(f=>`<div class="font-row"><h2>${f.name}</h2><div class="tiers">${TIERS.map(t=>{
+      const k=f.key+'-'+t.key;return `<div class="tier" data-key="${k}"><small>${t.key} · <span class="sz"></span></small><span class="fx fx-${k}" data-key="${k}"></span></div>`;}).join('')}</div></div>`).join('');
+    document.querySelectorAll('.tier').forEach(el=>el.addEventListener('click',()=>{cur=el.dataset.key;drawPanel();render();}));
+  }
+  function render(){
+    $('fxcss').textContent=allCSS();
+    document.querySelectorAll('.fx[data-key]').forEach(el=>{
+      const p=state.presets[el.dataset.key];const html=p.text.replace(/</g,'&lt;').replace(/\n/g,'<br>');
+      el.innerHTML=[1,2,3,4,5,6].map(i=>`<span class="l l${i}"><span class="t">${html}</span><span class="n">${html}</span></span>`).join('');
+      el.closest('.tier').classList.toggle('active',el.dataset.key===cur);
+      el.closest('.tier').querySelector('.sz').textContent=p.size+'px';
+    });
+    $('out').value=JSON.stringify({noise:state.noise,[cur]:state.presets[cur]},null,1).replace(/\n\s+/g,' ');
+    try{localStorage.setItem('fx-state',JSON.stringify(state));$('saved').textContent='已自动保存在本机';}catch(e){}
+  }
+  function swatch(val,cur,cb){
+    const w=document.createElement('div');w.className='swatches';
+    [['无','transparent',''],['橙',ORANGE,ORANGE],['黄',YELLOW,YELLOW]].forEach(([t,bg,v])=>{const b=document.createElement('button');b.type='button';b.title=t;b.style.background=bg;
+      if(v==='')b.style.backgroundImage='linear-gradient(135deg,transparent 45%,#E0A79A 45%,#E0A79A 55%,transparent 55%)';
+      b.classList.toggle('on',cur===v);b.addEventListener('click',()=>cb(v));w.appendChild(b);});
+    const c=document.createElement('input');c.type='color';c.value=/^#/.test(cur)?cur:'#000000';c.addEventListener('input',()=>cb(c.value.toUpperCase()));w.appendChild(c);
+    return w;
+  }
+  function range(label,val,min,max,step,fmt,cb){
+    const r=document.createElement('div');r.className='row';
+    r.innerHTML=`<label>${label}</label><input type="range" min="${min}" max="${max}" step="${step}" value="${val}"><output>${fmt(val)}</output>`;
+    const i=r.querySelector('input'),o=r.querySelector('output');i.addEventListener('input',()=>{o.textContent=fmt(+i.value);cb(+i.value);});return r;
+  }
+  function drawPanel(){
+    const p=state.presets[cur], font=FONTS.find(f=>cur.startsWith(f.key+'-'));
+    $('panelTitle').textContent=`${font.name} · ${cur.split('-')[1]}`;
+    $('text').value=p.text;$('size').value=p.size;$('sizeOut').textContent=p.size+'px';
+    $('weight').min=font.wmin;$('weight').max=font.wmax;$('weight').value=p.weight;$('weightOut').textContent=p.weight;
+    $('italRow').style.display=font.key==='apoc'?'':'none';$('ital').value=p.ital;$('italOut').textContent=p.ital;
+    const box=$('layers');box.innerHTML='<h3>六层 · 上 → 下</h3>';
+    const n=state.noise;const nb=document.createElement('div');nb.className='layer';nb.innerHTML='<h4>Noise（全局）</h4>';
+    nb.appendChild(range('不透明度',n.opacity,0,100,1,v=>v+'%',v=>{n.opacity=v;render();}));
+    nb.appendChild(range('密度',n.density,0,100,1,v=>v+'%',v=>{n.density=v;render();}));
+    nb.appendChild(range('颗粒大小',n.size,0.2,3,0.1,v=>v,v=>{n.size=v;render();}));
+    const nc=document.createElement('div');nc.className='row';nc.innerHTML='<label>颜色</label>';nc.appendChild(swatch(n.color,n.color,v=>{n.color=v||YELLOW;render();drawPanel();}));nb.appendChild(nc);
+    box.appendChild(nb);
+    p.layers.forEach((l,i)=>{
+      const d=document.createElement('div');d.className='layer'+(l.on?'':' off');
+      d.innerHTML=`<h4><span>Layer ${i+1}${i===0?' · 最上':i===5?' · 最下':''}</span><label><input type="checkbox" ${l.on?'checked':''}> 启用</label></h4>`;
+      d.querySelector('input').addEventListener('change',e=>{l.on=e.target.checked?1:0;render();drawPanel();});
+      d.appendChild(range('不透明度',l.opacity,0,100,1,v=>v+'%',v=>{l.opacity=v;render();}));
+      const fr=document.createElement('div');fr.className='row';fr.innerHTML='<label>填充</label>';fr.appendChild(swatch(l.fill,l.fill,v=>{l.fill=v;render();drawPanel();}));d.appendChild(fr);
+      d.appendChild(range('描边 outside',l.stroke,0,12,0.5,v=>v+'px',v=>{l.stroke=v;render();}));
+      const sr=document.createElement('div');sr.className='row';sr.innerHTML='<label>描边色</label>';sr.appendChild(swatch(l.strokeColor,l.strokeColor,v=>{l.strokeColor=v||YELLOW;render();drawPanel();}));d.appendChild(sr);
+      const nr=document.createElement('div');nr.className='row';nr.innerHTML=`<label>Noise</label><label><input type="checkbox" ${l.noise?'checked':''}> 开</label>`;nr.querySelector('input').addEventListener('change',e=>{l.noise=e.target.checked?1:0;render();});d.appendChild(nr);
+      d.appendChild(range('Layer blur',l.blur,0,80,1,v=>v,v=>{l.blur=v;render();}));
+      box.appendChild(d);
+    });
+  }
+  $('text').addEventListener('input',e=>{state.presets[cur].text=e.target.value;render();});
+  $('size').addEventListener('input',e=>{state.presets[cur].size=+e.target.value;$('sizeOut').textContent=e.target.value+'px';render();});
+  $('weight').addEventListener('input',e=>{state.presets[cur].weight=+e.target.value;$('weightOut').textContent=e.target.value;render();});
+  $('ital').addEventListener('input',e=>{state.presets[cur].ital=+e.target.value;$('italOut').textContent=e.target.value;render();});
+  $('copyTier').addEventListener('click',()=>{const f=cur.split('-')[0];TIERS.forEach(t=>{const k=f+'-'+t.key;if(k!==cur)state.presets[k].layers=clone(state.presets[cur].layers);});render();});
+  $('copyAll').addEventListener('click',()=>{Object.keys(state.presets).forEach(k=>{if(k!==cur)state.presets[k].layers=clone(state.presets[cur].layers);});render();});
+  $('copy').addEventListener('click',async()=>{const all=JSON.stringify(state);try{await navigator.clipboard.writeText(all);$('copy').textContent='已复制全部九组';}catch(e){$('out').value=all;$('out').select();$('copy').textContent='请手动复制';}setTimeout(()=>$('copy').textContent='复制参数',1500);});
+  $('reset').addEventListener('click',()=>{if(confirm('重置全部九组为初始值？'))
+{state=defaults();drawPanel();render();}});
+  $('toggle').addEventListener('click',()=>{const p=$('panel');p.classList.toggle('collapsed');$('toggle').textContent=p.classList.contains('collapsed')?'展开':'收起';});
+  const st=document.createElement('style');st.id='fxcss';document.head.appendChild(st);
+  buildSamples();drawPanel();render();
+})();
+</script>
+</body>
+</html>
