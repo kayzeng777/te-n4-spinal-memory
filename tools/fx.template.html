@@ -1,28 +1,9 @@
-<!doctype html>
-<html lang="zh-CN">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>te online lecture · fx</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;300;400;500;600;700;900&display=swap">
 <style>
-  @font-face{font-family:'Apoc';src:url(fonts/Apoc-Variable.woff2) format('woff2');font-weight:80 145;font-display:swap}
-  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-Thin.woff2) format('woff2');font-weight:100;font-style:normal;font-display:swap}
-  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-ThinItalic.woff2) format('woff2');font-weight:100;font-style:italic;font-display:swap}
-  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-Light.woff2) format('woff2');font-weight:300;font-style:normal;font-display:swap}
-  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-LightItalic.woff2) format('woff2');font-weight:300;font-style:italic;font-display:swap}
-  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-Book.woff2) format('woff2');font-weight:350;font-style:normal;font-display:swap}
-  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-BookItalic.woff2) format('woff2');font-weight:350;font-style:italic;font-display:swap}
-  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-Regular.woff2) format('woff2');font-weight:400;font-style:normal;font-display:swap}
-  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-Italic.woff2) format('woff2');font-weight:400;font-style:italic;font-display:swap}
-  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-Medium.woff2) format('woff2');font-weight:500;font-style:normal;font-display:swap}
-  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-MediumItalic.woff2) format('woff2');font-weight:500;font-style:italic;font-display:swap}
-  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-SemiBold.woff2) format('woff2');font-weight:600;font-style:normal;font-display:swap}
-  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-SemiBolditalic.woff2) format('woff2');font-weight:600;font-style:italic;font-display:swap}
-  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-Bold.woff2) format('woff2');font-weight:700;font-style:normal;font-display:swap}
-  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-BoldItalic.woff2) format('woff2');font-weight:700;font-style:italic;font-display:swap}
+  __FONTS__
 
   :root{
     --font-cn:"Noto Serif SC","Source Han Serif CN",serif;
@@ -85,8 +66,6 @@
   .panel.collapsed section{display:none}
   @media (max-width:760px){.panel{left:10px;right:10px;top:auto;bottom:10px;width:auto;max-height:55vh}}
 </style>
-</head>
-<body>
 
 <div class="bg"></div>
 <div class="grid"></div>
@@ -245,5 +224,3 @@ ${sel} .l${i+1} .n{display:${l.noise?'block':'none'}}`;
   buildSamples();drawPanel();render();
 })();
 </script>
-</body>
-</html>
