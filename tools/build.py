@@ -170,18 +170,24 @@ __SPINE__
   if(q.get('feather'))lens.style.setProperty('--feather',q.get('feather')+'px');
   addEventListener('pointermove',e=>{lens.style.transform=`translate(${e.clientX}px,${e.clientY}px) translate(-50%,-50%)`;},{passive:true});
   addEventListener('pointerleave',()=>{lens.style.transform='translate(-1000px,-1000px)';});
-  // cells: ~20% show a hieroglyph animal at any time, each for 1.5-5s, then another cell takes over
+  // cells: ~5% show a hieroglyph animal at any time, 7s each, then another cell takes over.
+  // while active, the cell takes the glyph's colour as background; symbol is black on light cells, white on dark.
   (function(){
     const SYMS=Array.from('𓃠𓃰𓃱𓃯𓃸𓃵𓃗𓃙𓃟𓄀𓄁𓄂𓄃𓃚𓃛𓃜𓃞𓃓𓃔𓃕𓃖𓃦𓃬𓃷𓃹𓃻𓃾𓄅𓄇𓆈𓆉𓆌𓆏𓆗𓆙𓆐𓆓𓆊𓆣𓆤𓆦𓆧𓆨𓆝𓆡𓅂𓅐𓅓𓅟𓅮𓅰𓆀');
+    const LIGHT=new Set(['#FDF48E','#D4F724']), SHARE=0.05, HOLD=7000;
     const gs=[...document.querySelectorAll('.glyphs g[clip-path]')];if(!gs.length)return;
-    const pos=gs.map(g=>{const m=/translate\((\d+),(\d+)\)/.exec(g.getAttribute('transform'));return [+m[1],+m[2]];});
-    const idx=new Map(pos.map((p,i)=>[p.join(','),i])), active=new Set(), SHARE=0.2, TARGET=Math.round(gs.length*SHARE);
+    const pos=gs.map(g=>{const m=/translate\\((\\d+),(\\d+)\\)/.exec(g.getAttribute('transform'));return [+m[1],+m[2]];});
+    const idx=new Map(pos.map((p,i)=>[p.join(','),i])), active=new Set(), TARGET=Math.round(gs.length*SHARE);
+    const rects=new Map([...document.querySelectorAll('.seg .cells rect')].map(r=>[r.getAttribute('x')+','+r.getAttribute('y'),r]));
     const rnd=n=>Math.floor(Math.random()*n);
-    const free=i=>{const [x,y]=pos[i];return !active.has(i)&&![[1,0],[-1,0],[0,1],[0,-1]].every(()=>false)&&
+    const free=i=>{const [x,y]=pos[i];return !active.has(i)&&
       ![[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dy])=>{const j=idx.get((x+dx)+','+(y+dy));return j!==undefined&&active.has(j);});};
-    function on(i,first){const t=gs[i].querySelector('text');t.dataset.orig=t.textContent;t.textContent=SYMS[rnd(SYMS.length)];
-      t.classList.add('h');gs[i].classList.add('sym');active.add(i);setTimeout(()=>off(i),(first?Math.random()*5000:1500)+Math.random()*3500);}
-    function off(i){const t=gs[i].querySelector('text');t.textContent=t.dataset.orig;t.classList.remove('h');gs[i].classList.remove('sym');active.delete(i);spawn(false);}
+    function on(i,first){const t=gs[i].querySelector('text'),r=rects.get(pos[i].join(',')),c=(t.getAttribute('fill')||'').toUpperCase();
+      t.dataset.orig=t.textContent;t.textContent=SYMS[rnd(SYMS.length)];t.classList.add('h');gs[i].classList.add('sym');
+      t.style.fill=LIGHT.has(c)?'#000':'#fff';if(r)r.style.fill=c;active.add(i);
+      setTimeout(()=>off(i),first?Math.random()*HOLD:HOLD);}
+    function off(i){const t=gs[i].querySelector('text'),r=rects.get(pos[i].join(','));t.textContent=t.dataset.orig;t.classList.remove('h');
+      gs[i].classList.remove('sym');t.style.fill='';if(r)r.style.fill='';active.delete(i);spawn(false);}
     function spawn(first){for(let k=0;k<80;k++){const i=rnd(gs.length);if(free(i)){on(i,first);return true;}}return false;}
     for(let n=0;n<TARGET*3&&active.size<TARGET;n++)spawn(true);
   })();
