@@ -11,7 +11,8 @@ IMAGES = [f'https://picsum.photos/seed/spine{i}/480/720' for i in range(9)]
 PLACEHOLDER_FILL = ['#822D00', '#F38530', '#FDF48E', '#D4F724', '#822D00', '#F38530', '#FDF48E', '#D4F724', '#822D00']
 
 head = re.match(r'<svg[^>]*>', src).group(0)
-rects = re.findall(r'<rect x="(\d+)" y="(\d+)" width="1" height="1"/>', src)
+cells_src = re.search(r'<g class="cells">(.*?)</g>', src, re.S).group(1)
+rects = re.findall(r'<rect x="(\d+)" y="(\d+)" width="1" height="1"/>', cells_src)
 defs = re.search(r'<defs>.*?</defs>', src, re.S).group(0)
 glyphs = re.findall(r'<g clip-path="url\(#k..\)" transform="translate\((\d+),(\d+)\)">.*?</g>', src, re.S)
 glyph_els = re.findall(r'(<g clip-path="url\(#k..\)" transform="translate\(\d+,(\d+)\)">.*?</g>)', src, re.S)
