@@ -20,10 +20,18 @@ def noise_url(n):
             f"<feColorMatrix values='0 0 0 0 {r:.2f}  0 0 0 0 {g:.2f}  0 0 0 0 {b:.2f}  0 0 0 {slope} {off}'/></filter>"
             f"<rect width='100%' height='100%' filter='url(%23n)'/></svg>\")")
 
+def noise_defs():
+    if not PRESETS: return ''
+    uri = noise_url(PRESETS['noise'])[5:-2].replace('"', '&quot;')  # strip url(" ... ")
+    return ('<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>'
+            '<pattern id="fxnoise" patternUnits="userSpaceOnUse" width="450" height="450">'
+            f'<image href="{uri}" width="450" height="450" preserveAspectRatio="none"/></pattern></defs></svg>')
+
 def preset_css():
     if not PRESETS: return ''
     n = PRESETS['noise']
-    css = [f".fx .n{{background-image:{noise_url(n)};background-size:80px 80px;opacity:{n['opacity']/100}}}"]
+    css = [f".fx .n{{background-image:{noise_url(n)};background-size:80px 80px;opacity:{n['opacity']/100}}}",
+           ".fx .n svg{fill:url(#fxnoise);stroke:none}"]
     for key in PRESETS.get('order', PRESETS['presets'].keys()):
         p = PRESETS['presets'][key]; f = p['font']
         slug = re.sub(r'[^a-z0-9]+', '-', p['name'].lower()).strip('-')
@@ -122,10 +130,10 @@ HEAD = '''<title>te online lecture</title>
   .title{right:var(--pad);top:var(--pad);text-align:right}
   .foot{left:var(--pad);bottom:var(--pad)}
   .fx-logo{line-height:0}
-  .fx-logo svg{height:48px;width:auto;display:block;overflow:visible}
+  .fx-logo svg{height:72px;width:auto;display:block;overflow:visible}
   .fx-title{font-size:48px}
   .fx-no{font-size:36px}
-  @media (max-width:760px){:root{--pad:20px}.fx-logo svg{height:36px}.fx-title{font-size:32px}.fx-no{font-size:26px}.fx-pp-s{font-size:15px}}
+  @media (max-width:760px){:root{--pad:20px}.fx-logo svg{height:48px}.fx-title{font-size:32px}.fx-no{font-size:26px}.fx-pp-s{font-size:15px}}
   .lens{position:fixed;left:0;top:0;width:var(--lens,100px);height:var(--lens,100px);border-radius:50%;background:#D9D9D9;filter:blur(var(--feather,2px));
     mix-blend-mode:difference;pointer-events:none;z-index:100;transform:translate(-1000px,-1000px);will-change:transform;display:none}
   @media (hover:hover) and (pointer:fine){.lens{display:block}}
@@ -136,6 +144,7 @@ BODY = '''
 <div class="bg"></div>
 <div class="grid"></div>
 <div class="lens" id="lens"></div>
+__NOISEDEFS__
 <div class="poster">
   <div class="head">
     <div class="fx fx-apoc-m fx-logo" data-fx aria-label="te">__LOGO__</div>
@@ -165,7 +174,7 @@ __FXJS__
 
 def page(inline):
     return (HEAD.replace('__FONTS__', font_faces(inline)).replace('__FXBASE__', FX_BASE_CSS).replace('__FXPRESETS__', preset_css())
-            + BODY.replace('__SPINE__', SPINE).replace('__FXJS__', FX_JS).replace('__LOGO__', LOGO))
+            + BODY.replace('__SPINE__', SPINE).replace('__FXJS__', FX_JS).replace('__LOGO__', LOGO).replace('__NOISEDEFS__', noise_defs()))
 
 repo_doc = ('<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8">\n'
             '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
