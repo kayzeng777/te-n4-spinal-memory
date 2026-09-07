@@ -10,12 +10,35 @@ CUTS = [15, 32, 48, 65, 78, 97, 113, 129]
 IMAGES = ['images/web/01-05-7.jpg', 'images/web/02-09-5.jpg', 'images/web/03-fig-5.jpg', 'images/web/04-fig1.jpg', 'images/web/05-fig3.jpg', 'images/web/06-fig7.jpg', 'images/web/07-front-portrait.jpg', 'images/web/08-zir8.jpg', 'images/web/09-3.jpg']
 PLACEHOLDER_FILL = ['#822D00', '#F38530', '#FDF48E', '#D4F724', '#822D00', '#F38530', '#FDF48E', '#D4F724', '#822D00']
 
+import random
+SYMBOLS = [c for c in '𓃠 𓃰 𓃱 𓃯 𓃸 𓃵 𓃗 𓃙 𓃟 𓄀 𓄁 𓄂 𓄃 𓃚 𓃛 𓃜 𓃞 𓃓 𓃔 𓃕 𓃖 𓃦 𓃬 𓃷 𓃹 𓃻 𓃾 𓄅 𓄇 𓆈 𓆉 𓆌 𓆏 𓆗 𓆙 𓆐 𓆓 𓆊 𓆣 𓆤 𓆦 𓆧 𓆨 𓆝 𓆡 𓅂 𓅐 𓅓 𓅟 𓅮 𓅰 𓆀' if not c.isspace()]
+SYMBOL_SHARE = 0.60
+rng = random.Random(4)
+
+def pick_symbol_cells(positions):
+    """~60% of cells, preferring cells whose 4-neighbours are not already picked."""
+    pos = set(positions); order = list(positions); rng.shuffle(order)
+    target = round(len(order) * SYMBOL_SHARE); chosen = set()
+    for x, y in order:  # pass 1: no adjacent picks
+        if len(chosen) >= target: break
+        if not any(n in chosen for n in ((x-1,y),(x+1,y),(x,y-1),(x,y+1))): chosen.add((x, y))
+    for x, y in order:  # pass 2: top up randomly
+        if len(chosen) >= target: break
+        chosen.add((x, y))
+    return chosen
+
 head = re.match(r'<svg[^>]*>', src).group(0)
 cells_src = re.search(r'<g class="cells">(.*?)</g>', src, re.S).group(1)
 rects = re.findall(r'<rect x="(\d+)" y="(\d+)" width="1" height="1"/>', cells_src)
 defs = re.search(r'<defs>.*?</defs>', src, re.S).group(0)
 glyphs = re.findall(r'<g clip-path="url\(#k..\)" transform="translate\((\d+),(\d+)\)">.*?</g>', src, re.S)
-glyph_els = re.findall(r'(<g clip-path="url\(#k..\)" transform="translate\(\d+,(\d+)\)">.*?</g>)', src, re.S)
+glyph_els = re.findall(r'(<g clip-path="url\(#k..\)" transform="translate\((\d+),(\d+)\)">.*?</g>)', src, re.S)
+symbol_cells = pick_symbol_cells([(int(x), int(y)) for _, x, y in glyph_els])
+def symbolize(el, x, y):
+    if (x, y) not in symbol_cells: return el
+    return re.sub(r'<text ([^>]*)>[^<]*</text>', lambda m: f'<text class="h" {m.group(1)}>{rng.choice(SYMBOLS)}</text>', el)
+glyph_els = [(symbolize(el, int(x), int(y)), y) for el, x, y in glyph_els]
+print(f'symbol cells: {len(symbol_cells)} of {len(glyph_els)}')
 
 def seg_of(y):
     y = int(y)

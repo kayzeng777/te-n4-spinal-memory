@@ -85,7 +85,7 @@ def font_faces(inline):
 HEAD = '''<title>te online lecture</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;300;400;500;600;700;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;300;400;500;600;700;900&family=Noto+Sans+Egyptian+Hieroglyphs&display=swap">
 <style>
   __FONTS__
 
@@ -118,6 +118,7 @@ HEAD = '''<title>te online lecture</title>
   .spine{width:calc(32 * var(--cell));height:auto;overflow:visible;display:block}
   .cells rect{fill:#fff;stroke:#cccccc;stroke-width:.05;stroke-dasharray:.14 .1;shape-rendering:crispEdges}
   .glyphs text{font-family:Menlo,Consolas,"DejaVu Sans Mono",monospace;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+  .glyphs text.h{font-family:"Noto Sans Egyptian Hieroglyphs",sans-serif;font-size:.9px}
   .seg .pic{opacity:0;transition:opacity .25s ease}
   .seg:hover .pic,.seg.active .pic{opacity:1}
   .seg{cursor:pointer}
@@ -127,7 +128,7 @@ HEAD = '''<title>te online lecture</title>
   .poster{position:fixed;inset:0;z-index:3;pointer-events:none;padding:var(--pad)}
   .poster>*{position:absolute;pointer-events:auto;width:max-content;margin:0}
   .poster h1,.poster p{margin:0}
-  .head{left:var(--pad);top:var(--pad);display:flex;flex-direction:row;gap:24px;align-items:flex-start}
+  .head{left:var(--pad);top:var(--pad);display:flex;flex-direction:row;gap:16px;align-items:flex-start}
   .title{right:var(--pad);top:var(--pad);text-align:right}
   .foot{left:var(--pad);bottom:var(--pad)}
   .fx-logo{line-height:0}
