@@ -10,7 +10,6 @@ PP = [('Thin',100,'normal'),('ThinItalic',100,'italic'),('Light',300,'normal'),(
       ('Book',350,'normal'),('BookItalic',350,'italic'),('Regular',400,'normal'),('Italic',400,'italic'),
       ('Medium',500,'normal'),('MediumItalic',500,'italic'),('SemiBold',600,'normal'),('SemiBolditalic',600,'italic'),
       ('Bold',700,'normal'),('BoldItalic',700,'italic')]
-INLINE_PP = {'Book','Regular','Medium','Italic','Bold'}
 
 def font_src(name, inline):
     path = os.path.join(REPO, 'fonts', name + '.woff2')
@@ -22,7 +21,6 @@ def font_src(name, inline):
 def font_faces(inline):
     out = [f"@font-face{{font-family:'Apoc';src:{font_src('Apoc-Variable', inline)};font-weight:80 145;font-display:swap}}"]
     for n, w, s in PP:
-        if inline and n not in INLINE_PP: continue
         out.append(f"@font-face{{font-family:'PP Neue Montreal';src:{font_src('PPNeueMontreal-'+n, inline)};font-weight:{w};font-style:{s};font-display:swap}}")
     return '\n  '.join(out)
 
