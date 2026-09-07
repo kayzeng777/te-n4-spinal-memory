@@ -56,12 +56,16 @@
   .seg .pic{opacity:0;transition:opacity .25s ease}
   .seg:hover .pic,.seg.active .pic{opacity:1}
   .seg{cursor:pointer}
+  .lens{position:fixed;left:0;top:0;width:var(--lens,240px);height:var(--lens,240px);border-radius:50%;background:#D9D9D9;
+    mix-blend-mode:difference;pointer-events:none;z-index:100;transform:translate(-50%,-50%);will-change:transform;display:none}
+  @media (hover:hover) and (pointer:fine){.lens{display:block}}
 
 </style>
 </head>
 <body>
 <div class="bg"></div>
 <div class="grid"></div>
+<div class="lens" id="lens"></div>
 <main id="content">
 <svg class="spine" viewBox="0 0 32 146" xmlns="http://www.w3.org/2000/svg" aria-label="spine">
 <defs><clipPath id="kcc"><rect x="0" y="0" width="1" height="1"/></clipPath><clipPath id="kco"><rect x="0" y="0" width="2" height="1"/></clipPath><clipPath id="koc"><rect x="-1" y="0" width="2" height="1"/></clipPath><clipPath id="koo"><rect x="-1" y="0" width="3" height="1"/></clipPath></defs>
@@ -80,6 +84,9 @@
     const on=g.classList.contains('active');document.querySelectorAll('.seg.active').forEach(x=>x.classList.remove('active'));
     if(!on)g.classList.add('active');e.stopPropagation();}));
   document.addEventListener('click',()=>document.querySelectorAll('.seg.active').forEach(x=>x.classList.remove('active')));
+  const lens=document.getElementById('lens');
+  addEventListener('pointermove',e=>{lens.style.transform=`translate(${e.clientX}px,${e.clientY}px) translate(-50%,-50%)`;},{passive:true});
+  addEventListener('pointerleave',()=>{lens.style.transform='translate(-1000px,-1000px)';});
 </script>
 </main>
 </body>

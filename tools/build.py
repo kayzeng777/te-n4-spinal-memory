@@ -63,12 +63,16 @@ HEAD = '''<title>te online lecture</title>
   .seg .pic{opacity:0;transition:opacity .25s ease}
   .seg:hover .pic,.seg.active .pic{opacity:1}
   .seg{cursor:pointer}
+  .lens{position:fixed;left:0;top:0;width:var(--lens,240px);height:var(--lens,240px);border-radius:50%;background:#D9D9D9;
+    mix-blend-mode:difference;pointer-events:none;z-index:100;transform:translate(-50%,-50%);will-change:transform;display:none}
+  @media (hover:hover) and (pointer:fine){.lens{display:block}}
 
 </style>'''
 
 BODY = '''
 <div class="bg"></div>
 <div class="grid"></div>
+<div class="lens" id="lens"></div>
 <main id="content">
 __SPINE__
 <script>
@@ -76,6 +80,9 @@ __SPINE__
     const on=g.classList.contains('active');document.querySelectorAll('.seg.active').forEach(x=>x.classList.remove('active'));
     if(!on)g.classList.add('active');e.stopPropagation();}));
   document.addEventListener('click',()=>document.querySelectorAll('.seg.active').forEach(x=>x.classList.remove('active')));
+  const lens=document.getElementById('lens');
+  addEventListener('pointermove',e=>{lens.style.transform=`translate(${e.clientX}px,${e.clientY}px) translate(-50%,-50%)`;},{passive:true});
+  addEventListener('pointerleave',()=>{lens.style.transform='translate(-1000px,-1000px)';});
 </script>
 </main>
 '''
