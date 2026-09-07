@@ -50,7 +50,7 @@ def preset_css():
             css.append(f"{sel} .l{i} .n{{display:{'block' if l['noise'] else 'none'}}}")
     return '\n  '.join(css)
 
-FX_BASE_CSS = '''.fx{position:relative;display:inline-block;white-space:nowrap}
+FX_BASE_CSS = '''.fx{position:relative;display:inline-block;white-space:nowrap;margin:0}
   .fx .l{position:absolute;inset:0}
   .fx .l:first-child{position:relative}
   .fx .l>span{display:block}
@@ -125,7 +125,8 @@ HEAD = '''<title>te online lecture</title>
   __FXPRESETS__
   :root{--pad:48px}
   .poster{position:fixed;inset:0;z-index:3;pointer-events:none;padding:var(--pad)}
-  .poster>*{position:absolute;pointer-events:auto;width:max-content}
+  .poster>*{position:absolute;pointer-events:auto;width:max-content;margin:0}
+  .poster h1,.poster p{margin:0}
   .head{left:var(--pad);top:var(--pad);display:flex;flex-direction:column;gap:20px;align-items:flex-start}
   .title{right:var(--pad);top:var(--pad);text-align:right}
   .foot{left:var(--pad);bottom:var(--pad)}

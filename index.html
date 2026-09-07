@@ -56,7 +56,7 @@
   .seg .pic{opacity:0;transition:opacity .25s ease}
   .seg:hover .pic,.seg.active .pic{opacity:1}
   .seg{cursor:pointer}
-  .fx{position:relative;display:inline-block;white-space:nowrap}
+  .fx{position:relative;display:inline-block;white-space:nowrap;margin:0}
   .fx .l{position:absolute;inset:0}
   .fx .l:first-child{position:relative}
   .fx .l>span{display:block}
@@ -391,7 +391,8 @@
   .fx-cn-xs .l6 .n{display:none}
   :root{--pad:48px}
   .poster{position:fixed;inset:0;z-index:3;pointer-events:none;padding:var(--pad)}
-  .poster>*{position:absolute;pointer-events:auto;width:max-content}
+  .poster>*{position:absolute;pointer-events:auto;width:max-content;margin:0}
+  .poster h1,.poster p{margin:0}
   .head{left:var(--pad);top:var(--pad);display:flex;flex-direction:column;gap:20px;align-items:flex-start}
   .title{right:var(--pad);top:var(--pad);text-align:right}
   .foot{left:var(--pad);bottom:var(--pad)}
