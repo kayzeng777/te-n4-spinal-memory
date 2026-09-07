@@ -132,7 +132,7 @@ HEAD = '''<title>te online lecture</title>
   .foot{left:var(--pad);bottom:var(--pad)}
   .fx-logo{line-height:0}
   .fx-logo svg{height:120px;width:auto;display:block;overflow:visible}
-  .fx-title{font-size:48px}
+  .fx-title{font-size:48px;font-weight:106}
   .fx-no{font-size:48px;white-space:pre}
   @media (max-width:760px){:root{--pad:16px}.fx-logo svg{height:72px}.fx-title{font-size:32px}.fx-no{font-size:32px}.fx-pp-s{font-size:15px}}
   .lens{position:fixed;left:0;top:0;width:var(--lens,100px);height:var(--lens,100px);border-radius:50%;background:#D9D9D9;filter:blur(var(--feather,2px));
