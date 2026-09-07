@@ -128,7 +128,7 @@
       weights:[['Thin',100],['Light',300],['Book',350],['Regular',400],['Medium',500],['SemiBold',600],['Bold',700]]},
     {key:'cn',   name:'Source Han Serif',  family:'var(--font-cn)',      text:'脊柱的记忆',    weight:700, lh:1.2, ls:0.05, italic:null,
       weights:[['ExtraLight',200],['Light',300],['Regular',400],['Medium',500],['SemiBold',600],['Bold',700],['Heavy',900]]}];
-  const TIERS=[{key:'L',size:160,base:M},{key:'M',size:72,base:M},{key:'S',size:28,base:S}];
+  const TIERS=[{key:'L',size:160,base:M},{key:'M',size:72,base:M},{key:'S',size:28,base:S},{key:'XS',size:14,base:S}];
   const clone=o=>JSON.parse(JSON.stringify(o));
   let uid=0; const newKey=f=>f+'-'+(Date.now().toString(36))+(uid++);
   function defaults(){
@@ -141,6 +141,9 @@
   if(!state.order) state.order=Object.keys(state.presets);
   Object.entries(state.presets).forEach(([k,p])=>{if(!p.font)p.font=k.split('-')[0];if(!p.name)p.name=k.split('-')[1];
     const f=FONTS.find(f=>f.key===p.font);if(p.lh==null)p.lh=f.lh;if(p.ls==null)p.ls=f.ls;});
+  FONTS.forEach(f=>{if(!state.order.some(k=>state.presets[k].font===f.key&&state.presets[k].name==='XS')){
+    const t=TIERS.find(t=>t.key==='XS'),k=f.key+'-XS';state.presets[k]={font:f.key,name:'XS',text:f.text,size:t.size,weight:f.weight,ital:f.ital||0,lh:f.lh,ls:f.ls,layers:clone(t.base)};
+    let i=state.order.length;for(let j=state.order.length-1;j>=0;j--)if(state.presets[state.order[j]].font===f.key){i=j+1;break;}state.order.splice(i,0,k);}});
   const fontOf=k=>FONTS.find(f=>f.key===state.presets[k].font);
   let cur=state.order[0];
   const $=id=>document.getElementById(id);
@@ -249,7 +252,7 @@ ${sel} .l${i+1} .n{display:${l.noise?'block':'none'}}`;
   $('copyTier').addEventListener('click',()=>{const f=state.presets[cur].font;state.order.forEach(k=>{if(k!==cur&&state.presets[k].font===f)state.presets[k].layers=clone(state.presets[cur].layers);});render();});
   $('copyAll').addEventListener('click',()=>{Object.keys(state.presets).forEach(k=>{if(k!==cur)state.presets[k].layers=clone(state.presets[cur].layers);});render();});
   $('copy').addEventListener('click',async()=>{const all=JSON.stringify(state);try{await navigator.clipboard.writeText(all);$('copy').textContent='已复制全部';}catch(e){$('out').value=all;$('out').select();$('copy').textContent='请手动复制';}setTimeout(()=>$('copy').textContent='复制参数',1500);});
-  $('reset').addEventListener('click',()=>{if(confirm('重置为初始的九组？'))
+  $('reset').addEventListener('click',()=>{if(confirm('重置为初始的十二组？'))
 {state=defaults();cur=state.order[0];buildSamples();drawPanel();render();}});
   $('toggle').addEventListener('click',()=>{const p=$('panel');p.classList.toggle('collapsed');$('toggle').textContent=p.classList.contains('collapsed')?'展开':'收起';});
   const st=document.createElement('style');st.id='fxcss';document.head.appendChild(st);
