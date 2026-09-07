@@ -63,7 +63,7 @@ HEAD = '''<title>te online lecture</title>
   .seg .pic{opacity:0;transition:opacity .25s ease}
   .seg:hover .pic,.seg.active .pic{opacity:1}
   .seg{cursor:pointer}
-  .lens{position:fixed;left:0;top:0;width:var(--lens,20px);height:var(--lens,20px);border-radius:50%;background:#D9D9D9;filter:blur(var(--feather,1.5px));
+  .lens{position:fixed;left:0;top:0;width:var(--lens,40px);height:var(--lens,40px);border-radius:50%;background:#D9D9D9;filter:blur(var(--feather,2px));
     mix-blend-mode:difference;pointer-events:none;z-index:100;transform:translate(-50%,-50%);will-change:transform;display:none}
   @media (hover:hover) and (pointer:fine){.lens{display:block}}
 
