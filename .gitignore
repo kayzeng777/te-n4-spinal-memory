@@ -1,2 +1,4 @@
 artifact.html
 .DS_Store
+images/*
+!images/web/

@@ -7,7 +7,7 @@ src = open(os.path.join(HERE, 'spine.svg.part')).read()
 
 # first row of each segment after the first; chosen at narrow points between vertebrae
 CUTS = [15, 32, 48, 65, 78, 97, 113, 129]
-IMAGES = [f'https://picsum.photos/seed/spine{i}/480/720' for i in range(9)]
+IMAGES = ['images/web/01-05-7.jpg', 'images/web/02-09-5.jpg', 'images/web/03-fig-5.jpg', 'images/web/04-fig1.jpg', 'images/web/05-fig3.jpg', 'images/web/06-fig7.jpg', 'images/web/07-front-portrait.jpg', 'images/web/08-zir8.jpg', 'images/web/09-3.jpg']
 PLACEHOLDER_FILL = ['#822D00', '#F38530', '#FDF48E', '#D4F724', '#822D00', '#F38530', '#FDF48E', '#D4F724', '#822D00']
 
 head = re.match(r'<svg[^>]*>', src).group(0)
