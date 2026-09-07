@@ -123,18 +123,18 @@ HEAD = '''<title>te online lecture</title>
   .seg{cursor:pointer}
   __FXBASE__
   __FXPRESETS__
-  :root{--pad:48px}
+  :root{--pad:24px}
   .poster{position:fixed;inset:0;z-index:3;pointer-events:none;padding:var(--pad)}
   .poster>*{position:absolute;pointer-events:auto;width:max-content;margin:0}
   .poster h1,.poster p{margin:0}
-  .head{left:var(--pad);top:var(--pad);display:flex;flex-direction:column;gap:20px;align-items:flex-start}
+  .head{left:var(--pad);top:var(--pad);display:flex;flex-direction:row;gap:24px;align-items:flex-start}
   .title{right:var(--pad);top:var(--pad);text-align:right}
   .foot{left:var(--pad);bottom:var(--pad)}
   .fx-logo{line-height:0}
   .fx-logo svg{height:120px;width:auto;display:block;overflow:visible}
   .fx-title{font-size:48px}
   .fx-no{font-size:48px;white-space:pre}
-  @media (max-width:760px){:root{--pad:24px}.fx-logo svg{height:72px}.fx-title{font-size:32px}.fx-no{font-size:32px}.fx-pp-s{font-size:15px}}
+  @media (max-width:760px){:root{--pad:16px}.fx-logo svg{height:72px}.fx-title{font-size:32px}.fx-no{font-size:32px}.fx-pp-s{font-size:15px}}
   .lens{position:fixed;left:0;top:0;width:var(--lens,100px);height:var(--lens,100px);border-radius:50%;background:#D9D9D9;filter:blur(var(--feather,2px));
     mix-blend-mode:difference;pointer-events:none;z-index:100;transform:translate(-1000px,-1000px);will-change:transform;display:none}
   @media (hover:hover) and (pointer:fine){.lens{display:block}}
