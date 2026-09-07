@@ -118,7 +118,8 @@ HEAD = '''<title>te online lecture</title>
   .spine{width:calc(32 * var(--cell));height:auto;overflow:visible;display:block}
   .cells rect{fill:#fff;stroke:#cccccc;stroke-width:.05;stroke-dasharray:.14 .1;shape-rendering:crispEdges}
   .glyphs text{font-family:Menlo,Consolas,"DejaVu Sans Mono",monospace;text-anchor:middle;dominant-baseline:central;pointer-events:none}
-  .glyphs text.h{font-family:"Noto Sans Egyptian Hieroglyphs",sans-serif;font-size:.9px}
+  .glyphs text.h{font-family:"Noto Sans Egyptian Hieroglyphs",sans-serif;font-size:1.1px}
+  .glyphs g.sym{clip-path:none}
   .seg .pic{opacity:0;transition:opacity .25s ease}
   .seg:hover .pic,.seg.active .pic{opacity:1}
   .seg{cursor:pointer}
@@ -169,6 +170,21 @@ __SPINE__
   if(q.get('feather'))lens.style.setProperty('--feather',q.get('feather')+'px');
   addEventListener('pointermove',e=>{lens.style.transform=`translate(${e.clientX}px,${e.clientY}px) translate(-50%,-50%)`;},{passive:true});
   addEventListener('pointerleave',()=>{lens.style.transform='translate(-1000px,-1000px)';});
+  // cells: ~20% show a hieroglyph animal at any time, each for 1.5-5s, then another cell takes over
+  (function(){
+    const SYMS=Array.from('𓃠𓃰𓃱𓃯𓃸𓃵𓃗𓃙𓃟𓄀𓄁𓄂𓄃𓃚𓃛𓃜𓃞𓃓𓃔𓃕𓃖𓃦𓃬𓃷𓃹𓃻𓃾𓄅𓄇𓆈𓆉𓆌𓆏𓆗𓆙𓆐𓆓𓆊𓆣𓆤𓆦𓆧𓆨𓆝𓆡𓅂𓅐𓅓𓅟𓅮𓅰𓆀');
+    const gs=[...document.querySelectorAll('.glyphs g[clip-path]')];if(!gs.length)return;
+    const pos=gs.map(g=>{const m=/translate\((\d+),(\d+)\)/.exec(g.getAttribute('transform'));return [+m[1],+m[2]];});
+    const idx=new Map(pos.map((p,i)=>[p.join(','),i])), active=new Set(), SHARE=0.2, TARGET=Math.round(gs.length*SHARE);
+    const rnd=n=>Math.floor(Math.random()*n);
+    const free=i=>{const [x,y]=pos[i];return !active.has(i)&&![[1,0],[-1,0],[0,1],[0,-1]].every(()=>false)&&
+      ![[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dy])=>{const j=idx.get((x+dx)+','+(y+dy));return j!==undefined&&active.has(j);});};
+    function on(i,first){const t=gs[i].querySelector('text');t.dataset.orig=t.textContent;t.textContent=SYMS[rnd(SYMS.length)];
+      t.classList.add('h');gs[i].classList.add('sym');active.add(i);setTimeout(()=>off(i),(first?Math.random()*5000:1500)+Math.random()*3500);}
+    function off(i){const t=gs[i].querySelector('text');t.textContent=t.dataset.orig;t.classList.remove('h');gs[i].classList.remove('sym');active.delete(i);spawn(false);}
+    function spawn(first){for(let k=0;k<80;k++){const i=rnd(gs.length);if(free(i)){on(i,first);return true;}}return false;}
+    for(let n=0;n<TARGET*3&&active.size<TARGET;n++)spawn(true);
+  })();
 </script>
 __FXJS__
 </main>

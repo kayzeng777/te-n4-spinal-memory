@@ -12,7 +12,7 @@ PLACEHOLDER_FILL = ['#822D00', '#F38530', '#FDF48E', '#D4F724', '#822D00', '#F38
 
 import random
 SYMBOLS = [c for c in '𓃠 𓃰 𓃱 𓃯 𓃸 𓃵 𓃗 𓃙 𓃟 𓄀 𓄁 𓄂 𓄃 𓃚 𓃛 𓃜 𓃞 𓃓 𓃔 𓃕 𓃖 𓃦 𓃬 𓃷 𓃹 𓃻 𓃾 𓄅 𓄇 𓆈 𓆉 𓆌 𓆏 𓆗 𓆙 𓆐 𓆓 𓆊 𓆣 𓆤 𓆦 𓆧 𓆨 𓆝 𓆡 𓅂 𓅐 𓅓 𓅟 𓅮 𓅰 𓆀' if not c.isspace()]
-SYMBOL_SHARE = 0.60
+SYMBOL_SHARE = 0.0  # static share; live cycling is done in JS (see build.py)
 rng = random.Random(4)
 
 def pick_symbol_cells(positions):
