@@ -84,7 +84,9 @@
     const on=g.classList.contains('active');document.querySelectorAll('.seg.active').forEach(x=>x.classList.remove('active'));
     if(!on)g.classList.add('active');e.stopPropagation();}));
   document.addEventListener('click',()=>document.querySelectorAll('.seg.active').forEach(x=>x.classList.remove('active')));
-  const lens=document.getElementById('lens');
+  const lens=document.getElementById('lens'), q=new URLSearchParams(location.search);
+  if(q.get('lens'))lens.style.setProperty('--lens',q.get('lens')+'px');
+  if(q.get('feather'))lens.style.setProperty('--feather',q.get('feather')+'px');
   addEventListener('pointermove',e=>{lens.style.transform=`translate(${e.clientX}px,${e.clientY}px) translate(-50%,-50%)`;},{passive:true});
   addEventListener('pointerleave',()=>{lens.style.transform='translate(-1000px,-1000px)';});
 </script>
