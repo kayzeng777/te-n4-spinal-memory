@@ -109,7 +109,6 @@ HEAD = '''<title>te online lecture</title>
   .seg .pic{opacity:0;transition:opacity .25s ease}
   .seg:hover .pic,.seg.active .pic{opacity:1}
   .seg{cursor:pointer}
-  .seg .glyphs{filter:url(#glow)}
   __FXBASE__
   __FXPRESETS__
   .lens{position:fixed;left:0;top:0;width:var(--lens,100px);height:var(--lens,100px);border-radius:50%;background:#D9D9D9;filter:blur(var(--feather,2px));
