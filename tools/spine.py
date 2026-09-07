@@ -27,7 +27,11 @@ for x, y in rects:
 for el, y in glyph_els:
     segs[seg_of(y)]['glyphs'].append(el)
 
-out = [head, defs]
+GLOW = ('<filter id="glow" x="-30%" y="-30%" width="160%" height="160%" filterUnits="objectBoundingBox">'
+        '<feGaussianBlur stdDeviation="0.22" result="b"/>'
+        '<feComponentTransfer in="b" result="g"><feFuncA type="linear" slope="1.4"/></feComponentTransfer>'
+        '<feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>')
+out = [head, defs.replace('</defs>', GLOW + '</defs>')]
 for i, s in enumerate(segs):
     xs = [x for x, _ in s['rects']]; ys = [y for _, y in s['rects']]
     x0, y0, x1, y1 = min(xs), min(ys), max(xs) + 1, max(ys) + 1
