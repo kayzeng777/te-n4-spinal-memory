@@ -56,6 +56,13 @@
   .seg .pic{opacity:0;transition:opacity .25s ease}
   .seg:hover .pic,.seg.active .pic{opacity:1}
   .seg{cursor:pointer}
+  .fx{position:relative;display:inline-block;white-space:nowrap}
+  .fx .l{position:absolute;inset:0}
+  .fx .l:first-child{position:relative}
+  .fx .l>span{display:block}
+  .fx .n{position:absolute;inset:0;color:transparent;-webkit-background-clip:text;background-clip:text}
+  .fx .t{paint-order:stroke fill}
+  
   .lens{position:fixed;left:0;top:0;width:var(--lens,100px);height:var(--lens,100px);border-radius:50%;background:#D9D9D9;filter:blur(var(--feather,2px));
     mix-blend-mode:difference;pointer-events:none;z-index:100;transform:translate(-50%,-50%);will-change:transform;display:none}
   @media (hover:hover) and (pointer:fine){.lens{display:block}}
@@ -89,6 +96,11 @@
   if(q.get('feather'))lens.style.setProperty('--feather',q.get('feather')+'px');
   addEventListener('pointermove',e=>{lens.style.transform=`translate(${e.clientX}px,${e.clientY}px) translate(-50%,-50%)`;},{passive:true});
   addEventListener('pointerleave',()=>{lens.style.transform='translate(-1000px,-1000px)';});
+</script>
+<script>
+  document.querySelectorAll('[data-fx]').forEach(el=>{const html=el.innerHTML;el.innerHTML='';
+    for(let i=1;i<=6;i++){const l=document.createElement('span');l.className='l l'+i;
+      l.innerHTML='<span class="t">'+html+'</span><span class="n">'+html+'</span>';el.appendChild(l);}});
 </script>
 </main>
 </body>
