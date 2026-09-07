@@ -63,8 +63,7 @@ HEAD = '''<title>te online lecture</title>
   .seg .pic{opacity:0;transition:opacity .25s ease}
   .seg:hover .pic,.seg.active .pic{opacity:1}
   .seg{cursor:pointer}
-  .lens{position:fixed;left:0;top:0;width:var(--lens,300px);height:var(--lens,300px);border-radius:50%;
-    background:radial-gradient(circle closest-side,#D9D9D9 calc(100% - var(--feather,40%)),rgba(217,217,217,0) 100%);
+  .lens{position:fixed;left:0;top:0;width:var(--lens,240px);height:var(--lens,240px);border-radius:50%;background:#D9D9D9;filter:blur(var(--feather,12px));
     mix-blend-mode:difference;pointer-events:none;z-index:100;transform:translate(-50%,-50%);will-change:transform;display:none}
   @media (hover:hover) and (pointer:fine){.lens{display:block}}
 
