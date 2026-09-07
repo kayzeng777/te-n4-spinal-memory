@@ -37,6 +37,8 @@ def preset_css():
             stroke = f"-webkit-text-stroke:{l['stroke']*2}px {l['strokeColor']};" if l['stroke'] else '-webkit-text-stroke:0;'
             css.append(f"{sel} .l{i}{{z-index:{7-i};opacity:{l['opacity']/100};{blur}}}")
             css.append(f"{sel} .l{i} .t{{color:{l['fill'] or 'transparent'};{stroke}}}")
+            svg_stroke = f"stroke:{l['strokeColor']};stroke-width:{l['stroke']*2}px;" if l['stroke'] else 'stroke:none;'
+            css.append(f"{sel} .l{i} .t svg{{fill:{l['fill'] or 'none'};{svg_stroke}paint-order:stroke fill}}")
             css.append(f"{sel} .l{i} .n{{display:{'block' if l['noise'] else 'none'}}}")
     return '\n  '.join(css)
 
@@ -46,7 +48,8 @@ FX_BASE_CSS = '''.fx{position:relative;display:inline-block;white-space:nowrap}
   .fx .l>span{display:block}
   .fx .n{position:absolute;inset:0;color:transparent;-webkit-background-clip:text;background-clip:text}
   .fx .t{paint-order:stroke fill}'''
-LOGO = '<svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 405.76 481.63">\n  <path d="M114.11,0c-.01.91-.03,1.82-.03,2.72,0,37.34,0,74.67,0,112.01v2.97c6.41.12,12.68.04,18.94.05,6.29.01,12.59,0,18.88,0h75.65c.48,1.69.54,16.63.07,18.88h-113.43c-.04.91-.1,1.59-.1,2.28,0,87.89.04,175.78-.04,263.67-.02,23.15,16.08,42.26,37.46,46.96,25.8,5.67,51.84-11.48,56.6-37.5.54-2.94.81-5.97.82-8.95.06-27.41.04-54.82.04-82.23,0-.83,0-1.67,0-2.46,1.58-.49,16.06-.6,18.88-.14,0,.77,0,1.58,0,2.4,0,23.35,0,46.71,0,70.06,0,3.36.05,6.71.03,10.07-.17,35.88-24.74,68.57-60.98,78.13-4.46,1.18-9,1.99-13.61,2.34-.62.05-1.22.24-1.83.36h-10.91c-.61-.13-1.21-.28-1.82-.37-3.31-.5-6.69-.73-9.93-1.51-29.56-7.15-49.69-25.01-60.17-53.56-3.07-8.37-4.45-17.12-4.44-26.08.02-81.92.01-163.84.01-245.76,0-5.1,0-10.21,0-15.31,0-.74,0-1.48,0-2.39-1.13,0-1.96,0-2.79,0-19.5,0-39,0-58.5-.01-.97,0-1.93-.18-2.9-.28,0-6.15,0-12.31,0-18.46,1.11-.04,2.23-.12,3.34-.12,19.43,0,38.86,0,58.3,0,.81,0,1.62-.05,2.55-.08V0h49.92Z"/>\n  <path d="M386.94,318.11h18.7c.02.82.07,1.63.07,2.44,0,22.79,0,45.59,0,68.38,0,3.71,0,7.41.03,11.12.14,15.77-4.25,30.26-12.81,43.39-12.91,19.8-31.09,32.16-54.36,36.34-44.59,8.01-85.72-21.09-94.67-63.86-1.16-5.53-1.79-11.13-1.79-16.83.06-72.99.06-145.99,0-218.98,0-7.54,1.11-14.89,3.14-22.1,8.34-29.59,32.37-52.06,62.5-58.02,46.12-9.13,87.41,21,96.33,63.01,1.09,5.14,1.69,10.31,1.68,15.59-.05,33.21-.03,66.42-.03,99.63,0,.83,0,1.66,0,2.76h-113.7v2.52c0,39.64-.02,79.29,0,118.93.01,23.78,17.12,43.73,40.68,47.16,25.4,3.7,48.35-13.27,53.23-37.36.66-3.26.95-6.65.95-9.99.07-27.13.04-54.26.04-81.38,0-.89,0-1.78,0-2.76ZM356.01,262.05c.04-.8.1-1.48.1-2.16.05-36.97.12-73.95.13-110.92,0-18.86-16.55-33.63-35.34-31.6-16.52,1.78-28.88,15.32-28.9,31.85-.05,36.98-.02,73.95,0,110.93,0,.61.08,1.22.13,1.9h63.89Z"/>\n</svg>'
+LOGO_RAW = '<svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 405.76 481.63">\n  <path d="M114.11,0c-.01.91-.03,1.82-.03,2.72,0,37.34,0,74.67,0,112.01v2.97c6.41.12,12.68.04,18.94.05,6.29.01,12.59,0,18.88,0h75.65c.48,1.69.54,16.63.07,18.88h-113.43c-.04.91-.1,1.59-.1,2.28,0,87.89.04,175.78-.04,263.67-.02,23.15,16.08,42.26,37.46,46.96,25.8,5.67,51.84-11.48,56.6-37.5.54-2.94.81-5.97.82-8.95.06-27.41.04-54.82.04-82.23,0-.83,0-1.67,0-2.46,1.58-.49,16.06-.6,18.88-.14,0,.77,0,1.58,0,2.4,0,23.35,0,46.71,0,70.06,0,3.36.05,6.71.03,10.07-.17,35.88-24.74,68.57-60.98,78.13-4.46,1.18-9,1.99-13.61,2.34-.62.05-1.22.24-1.83.36h-10.91c-.61-.13-1.21-.28-1.82-.37-3.31-.5-6.69-.73-9.93-1.51-29.56-7.15-49.69-25.01-60.17-53.56-3.07-8.37-4.45-17.12-4.44-26.08.02-81.92.01-163.84.01-245.76,0-5.1,0-10.21,0-15.31,0-.74,0-1.48,0-2.39-1.13,0-1.96,0-2.79,0-19.5,0-39,0-58.5-.01-.97,0-1.93-.18-2.9-.28,0-6.15,0-12.31,0-18.46,1.11-.04,2.23-.12,3.34-.12,19.43,0,38.86,0,58.3,0,.81,0,1.62-.05,2.55-.08V0h49.92Z"/>\n  <path d="M386.94,318.11h18.7c.02.82.07,1.63.07,2.44,0,22.79,0,45.59,0,68.38,0,3.71,0,7.41.03,11.12.14,15.77-4.25,30.26-12.81,43.39-12.91,19.8-31.09,32.16-54.36,36.34-44.59,8.01-85.72-21.09-94.67-63.86-1.16-5.53-1.79-11.13-1.79-16.83.06-72.99.06-145.99,0-218.98,0-7.54,1.11-14.89,3.14-22.1,8.34-29.59,32.37-52.06,62.5-58.02,46.12-9.13,87.41,21,96.33,63.01,1.09,5.14,1.69,10.31,1.68,15.59-.05,33.21-.03,66.42-.03,99.63,0,.83,0,1.66,0,2.76h-113.7v2.52c0,39.64-.02,79.29,0,118.93.01,23.78,17.12,43.73,40.68,47.16,25.4,3.7,48.35-13.27,53.23-37.36.66-3.26.95-6.65.95-9.99.07-27.13.04-54.26.04-81.38,0-.89,0-1.78,0-2.76ZM356.01,262.05c.04-.8.1-1.48.1-2.16.05-36.97.12-73.95.13-110.92,0-18.86-16.55-33.63-35.34-31.6-16.52,1.78-28.88,15.32-28.9,31.85-.05,36.98-.02,73.95,0,110.93,0,.61.08,1.22.13,1.9h63.89Z"/>\n</svg>'
+LOGO = LOGO_RAW.replace('<path ', '<path vector-effect="non-scaling-stroke" ')
 FX_JS = '''<script>
   document.querySelectorAll('[data-fx]').forEach(el=>{const html=el.innerHTML;el.innerHTML='';
     for(let i=1;i<=6;i++){const l=document.createElement('span');l.className='l l'+i;
@@ -113,12 +116,16 @@ HEAD = '''<title>te online lecture</title>
   __FXBASE__
   __FXPRESETS__
   :root{--pad:32px}
-  .poster{position:fixed;inset:0;z-index:3;pointer-events:none;padding:var(--pad);display:flex;flex-direction:column;justify-content:space-between}
-  .poster>*{pointer-events:auto;width:max-content}
-  .logo{height:56px;width:auto;display:block;fill:var(--ink);margin-bottom:28px}
-  .head{display:flex;flex-direction:column;gap:12px;align-items:flex-start}
-  .foot{display:flex;flex-direction:column;gap:12px;align-items:flex-start}
-  @media (max-width:760px){:root{--pad:20px}.logo{height:40px;margin-bottom:16px}.fx-apoc-l{font-size:54px}.fx-apoc-m{font-size:40px}.fx-pp-s{font-size:15px}}
+  .poster{position:fixed;inset:0;z-index:3;pointer-events:none;padding:var(--pad)}
+  .poster>*{position:absolute;pointer-events:auto;width:max-content}
+  .head{left:var(--pad);top:var(--pad);display:flex;flex-direction:column;gap:20px;align-items:flex-start}
+  .title{right:var(--pad);top:var(--pad);text-align:right}
+  .foot{left:var(--pad);bottom:var(--pad)}
+  .fx-logo{line-height:0}
+  .fx-logo svg{height:48px;width:auto;display:block;overflow:visible}
+  .fx-title{font-size:48px}
+  .fx-no{font-size:36px}
+  @media (max-width:760px){:root{--pad:20px}.fx-logo svg{height:36px}.fx-title{font-size:32px}.fx-no{font-size:26px}.fx-pp-s{font-size:15px}}
   .lens{position:fixed;left:0;top:0;width:var(--lens,100px);height:var(--lens,100px);border-radius:50%;background:#D9D9D9;filter:blur(var(--feather,2px));
     mix-blend-mode:difference;pointer-events:none;z-index:100;transform:translate(-1000px,-1000px);will-change:transform;display:none}
   @media (hover:hover) and (pointer:fine){.lens{display:block}}
@@ -131,10 +138,10 @@ BODY = '''
 <div class="lens" id="lens"></div>
 <div class="poster">
   <div class="head">
-    __LOGO__
-    <h1 class="fx fx-apoc-l" data-fx>Spinal Memory</h1>
-    <div class="fx fx-apoc-m" data-fx>N°<br>&nbsp;&nbsp;4</div>
+    <div class="fx fx-apoc-m fx-logo" data-fx aria-label="te">__LOGO__</div>
+    <div class="fx fx-apoc-s fx-no" data-fx>N°4</div>
   </div>
+  <h1 class="fx fx-apoc-m fx-title title" data-fx>Spinal<br>Memory</h1>
   <div class="foot">
     <p class="fx fx-pp-s" data-fx>Online Lecture<br>5 weeks<br>Oct 10 ~ Nov 7, 2026<br>9am EDT / 9pm CST</p>
   </div>
