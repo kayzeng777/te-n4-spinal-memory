@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+"""Split the flat spine SVG (spine.svg.part) into hoverable segments -> spine.seg.part."""
+import os, re
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+src = open(os.path.join(HERE, 'spine.svg.part')).read()
+
+# first row of each segment after the first; chosen at narrow points between vertebrae
+CUTS = [15, 32, 48, 65, 78, 97, 113, 129]
+IMAGES = [f'https://picsum.photos/seed/spine{i}/480/720' for i in range(9)]
+PLACEHOLDER_FILL = ['#822D00', '#F38530', '#FDF48E', '#D4F724', '#822D00', '#F38530', '#FDF48E', '#D4F724', '#822D00']
+
+head = re.match(r'<svg[^>]*>', src).group(0)
+rects = re.findall(r'<rect x="(\d+)" y="(\d+)" width="1" height="1"/>', src)
+defs = re.search(r'<defs>.*?</defs>', src, re.S).group(0)
+glyphs = re.findall(r'<g clip-path="url\(#k..\)" transform="translate\((\d+),(\d+)\)">.*?</g>', src, re.S)
+glyph_els = re.findall(r'(<g clip-path="url\(#k..\)" transform="translate\(\d+,(\d+)\)">.*?</g>)', src, re.S)
+
+def seg_of(y):
+    y = int(y)
+    return sum(1 for c in CUTS if y >= c)
+
+segs = [{'rects': [], 'glyphs': []} for _ in range(9)]
+for x, y in rects:
+    segs[seg_of(y)]['rects'].append((int(x), int(y)))
+for el, y in glyph_els:
+    segs[seg_of(y)]['glyphs'].append(el)
+
+out = [head, defs]
+for i, s in enumerate(segs):
+    xs = [x for x, _ in s['rects']]; ys = [y for _, y in s['rects']]
+    x0, y0, x1, y1 = min(xs), min(ys), max(xs) + 1, max(ys) + 1
+    rect_str = ''.join(f'<rect x="{x}" y="{y}" width="1" height="1"/>' for x, y in s['rects'])
+    out.append(
+        f'<g class="seg" data-seg="{i}">'
+        f'<clipPath id="segclip-{i}">{rect_str}</clipPath>'
+        f'<g class="cells">{rect_str}</g>'
+        f'<g class="glyphs">{"".join(s["glyphs"])}</g>'
+        f'<g class="pic" clip-path="url(#segclip-{i})">'
+        f'<rect x="{x0}" y="{y0}" width="{x1-x0}" height="{y1-y0}" fill="{PLACEHOLDER_FILL[i]}"/>'
+        f'<image href="{IMAGES[i]}" x="{x0}" y="{y0}" width="{x1-x0}" height="{y1-y0}" preserveAspectRatio="xMidYMid slice"/>'
+        f'</g></g>')
+    print(f'seg {i}: rows {y0}-{y1-1}, {len(s["rects"])} cells, {len(s["glyphs"])} glyphs')
+out.append('</svg>')
+open(os.path.join(HERE, 'spine.seg.part'), 'w').write('\n'.join(out))

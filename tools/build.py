@@ -4,7 +4,7 @@ import base64, os, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
-SPINE = open(os.path.join(HERE, 'spine.svg.part')).read()
+SPINE = open(os.path.join(HERE, 'spine.seg.part')).read()
 
 PP = [('Thin',100,'normal'),('ThinItalic',100,'italic'),('Light',300,'normal'),('LightItalic',300,'italic'),
       ('Book',350,'normal'),('BookItalic',350,'italic'),('Regular',400,'normal'),('Italic',400,'italic'),
@@ -60,6 +60,9 @@ HEAD = '''<title>te online lecture</title>
   .spine{width:calc(32 * var(--cell));height:auto;overflow:visible;display:block}
   .cells rect{fill:#fff;stroke:#cccccc;stroke-width:.05;stroke-dasharray:.14 .1;shape-rendering:crispEdges}
   .glyphs text{font-family:Menlo,Consolas,"DejaVu Sans Mono",monospace;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+  .seg .pic{opacity:0;transition:opacity .25s ease}
+  .seg:hover .pic,.seg.active .pic{opacity:1}
+  .seg{cursor:pointer}
 
 </style>'''
 
@@ -68,6 +71,12 @@ BODY = '''
 <div class="grid"></div>
 <main id="content">
 __SPINE__
+<script>
+  document.querySelectorAll('.seg').forEach(g=>g.addEventListener('click',e=>{
+    const on=g.classList.contains('active');document.querySelectorAll('.seg.active').forEach(x=>x.classList.remove('active'));
+    if(!on)g.classList.add('active');e.stopPropagation();}));
+  document.addEventListener('click',()=>document.querySelectorAll('.seg.active').forEach(x=>x.classList.remove('active')));
+</script>
 </main>
 '''
 

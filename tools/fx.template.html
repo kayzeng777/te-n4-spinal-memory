@@ -28,6 +28,9 @@
   .spine{width:calc(32 * var(--cell));height:auto;overflow:visible;display:block;flex:none}
   .cells rect{fill:#fff;stroke:#cccccc;stroke-width:.05;stroke-dasharray:.14 .1;shape-rendering:crispEdges}
   .glyphs text{font-family:Menlo,Consolas,"DejaVu Sans Mono",monospace;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+  .seg .pic{opacity:0;transition:opacity .25s ease}
+  .seg:hover .pic,.seg.active .pic{opacity:1}
+  .seg{cursor:pointer}
   @media (max-width:760px){main{padding:24px 16px 60vh}.stage{flex-direction:column}.samples{width:100%}}
 
   .samples{display:grid;gap:48px}
