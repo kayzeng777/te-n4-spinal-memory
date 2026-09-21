@@ -140,7 +140,7 @@
     lh:{serif:.95, sans:1.05},
     ls:{serif:0, sans:0},
     e:{morph:0, stroke:0, feather:.045, grainSize:.022, scaleGrain:1, grain:1.1, hard:6,
-       soften:.018, core:.012, inset:1, evenness:3, dilate:.060, halo:.210,
+       soften:.018, core:.012, inset:.008, evenness:3, dilate:.060, halo:.210,
        fill:'#F28331', glow:'#FDF48E'},
     grain:{op:.18, freq:.85, mode:'overlay'},
   };
@@ -199,7 +199,10 @@
           svg('feFuncA',{type:'linear',slope:e.hard,intercept:mid})]),
         svg('feGaussianBlur',{in:'eaten',stdDeviation:(fs*e.soften).toFixed(2),result:'edgesoft'}),
         // keep the inside solid: the noise should only eat the outer band, not speckle the stem
-        svg('feMorphology',{in:'shape',operator:'erode',radius:(fs*e.feather*e.inset).toFixed(2),result:'solid'}),
+        // the protected core is its own small radius, NOT tied to the feather: if it
+        // followed a big feather it would erode thin strokes away entirely, and those
+        // strokes also lose peak alpha to the blur, so they vanish while thick ones stay
+        svg('feMorphology',{in:'shape',operator:'erode',radius:(fs*e.inset).toFixed(2),result:'solid'}),
         svg('feComposite',{in:'solid',in2:'edgesoft',operator:'over',result:'alpha'}),
         // mask the real glyph with that edge, so its own fill and stroke survive
         svg('feGaussianBlur',{in:'SourceGraphic',stdDeviation:(fs*e.core).toFixed(2),result:'glyph'}),
@@ -266,7 +269,7 @@
   field(eB,'压硬',S.e,'hard',1,20,.5);
   field(eB,'边缘模糊 ×fs',S.e,'soften',0,.08,.002);
   field(eB,'字身模糊 ×fs',S.e,'core',0,.06,.002);
-  field(eB,'实心内核',S.e,'inset',0,3,.1);
+  field(eB,'实心内核 ×fs',S.e,'inset',0,.05,.002);
   field(eB,'撑大 ×fs',S.e,'dilate',0,.2,.005);
   field(eB,'外光模糊 ×fs',S.e,'halo',0,.5,.005);
   toggle(eB,'噪点跟随字号',S.e,'scaleGrain');
