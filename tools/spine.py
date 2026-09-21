@@ -56,6 +56,30 @@ for el, y in rects:
 for el, y in glyph_els:
     segs[seg_of(y)]['glyphs'].append(el)
 
+CLIP_EPS = 0.03   # overlap between clip rects, to close anti-aliasing seams
+
+
+def clip_path(els):
+    """Merge each row of cells into runs so the clip has as few seams as possible."""
+    rows = collections.defaultdict(list)
+    for el, _ in els:
+        x, y, w, h = map(float, re.search(RECT, el).groups())
+        rows[(y, h)].append((x, w))
+    out = []
+    for (y, h), spans in sorted(rows.items()):
+        spans.sort()
+        cx, cw = spans[0]
+        for x, w in spans[1:]:
+            if abs(x - (cx + cw)) < 1e-6:
+                cw += w
+            else:
+                out.append((cx, y, cw, h)); cx, cw = x, w
+        out.append((cx, y, cw, h))
+    return ''.join(
+        f'<rect x="{x-CLIP_EPS:g}" y="{y-CLIP_EPS:g}" '
+        f'width="{w+2*CLIP_EPS:g}" height="{h+2*CLIP_EPS:g}"/>' for x, y, w, h in out)
+
+
 def bbox(els):
     xs, ys = [], []
     for el, _ in els:
@@ -70,7 +94,7 @@ for i, s in enumerate(segs):
     rect_str = ''.join(el for el, _ in s['rects'])
     out.append(
         f'<g class="seg" data-seg="{i}">'
-        f'<clipPath id="segclip-{i}">{rect_str}</clipPath>'
+        f'<clipPath id="segclip-{i}">{clip_path(s["rects"])}</clipPath>'
         f'<g class="cells">{rect_str}</g>'
         f'<g class="glyphs">{"".join(s["glyphs"])}</g>'
         f'<g class="pic" clip-path="url(#segclip-{i})">'

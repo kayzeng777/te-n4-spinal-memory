@@ -36,24 +36,33 @@ if not cells:
 
 xs = [x for x, _ in cells]; ys = [y for _, y in cells]
 x0, y0 = min(xs), min(ys)
-COLS = max(xs) - x0 + 1 + 2 * PAD
+W = max(xs) - x0 + 1
 ROWS = max(ys) - y0 + 1 + 2 * PAD
+
+# the drawing's mass usually sits off the middle of its bounding box, so pad the
+# lighter side until the centre of mass lands on the middle of the viewBox
+com = sum(xs) / len(xs) - x0 + 0.5          # centre of mass, in cell units
+PAD_L = PAD + max(0, round(W - 2 * com))
+while PAD_L + com <= (PAD_L + W + PAD) / 2:  # keep at least PAD clear on the right
+    PAD_L += 1
+COLS = 2 * (PAD_L + com)                     # viewBox centre == centre of mass
 
 # blanks the outside can reach are background; the rest are holes inside the spine
 def interior_blanks():
-    seen, stack = set(), []
-    lo_c, hi_c, lo_r, hi_r = -PAD, COLS - PAD, -PAD, ROWS - PAD
-    for c in range(lo_c, hi_c + 1):
-        stack += [(c, lo_r), (c, hi_r)]
-    for r in range(lo_r, hi_r + 1):
-        stack += [(lo_c, r), (hi_c, r)]
+    """Flood the blank space from outside the drawing; whatever it cannot reach is a hole."""
+    H = max(ys) - y0 + 1
+    lo_c, hi_c, lo_r, hi_r = -1, W, -1, H          # one ring of margin around the bbox
+    seen, stack = set(), [(c, lo_r) for c in range(lo_c, hi_c + 1)]
+    stack += [(c, hi_r) for c in range(lo_c, hi_c + 1)]
+    stack += [(lo_c, r) for r in range(lo_r, hi_r + 1)]
+    stack += [(hi_c, r) for r in range(lo_r, hi_r + 1)]
     while stack:
         c, r = stack.pop()
         if (c, r) in seen or not (lo_c <= c <= hi_c and lo_r <= r <= hi_r): continue
         if (c + x0, r + y0) in cells: continue
         seen.add((c, r))
         stack += [(c + 1, r), (c - 1, r), (c, r + 1), (c, r - 1)]
-    return {(c, r) for c in range(0, COLS - 2 * PAD) for r in range(0, ROWS - 2 * PAD)
+    return {(c, r) for c in range(W) for r in range(H)
             if (c + x0, r + y0) not in cells and (c, r) not in seen}
 
 
@@ -73,7 +82,7 @@ rects, glyphs = [], []
 
 
 for (x, y), tone in sorted(PAINT.items(), key=lambda kv: (kv[0][1], kv[0][0])):
-    cx = x - x0 + PAD
+    cx = x - x0 + PAD_L
     cy = (y - y0 + PAD) * ASPECT
     r = y - y0 + PAD
     glyph = GLYPH
@@ -82,13 +91,13 @@ for (x, y), tone in sorted(PAINT.items(), key=lambda kv: (kv[0][1], kv[0][0])):
     glyphs.append(f'<text x="{cx + 0.5:g}" y="{cy + ASPECT / 2:g}" data-c="{cx}" data-r="{r}" '
                   f'textLength="1" lengthAdjust="spacingAndGlyphs" fill="{tone}">{glyph}</text>')
 
-out = (f'<svg class="spine" viewBox="0 0 {COLS} {ROWS * ASPECT:g}" '
+out = (f'<svg class="spine" viewBox="0 0 {COLS:.3f} {ROWS * ASPECT:g}" '
        f'xmlns="http://www.w3.org/2000/svg" aria-label="spine">\n'
        f'<g class="cells">{"".join(rects)}</g>\n<g class="glyphs">{"".join(glyphs)}</g>\n</svg>')
 open(OUT, 'w').write(out)
 
 tally = collections.Counter(cells.values())
-print(f'grid {COLS} x {ROWS} cells (pad {PAD}, aspect {ASPECT}), '
+print(f'grid {COLS:.2f} x {ROWS} cells (pad L{PAD_L}, aspect {ASPECT}), '
       f'{len(cells)} drawn + {len(HOLES)} enclosed blanks, all as {GLYPH}')
 for ch, n in sorted(tally.items(), key=lambda kv: DENSITY.index(kv[0]) if kv[0] in DENSITY else 9):
     print(f'  {ch} -> {GLYPH}  {n:5d}  ink {TONE[ch]}')
