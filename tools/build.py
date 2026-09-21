@@ -116,9 +116,9 @@ HEAD = '''<title>te online lecture</title>
     background-position:calc(50% + var(--cell) / 2) 8vh;}
   main{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;padding:8vh 0 12vh}
   .spine{width:calc(__COLS__ * var(--cell));height:auto;overflow:visible;display:block}
-  .cells rect{fill:#fff;stroke:#cccccc;stroke-width:.05;stroke-dasharray:.14 .1;shape-rendering:crispEdges}
-  .glyphs text{font-family:Menlo,Consolas,"DejaVu Sans Mono",monospace;font-size:1.6px;text-anchor:middle;dominant-baseline:central;pointer-events:none}
-  .glyphs text.h{font-family:"Noto Sans Egyptian Hieroglyphs",sans-serif;font-size:1.5px}
+  .cells rect{stroke:#cccccc;stroke-width:.05;stroke-dasharray:.14 .1;shape-rendering:crispEdges}
+  .glyphs text{font-size:1.6px;text-anchor:middle;dominant-baseline:central;pointer-events:none;fill-opacity:0}
+  .glyphs text.h{font-family:"Noto Sans Egyptian Hieroglyphs",sans-serif;font-size:1.5px;fill-opacity:1}
   .seg .pic{opacity:0;transition:opacity .25s ease}
   .seg:hover .pic,.seg.active .pic{opacity:1}
   .seg{cursor:pointer}
@@ -169,26 +169,26 @@ __SPINE__
   if(q.get('feather'))lens.style.setProperty('--feather',q.get('feather')+'px');
   addEventListener('pointermove',e=>{lens.style.transform=`translate(${e.clientX}px,${e.clientY}px) translate(-50%,-50%)`;},{passive:true});
   addEventListener('pointerleave',()=>{lens.style.transform='translate(-1000px,-1000px)';});
-  // cells: ~5% swap their shade character for a hieroglyph animal, 7s each, then another cell takes over.
-  // while active the cell takes the glyph's colour as background, symbol black on light / white on dark.
+  // cells: ~5% show a hieroglyph animal at a time, 7s each, then another cell takes over.
+  // the cell keeps its own tone; the animal is drawn black or white, whichever reads on it.
   (function(){
     const SYMS=Array.from('𓃠𓃰𓃱𓃯𓃸𓃵𓃗𓃙𓃟𓄀𓄁𓄂𓄃𓃚𓃛𓃜𓃞𓃓𓃔𓃕𓃖𓃦𓃬𓃷𓃹𓃻𓃾𓄅𓄇𓆈𓆉𓆌𓆏𓆗𓆙𓆐𓆓𓆊𓆣𓆤𓆦𓆧𓆨𓆝𓆡𓅂𓅐𓅓𓅟𓅮𓅰𓆀');
-    const LIGHT=new Set(['#FDF48E','#D4F724']), SHARE=0.05, HOLD=7000;
+    const SHARE=0.05, HOLD=7000;
     const ts=[...document.querySelectorAll('.glyphs text')];if(!ts.length)return;
-    const cell=t=>t.dataset.c+','+t.dataset.r;
-    const idx=new Map(ts.map((t,i)=>[cell(t),i])), active=new Set(), TARGET=Math.round(ts.length*SHARE);
-    const rects=new Map([...document.querySelectorAll('.seg .cells rect')].map(r=>[r.dataset.c+','+r.dataset.r,r]));
+    const lum=h=>{const v=[1,3,5].map(i=>parseInt(h.substr(i,2),16)/255)
+      .map(c=>c<=.03928?c/12.92:Math.pow((c+.055)/1.055,2.4));
+      return .2126*v[0]+.7152*v[1]+.0722*v[2];};
+    const key=t=>t.dataset.c+','+t.dataset.r;
+    const idx=new Map(ts.map((t,i)=>[key(t),i])), active=new Set(), TARGET=Math.round(ts.length*SHARE);
     const rnd=n=>Math.floor(Math.random()*n);
     const free=i=>{const c=+ts[i].dataset.c,r=+ts[i].dataset.r;return !active.has(i)&&
       ![[1,0],[-1,0],[0,1],[0,-1]].some(([dc,dr])=>{const j=idx.get((c+dc)+','+(r+dr));return j!==undefined&&active.has(j);});};
-    function on(i,first){const t=ts[i],rect=rects.get(cell(t)),col=(t.getAttribute('fill')||'').toUpperCase();
+    function on(i,first){const t=ts[i];
       t.dataset.orig=t.textContent;t.textContent=SYMS[rnd(SYMS.length)];t.classList.add('h');
-      t.removeAttribute('textLength');t.removeAttribute('lengthAdjust');
-      t.style.fill=LIGHT.has(col)?'#000':'#fff';if(rect)rect.style.fill=col;active.add(i);
+      t.style.fill=lum(t.getAttribute('fill')||'#000')>0.2?'#000':'#fff';active.add(i);
       setTimeout(()=>off(i),first?Math.random()*HOLD:HOLD);}
-    function off(i){const t=ts[i],rect=rects.get(cell(t));t.textContent=t.dataset.orig;t.classList.remove('h');
-      t.setAttribute('textLength','1');t.setAttribute('lengthAdjust','spacingAndGlyphs');
-      t.style.fill='';if(rect)rect.style.fill='';active.delete(i);spawn(false);}
+    function off(i){const t=ts[i];t.textContent=t.dataset.orig;t.classList.remove('h');
+      t.style.fill='';active.delete(i);spawn(false);}
     function spawn(first){for(let k=0;k<80;k++){const i=rnd(ts.length);if(free(i)){on(i,first);return true;}}return false;}
     for(let n=0;n<TARGET*3&&active.size<TARGET;n++)spawn(true);
   })();
