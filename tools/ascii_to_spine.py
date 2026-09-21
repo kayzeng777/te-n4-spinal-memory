@@ -34,6 +34,38 @@ cells = {(x, y): ch for y, line in enumerate(lines)
 if not cells:
     sys.exit('no content')
 
+# Each row's centre drifts off the overall axis, so the spine leans and the left
+# and right margins read as uneven. Nudge whole rows back onto the axis, using a
+# moving average so the correction eases in over many rows instead of stepping.
+STRAIGHTEN = True
+SMOOTH = 15          # rows averaged either side when working out a row's drift
+MAX_SHIFT = 4        # cells a row may be moved
+
+
+def straighten(cells):
+    weight = {ch: i + 1 for i, ch in enumerate(DENSITY)}
+    rows = collections.defaultdict(list)
+    for (x, y), ch in cells.items():
+        rows[y].append((x, weight.get(ch, 2)))
+    ys = sorted(rows)
+    centre = {y: sum(x * w for x, w in rows[y]) / sum(w for _, w in rows[y]) for y in ys}
+    axis = sum(centre.values()) / len(centre)
+    half = SMOOTH // 2
+    shift = {}
+    for i, y in enumerate(ys):
+        near = [centre[ys[j]] for j in range(max(0, i - half), min(len(ys), i + half + 1))]
+        drift = sum(near) / len(near) - axis
+        shift[y] = max(-MAX_SHIFT, min(MAX_SHIFT, round(-drift)))
+    moved = {(x + shift[y], y): ch for (x, y), ch in cells.items()}
+    worst = max(abs(v) for v in shift.values())
+    print(f'  straightened: {sum(1 for v in shift.values() if v)} of {len(ys)} rows moved, '
+          f'up to {worst} cells')
+    return moved
+
+
+if STRAIGHTEN:
+    cells = straighten(cells)
+
 xs = [x for x, _ in cells]; ys = [y for _, y in cells]
 x0, y0 = min(xs), min(ys)
 W = max(xs) - x0 + 1
