@@ -3,7 +3,7 @@
 
 One cell per non-space character: a
 white cell with the character drawn on it in the colour for its shade level.
-Blank cells enclosed by the drawing are filled with the background green.
+Blank cells enclosed by the drawing take part too, in green.
 Cells are 1 unit wide and ASPECT tall, matching a monospace character box, so the
 drawing keeps the proportions it had in a terminal.
 """
@@ -21,7 +21,7 @@ TONE = {'░': '#FDF48E', '▒': '#F8BC5F', '▓': '#F38530', '█': '#822D00'}
 GLYPH = '▓'
 FALLBACK = '#F38530'
 CELL = '#ffffff'
-HOLE = '#65BE8D'   # blank cells enclosed by the drawing, no character
+HOLE = '#86C689'   # blank cells enclosed by the drawing get a ▓ in this green
 
 lines = open(SRC).read().split('\n')
 cells = {(x, y): ch for y, line in enumerate(lines)
@@ -54,18 +54,17 @@ def interior_blanks():
 
 HOLES = interior_blanks()
 
+# every cell, drawn or enclosed blank, is white with a ▓ in its own colour
+PAINT = {(x, y): TONE.get(ch, FALLBACK) for (x, y), ch in cells.items()}
+PAINT.update({(c + x0, r + y0): HOLE for c, r in HOLES})
+
 rects, glyphs = [], []
-for c, r in sorted(HOLES, key=lambda p: (p[1], p[0])):
-    cx, cy = c + PAD, (r + PAD) * ASPECT
-    rects.append(f'<rect x="{cx}" y="{cy:g}" width="1" height="{ASPECT:g}" '
-                 f'data-c="{cx}" data-r="{r + PAD}" fill="{HOLE}"/>')
 
 
-for (x, y), ch in sorted(cells.items(), key=lambda kv: (kv[0][1], kv[0][0])):
+for (x, y), tone in sorted(PAINT.items(), key=lambda kv: (kv[0][1], kv[0][0])):
     cx = x - x0 + PAD
     cy = (y - y0 + PAD) * ASPECT
     r = y - y0 + PAD
-    tone = TONE.get(ch, FALLBACK)
     glyph = GLYPH
     rects.append(f'<rect x="{cx}" y="{cy:g}" width="1" height="{ASPECT:g}" '
                  f'data-c="{cx}" data-r="{r}" fill="{CELL}"/>')
@@ -79,6 +78,7 @@ open(os.path.join(HERE, 'spine.svg.part'), 'w').write(out)
 
 tally = collections.Counter(cells.values())
 print(f'grid {COLS} x {ROWS} cells (pad {PAD}, aspect {ASPECT}), '
-      f'{len(cells)} drawn + {len(HOLES)} enclosed blanks in {HOLE}')
+      f'{len(cells)} drawn + {len(HOLES)} enclosed blanks, all as {GLYPH}')
 for ch, n in sorted(tally.items(), key=lambda kv: list(TONE).index(kv[0])):
     print(f'  {ch} -> {GLYPH}  {n:5d}  ink {TONE[ch]}')
+print(f'  hole -> {GLYPH}  {len(HOLES):5d}  ink {HOLE}')

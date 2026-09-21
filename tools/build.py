@@ -117,8 +117,9 @@ HEAD = '''<title>te online lecture</title>
   main{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;padding:8vh 0 12vh}
   .spine{width:calc(__COLS__ * var(--cell));height:auto;overflow:visible;display:block}
   .cells rect{stroke:#cccccc;stroke-width:.05;stroke-dasharray:.14 .1;shape-rendering:crispEdges}
-  .glyphs text{font-family:Menlo,Consolas,"DejaVu Sans Mono",monospace;font-size:1.85px;text-anchor:middle;dominant-baseline:central;pointer-events:none}
-  .glyphs text.h{font-family:"Noto Sans Egyptian Hieroglyphs",sans-serif;font-size:1.5px}
+  .glyphs{--gfs:1.57px;--gdy:0.41px}
+  .glyphs text{font-family:Menlo,Consolas,"DejaVu Sans Mono",monospace;font-size:var(--gfs);text-anchor:middle;dominant-baseline:auto;transform:translateY(var(--gdy));pointer-events:none}
+  .glyphs text.h{font-family:"Noto Sans Egyptian Hieroglyphs",sans-serif;font-size:1.5px;dominant-baseline:central;transform:none}
   .seg .pic{opacity:0;transition:opacity .25s ease}
   .seg:hover .pic,.seg.active .pic{opacity:1}
   .seg{cursor:pointer}
@@ -169,6 +170,18 @@ __SPINE__
   if(q.get('feather'))lens.style.setProperty('--feather',q.get('feather')+'px');
   addEventListener('pointermove',e=>{lens.style.transform=`translate(${e.clientX}px,${e.clientY}px) translate(-50%,-50%)`;},{passive:true});
   addEventListener('pointerleave',()=>{lens.style.transform='translate(-1000px,-1000px)';});
+  // size ▓ so its ink exactly fills a cell, whichever monospace font actually resolved
+  (function(){
+    const t=document.querySelector('.glyphs text');if(!t)return;
+    const c=document.createElement('canvas').getContext('2d');
+    c.font='100px '+getComputedStyle(t).fontFamily;
+    const m=c.measureText('▓'), a=m.actualBoundingBoxAscent/100, d=m.actualBoundingBoxDescent/100;
+    if(!(a+d))return;
+    const CELL=1.6, fs=CELL/(a+d);
+    document.querySelectorAll('.glyphs').forEach(g=>{
+      g.style.setProperty('--gfs',fs.toFixed(4)+'px');
+      g.style.setProperty('--gdy',(CELL*a/(a+d)-CELL/2).toFixed(4)+'px');});
+  })();
   // cells: ~5% show a hieroglyph animal at a time, 7s each, then another cell takes over.
   // while active the cell takes that glyph's colour as its background, and the animal is
   // drawn black on the light tones, white on the dark ones.
@@ -176,7 +189,7 @@ __SPINE__
     const SYMS=Array.from('𓃠𓃰𓃱𓃯𓃸𓃵𓃗𓃙𓃟𓄀𓄁𓄂𓄃𓃚𓃛𓃜𓃞𓃓𓃔𓃕𓃖𓃦𓃬𓃷𓃹𓃻𓃾𓄅𓄇𓆈𓆉𓆌𓆏𓆗𓆙𓆐𓆓𓆊𓆣𓆤𓆦𓆧𓆨𓆝𓆡𓅂𓅐𓅓𓅟𓅮𓅰𓆀');
     const SHARE=0.05, HOLD=7000;
     const ts=[...document.querySelectorAll('.glyphs text')];if(!ts.length)return;
-    const LIGHT=new Set(['#FDF48E','#D4F724','#F8BC5F']);
+    const LIGHT=new Set(['#FDF48E','#D4F724','#F8BC5F','#86C689']);
     const key=t=>t.dataset.c+','+t.dataset.r;
     const rects=new Map([...document.querySelectorAll('.seg .cells rect')].map(r=>[r.dataset.c+','+r.dataset.r,r]));
     const idx=new Map(ts.map((t,i)=>[key(t),i])), active=new Set(), TARGET=Math.round(ts.length*SHARE);
