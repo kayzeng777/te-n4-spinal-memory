@@ -222,6 +222,29 @@ repo_doc = ('<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8"
             '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
             + page(False).replace('</style>', '</style>\n</head>\n<body>', 1) + '</body>\n</html>\n')
 open(os.path.join(REPO, 'index.html'), 'w').write(repo_doc)
+def version_a_css(key='apoc-M'):
+    """The six stacked layers exactly as the live page renders them, in px."""
+    p = PRESETS['presets'][key]
+    out = []
+    for i, l in enumerate(p['layers'], 1):
+        if not l['on']:
+            out.append(f'.va .l{i}{{display:none}}'); continue
+        blur = f"filter:blur({l['blur']/2:.2f}px);" if l['blur'] else ''
+        stroke = (f"-webkit-text-stroke:{l['stroke']*2}px {l['strokeColor']};"
+                  if l['stroke'] else '-webkit-text-stroke:0;')
+        out.append(f".va .l{i}{{z-index:{7-i};opacity:{l['opacity']/100};{blur}}}")
+        out.append(f".va .l{i} .t{{color:{l['fill'] or 'transparent'};{stroke}}}")
+    return '\n  '.join(out)
+
+
+GLOW = open(os.path.join(HERE, 'glow.template.html')).read()
+glow_doc = ('<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8">\n'
+            '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
+            + GLOW.replace('__FONTS__', font_faces(False))
+                  .replace('__VER_A_CSS__', version_a_css())
+                  .replace('</style>', '</style>\n</head>\n<body>', 1) + '</body>\n</html>\n')
+open(os.path.join(REPO, 'glow.html'), 'w').write(glow_doc)
+
 FX = open(os.path.join(HERE, 'fx.template.html')).read()
 fx_repo = ('<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8">\n'
            '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
@@ -229,4 +252,5 @@ fx_repo = ('<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8">
 open(os.path.join(REPO, 'fx.html'), 'w').write(fx_repo)
 art = FX.replace('__FONTS__', font_faces(True)).replace('__SPINE__', SPINE)
 open(os.path.join(HERE, '..', 'artifact.html'), 'w').write(art)
-print('index.html', len(repo_doc)//1024, 'KB; fx.html', len(fx_repo)//1024, 'KB; artifact', len(art)//1024, 'KB')
+print('index.html', len(repo_doc)//1024, 'KB; fx.html', len(fx_repo)//1024,
+      'KB; glow.html', len(glow_doc)//1024, 'KB; artifact', len(art)//1024, 'KB')

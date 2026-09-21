@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>te · glow comparison</title>
+<style>
+  @font-face{font-family:'Apoc';src:url(fonts/Apoc-Variable.woff2) format('woff2');font-weight:80 145;font-display:swap}
+  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-Thin.woff2) format('woff2');font-weight:100;font-style:normal;font-display:swap}
+  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-ThinItalic.woff2) format('woff2');font-weight:100;font-style:italic;font-display:swap}
+  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-Light.woff2) format('woff2');font-weight:300;font-style:normal;font-display:swap}
+  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-LightItalic.woff2) format('woff2');font-weight:300;font-style:italic;font-display:swap}
+  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-Book.woff2) format('woff2');font-weight:350;font-style:normal;font-display:swap}
+  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-BookItalic.woff2) format('woff2');font-weight:350;font-style:italic;font-display:swap}
+  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-Regular.woff2) format('woff2');font-weight:400;font-style:normal;font-display:swap}
+  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-Italic.woff2) format('woff2');font-weight:400;font-style:italic;font-display:swap}
+  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-Medium.woff2) format('woff2');font-weight:500;font-style:normal;font-display:swap}
+  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-MediumItalic.woff2) format('woff2');font-weight:500;font-style:italic;font-display:swap}
+  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-SemiBold.woff2) format('woff2');font-weight:600;font-style:normal;font-display:swap}
+  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-SemiBolditalic.woff2) format('woff2');font-weight:600;font-style:italic;font-display:swap}
+  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-Bold.woff2) format('woff2');font-weight:700;font-style:normal;font-display:swap}
+  @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-BoldItalic.woff2) format('woff2');font-weight:700;font-style:italic;font-display:swap}
+
+  :root{
+    --font-display:"Apoc",Georgia,serif;
+    --font-sans:"PP Neue Montreal",-apple-system,"Helvetica Neue",Arial,sans-serif;
+    --orange:#F28331; --yellow:#FDF48E;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%}
+  body{min-height:100vh;background:#92CA87;color:#101410;font-family:var(--font-sans);position:relative}
+  .bg{position:fixed;inset:0;z-index:-1;
+    background:linear-gradient(180deg,#66BF8C 0%,#92CA87 31%,#BED881 63%,#A8D184 74%,#92CA87 87%,#68C08D 100%)}
+  .bg::after{content:"";position:absolute;inset:0;opacity:.03;mix-blend-mode:multiply;background-size:200px 200px;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='2.00' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.09  0 0 0 0 0.10  0 0 0 0 0.09  0 0 0 1 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+
+  main{padding:40px 32px 120px;max-width:1500px;margin:0 auto}
+  h1{font-size:13px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;margin:0 0 6px}
+  .intro{font-size:13px;line-height:1.6;max-width:70ch;margin:0 0 36px;opacity:.75}
+
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;align-items:start}
+  @media (max-width:1100px){.grid{grid-template-columns:1fr}}
+  .col{border:1px solid rgba(16,20,16,.3);border-radius:3px;padding:18px 16px 22px;background:rgba(255,255,255,.14)}
+  .col h2{margin:0 0 4px;font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
+  .col .note{margin:0 0 20px;font-size:11.5px;line-height:1.55;opacity:.75;min-height:4.6em}
+  .col .cost{margin:16px 0 0;font-size:11px;letter-spacing:.06em;opacity:.6;font-variant-numeric:tabular-nums}
+  .row{margin:0 0 26px}
+  .row .lab{font-size:10px;letter-spacing:.12em;opacity:.55;margin-bottom:6px}
+  .sample{font-family:var(--font-display);font-weight:106;line-height:1.05;white-space:nowrap}
+  .s100{font-size:100px}.s48{font-size:48px}.s28{font-size:28px}.s16{font-size:16px}
+
+  /* ---------- A: the six stacked layers in use now (px values, from presets.json) ---------- */
+  .va{position:relative;display:inline-block}
+  .va .l{position:absolute;inset:0}
+  .va .l:first-child{position:relative}
+  .va .t{paint-order:stroke fill}
+  .va .l1{z-index:6;opacity:0.1;}
+  .va .l1 .t{color:#F28331;-webkit-text-stroke:0;}
+  .va .l2{z-index:5;opacity:1.0;filter:blur(1.50px);}
+  .va .l2 .t{color:#F28331;-webkit-text-stroke:2px #FDF48E;}
+  .va .l3{z-index:4;opacity:1.0;filter:blur(6.00px);}
+  .va .l3 .t{color:#F28331;-webkit-text-stroke:0;}
+  .va .l4{z-index:3;opacity:1.0;filter:blur(20.00px);}
+  .va .l4 .t{color:transparent;-webkit-text-stroke:20px #FDF48E;}
+  .va .l5{z-index:2;opacity:1.0;filter:blur(16.00px);}
+  .va .l5 .t{color:#FDF48E;-webkit-text-stroke:10px #FDF48E;}
+  .va .l6{z-index:1;opacity:1.0;filter:blur(22.00px);}
+  .va .l6 .t{color:#FDF48E;-webkit-text-stroke:10px #FDF48E;}
+
+  /* ---------- B: one element, text-shadow, every length in em ---------- */
+  .vb{
+    color:var(--orange);
+    -webkit-text-stroke:.025em var(--yellow);
+    paint-order:stroke fill;
+    text-shadow:
+      0 0 .035em var(--yellow),
+      0 0 .085em var(--yellow),
+      0 0 .16em  var(--yellow),
+      0 0 .26em  var(--yellow),
+      0 0 .38em  var(--yellow);
+  }
+
+  /* ---------- C: one SVG filter (dilate + blur), sized per font-size ---------- */
+  .vc{color:var(--orange);-webkit-text-stroke:.025em var(--yellow);paint-order:stroke fill}
+  .vc.s100{filter:url(#glow100)}
+  .vc.s48 {filter:url(#glow48)}
+  .vc.s28 {filter:url(#glow28)}
+  .vc.s16 {filter:url(#glow16)}
+</style>
+</head>
+<body>
+
+<div class="bg"></div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <filter id="glow100" x="-60%" y="-60%" width="220%" height="220%">
+    <feMorphology in="SourceAlpha" operator="dilate" radius="6" result="fat"/>
+    <feGaussianBlur in="fat" stdDeviation="14" result="halo"/>
+    <feFlood flood-color="#FDF48E" result="col"/>
+    <feComposite in="col" in2="halo" operator="in" result="glow"/>
+    <feMerge><feMergeNode in="glow"/><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="glow48" x="-60%" y="-60%" width="220%" height="220%">
+    <feMorphology in="SourceAlpha" operator="dilate" radius="2.9" result="fat"/>
+    <feGaussianBlur in="fat" stdDeviation="6.7" result="halo"/>
+    <feFlood flood-color="#FDF48E" result="col"/>
+    <feComposite in="col" in2="halo" operator="in" result="glow"/>
+    <feMerge><feMergeNode in="glow"/><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="glow28" x="-60%" y="-60%" width="220%" height="220%">
+    <feMorphology in="SourceAlpha" operator="dilate" radius="1.7" result="fat"/>
+    <feGaussianBlur in="fat" stdDeviation="3.9" result="halo"/>
+    <feFlood flood-color="#FDF48E" result="col"/>
+    <feComposite in="col" in2="halo" operator="in" result="glow"/>
+    <feMerge><feMergeNode in="glow"/><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="glow16" x="-60%" y="-60%" width="220%" height="220%">
+    <feMorphology in="SourceAlpha" operator="dilate" radius="1" result="fat"/>
+    <feGaussianBlur in="fat" stdDeviation="2.2" result="halo"/>
+    <feFlood flood-color="#FDF48E" result="col"/>
+    <feComposite in="col" in2="halo" operator="in" result="glow"/>
+    <feMerge><feMergeNode in="glow"/><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+</defs></svg>
+
+<main>
+  <h1>glow · three ways</h1>
+  <p class="intro">同一段字，同一个背景，四个字号。A 是现在用的六层叠加，参数是 Apoc M 那组的 px 数值，直接套到别的字号上。B 和 C 各用一套参数覆盖全部字号。</p>
+
+  <div class="grid">
+    <div class="col">
+      <h2>A · 六层叠加（现在）</h2>
+      <p class="note">每层一份文字副本，各自带 opacity、外描边、模糊。所有长度是 px，所以换字号必须重调，现在共 13 组预设。</p>
+      <div class="rows" data-ver="va"></div>
+      <p class="cost">每段文字 12 个 DOM 节点 · 6 个合成层</p>
+    </div>
+
+    <div class="col">
+      <h2>B · text-shadow（em）</h2>
+      <p class="note">一个元素，五个阴影叠在一个属性里，全部写成 em，所以字号一变光晕自动等比缩放。缺点是没有 spread，外圈只能靠加大半径近似，衰减比 A 软。</p>
+      <div class="rows" data-ver="vb"></div>
+      <p class="cost">每段文字 1 个 DOM 节点 · 1 套参数</p>
+    </div>
+
+    <div class="col">
+      <h2>C · SVG filter</h2>
+      <p class="note">feMorphology 先把字形撑大，再 feGaussianBlur，等价于 A 的外描边加模糊，一次渲染完成。缺点是 filter 的半径是 px，不跟 font-size 走，每个字号仍要一个 filter。</p>
+      <div class="rows" data-ver="vc"></div>
+      <p class="cost">每段文字 1 个 DOM 节点 · 每字号 1 个 filter</p>
+    </div>
+  </div>
+</main>
+
+<script>
+(function(){
+  const SIZES=[['s100','100px'],['s48','48px'],['s28','28px'],['s16','16px']];
+  const TEXT='Spinal Memory';
+  document.querySelectorAll('.rows').forEach(box=>{
+    const ver=box.dataset.ver;
+    box.innerHTML=SIZES.map(([cls,label])=>
+      `<div class="row"><div class="lab">${label}</div>`+
+      `<span class="sample ${cls} ${ver}">${TEXT}</span></div>`).join('');
+  });
+  // version A needs its six stacked copies
+  document.querySelectorAll('.va').forEach(el=>{
+    const html=el.innerHTML;el.innerHTML='';
+    for(let i=1;i<=6;i++){const l=document.createElement('span');l.className='l l'+i;
+      l.innerHTML='<span class="t">'+html+'</span>';el.appendChild(l);}
+  });
+})();
+</script>
+</body>
+</html>
