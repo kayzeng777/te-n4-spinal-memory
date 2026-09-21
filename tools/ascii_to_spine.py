@@ -15,10 +15,10 @@ PAD = 2            # blank cells kept around the drawing
 ASPECT = 1.6       # cell height / cell width, i.e. a monospace character box
 # one solid colour per shade level, lightest to darkest. #FDF48E / #F38530 / #822D00
 # are the palette; #F8BC5F is their cream-orange midpoint, filling the fourth step.
-# Four source levels over three characters: ▒ carries two colour steps, so the
-# ramp never needs a solid block. Cells are white; the colour is on the character.
+# Every cell draws the same character; the four source levels are told apart by
+# colour alone. Cells are white and the colour is on the character.
 TONE = {'░': '#FDF48E', '▒': '#F8BC5F', '▓': '#F38530', '█': '#822D00'}
-CHAR = {'░': '░',       '▒': '▒',       '▓': '▒',       '█': '▓'}
+GLYPH = '▓'
 FALLBACK = '#F38530'
 CELL = '#ffffff'
 
@@ -40,7 +40,7 @@ for (x, y), ch in sorted(cells.items(), key=lambda kv: (kv[0][1], kv[0][0])):
     cy = (y - y0 + PAD) * ASPECT
     r = y - y0 + PAD
     tone = TONE.get(ch, FALLBACK)
-    glyph = CHAR.get(ch, ch)
+    glyph = GLYPH
     rects.append(f'<rect x="{cx}" y="{cy:g}" width="1" height="{ASPECT:g}" '
                  f'data-c="{cx}" data-r="{r}" fill="{CELL}"/>')
     glyphs.append(f'<text x="{cx + 0.5:g}" y="{cy + ASPECT / 2:g}" data-c="{cx}" data-r="{r}" '
@@ -54,4 +54,4 @@ open(os.path.join(HERE, 'spine.svg.part'), 'w').write(out)
 tally = collections.Counter(cells.values())
 print(f'grid {COLS} x {ROWS} cells (pad {PAD}, aspect {ASPECT}), {len(cells)} drawn')
 for ch, n in sorted(tally.items(), key=lambda kv: list(TONE).index(kv[0])):
-    print(f'  {ch} -> {CHAR[ch]}  {n:5d}  ink {TONE[ch]}')
+    print(f'  {ch} -> {GLYPH}  {n:5d}  ink {TONE[ch]}')
