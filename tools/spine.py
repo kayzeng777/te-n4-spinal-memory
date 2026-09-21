@@ -7,7 +7,10 @@ between vertebrae rather than through them.
 import collections, os, re
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-src = open(os.path.join(HERE, 'spine.svg.part')).read()
+import sys
+SRC = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, 'spine.svg.part')
+OUT = sys.argv[2] if len(sys.argv) > 2 else os.path.join(HERE, 'spine.seg.part')
+src = open(SRC).read()
 
 N_SEGS = 9
 IMAGES = ['images/web/01-05-7.jpg', 'images/web/02-09-5.jpg', 'images/web/03-fig-5.jpg',
@@ -77,5 +80,5 @@ for i, s in enumerate(segs):
         f'</g></g>')
     print(f'seg {i}: y {sy0:g}-{sy1:g}, {len(s["rects"])} cells, {len(s["glyphs"])} glyphs')
 out.append('</svg>')
-open(os.path.join(HERE, 'spine.seg.part'), 'w').write('\n'.join(out))
+open(OUT, 'w').write('\n'.join(out))
 print('cuts at rows', CUTS)

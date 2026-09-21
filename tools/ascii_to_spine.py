@@ -11,6 +11,7 @@ import collections, os, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, 'ascii-art.txt')
+OUT = sys.argv[2] if len(sys.argv) > 2 else os.path.join(HERE, 'spine.svg.part')
 PAD = 2            # blank cells kept around the drawing
 ASPECT = 1.6       # cell height / cell width, i.e. a monospace character box
 # one solid colour per shade level, lightest to darkest. #FDF48E / #F38530 / #822D00
@@ -75,7 +76,7 @@ for (x, y), tone in sorted(PAINT.items(), key=lambda kv: (kv[0][1], kv[0][0])):
 out = (f'<svg class="spine" viewBox="0 0 {COLS} {ROWS * ASPECT:g}" '
        f'xmlns="http://www.w3.org/2000/svg" aria-label="spine">\n'
        f'<g class="cells">{"".join(rects)}</g>\n<g class="glyphs">{"".join(glyphs)}</g>\n</svg>')
-open(os.path.join(HERE, 'spine.svg.part'), 'w').write(out)
+open(OUT, 'w').write(out)
 
 tally = collections.Counter(cells.values())
 print(f'grid {COLS} x {ROWS} cells (pad {PAD}, aspect {ASPECT}), '

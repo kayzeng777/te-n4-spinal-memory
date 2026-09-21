@@ -448,6 +448,7 @@
   if(q.get('lens'))lens.style.setProperty('--lens',q.get('lens')+'px');
   if(q.get('feather'))lens.style.setProperty('--feather',q.get('feather')+'px');
   if(q.get('lenscolor'))lens.style.background='#'+q.get('lenscolor').replace('#','');
+  if(q.get('cell'))document.documentElement.style.setProperty('--cell',q.get('cell')+'px');
   addEventListener('pointermove',e=>{lens.style.transform=`translate(${e.clientX}px,${e.clientY}px) translate(-50%,-50%)`;},{passive:true});
   addEventListener('pointerleave',()=>{lens.style.transform='translate(-1000px,-1000px)';});
   // size ▓ so its ink exactly fills a cell, whichever monospace font actually resolved

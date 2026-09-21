@@ -4,8 +4,13 @@ import base64, json, os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
-SPINE = open(os.path.join(HERE, 'spine.seg.part')).read()
-SPINE_COLS = int(float(re.search(r'viewBox="0 0 ([\d.]+) ', SPINE).group(1)))
+def load_spine(name):
+    svg = open(os.path.join(HERE, name)).read()
+    return svg, int(float(re.search(r'viewBox="0 0 ([\d.]+) ', svg).group(1)))
+
+
+SPINE, SPINE_COLS = load_spine('spine.seg.part')
+SPINE2, SPINE2_COLS = load_spine('spine2.seg.part')
 PRESETS_PATH = os.path.join(HERE, 'presets.json')
 PRESETS = json.load(open(PRESETS_PATH)) if os.path.exists(PRESETS_PATH) else None
 FONT_FAMILY = {'apoc': 'var(--font-display)', 'pp': 'var(--font-sans)', 'cn': 'var(--font-cn)'}
@@ -169,6 +174,7 @@ __SPINE__
   if(q.get('lens'))lens.style.setProperty('--lens',q.get('lens')+'px');
   if(q.get('feather'))lens.style.setProperty('--feather',q.get('feather')+'px');
   if(q.get('lenscolor'))lens.style.background='#'+q.get('lenscolor').replace('#','');
+  if(q.get('cell'))document.documentElement.style.setProperty('--cell',q.get('cell')+'px');
   addEventListener('pointermove',e=>{lens.style.transform=`translate(${e.clientX}px,${e.clientY}px) translate(-50%,-50%)`;},{passive:true});
   addEventListener('pointerleave',()=>{lens.style.transform='translate(-1000px,-1000px)';});
   // size ▓ so its ink exactly fills a cell, whichever monospace font actually resolved
@@ -215,9 +221,19 @@ __FXJS__
 </main>
 '''
 
-def page(inline):
-    return (HEAD.replace('__FONTS__', font_faces(inline)).replace('__FXBASE__', FX_BASE_CSS).replace('__FXPRESETS__', preset_css()).replace('__COLS__', str(SPINE_COLS))
-            + BODY.replace('__SPINE__', SPINE).replace('__FXJS__', FX_JS).replace('__LOGO__', LOGO).replace('__NOISEDEFS__', noise_defs()))
+def page(inline, spine=None, cols=None):
+    spine = SPINE if spine is None else spine
+    cols = SPINE_COLS if cols is None else cols
+    return (HEAD.replace('__FONTS__', font_faces(inline)).replace('__FXBASE__', FX_BASE_CSS)
+                .replace('__FXPRESETS__', preset_css()).replace('__COLS__', str(cols))
+            + BODY.replace('__SPINE__', spine).replace('__FXJS__', FX_JS)
+                  .replace('__LOGO__', LOGO).replace('__NOISEDEFS__', noise_defs()))
+
+
+def document(body_html):
+    return ('<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8">\n'
+            '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
+            + body_html.replace('</style>', '</style>\n</head>\n<body>', 1) + '</body>\n</html>\n')
 
 repo_doc = ('<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8">\n'
             '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
@@ -302,7 +318,14 @@ fx_repo = ('<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8">
            '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
            + FX.replace('__FONTS__', font_faces(False)).replace('__SPINE__', SPINE).replace('</style>', '</style>\n</head>\n<body>', 1) + '</body>\n</html>\n')
 open(os.path.join(REPO, 'fx.html'), 'w').write(fx_repo)
-art = FX.replace('__FONTS__', font_faces(True)).replace('__SPINE__', SPINE)
-open(os.path.join(HERE, '..', 'artifact.html'), 'w').write(art)
-print('index.html', len(repo_doc)//1024, 'KB; fx.html', len(fx_repo)//1024,
-      'KB; glow.html', len(glow_doc)//1024, 'KB; artifact', len(art)//1024, 'KB')
+preview_doc = document(page(False, SPINE2, SPINE2_COLS).replace('<title>te online lecture</title>',
+                                                               '<title>te online lecture · preview</title>'))
+open(os.path.join(REPO, 'preview.html'), 'w').write(preview_doc)
+
+# the artifact is the poster itself, fonts inlined
+art = page(True)
+open(os.path.join(REPO, 'artifact.html'), 'w').write(art)
+print(f'index.html {len(repo_doc)//1024} KB ({SPINE_COLS} cols) · '
+      f'preview.html {len(preview_doc)//1024} KB ({SPINE2_COLS} cols) · '
+      f'fx.html {len(fx_repo)//1024} KB · glow.html {len(glow_doc)//1024} KB · '
+      f'artifact.html {len(art)//1024} KB')
