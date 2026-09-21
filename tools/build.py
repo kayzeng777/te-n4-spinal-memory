@@ -204,6 +204,7 @@ __SPINE__
       setTimeout(()=>off(i),first?Math.random()*HOLD:HOLD);}
     function off(i){const t=ts[i],rect=rects.get(key(t));t.textContent=t.dataset.orig;t.classList.remove('h');
       t.setAttribute('textLength','1');t.setAttribute('lengthAdjust','spacingAndGlyphs');
+      t.parentNode.insertBefore(t,t.parentNode.firstChild);   // drop back below the active animals
       t.style.fill='';if(rect)rect.style.fill='';active.delete(i);spawn(false);}
     function spawn(first){for(let k=0;k<80;k++){const i=rnd(ts.length);if(free(i)){on(i,first);return true;}}return false;}
     for(let n=0;n<TARGET*3&&active.size<TARGET;n++)spawn(true);
