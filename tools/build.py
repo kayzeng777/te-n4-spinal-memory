@@ -238,7 +238,7 @@ def version_a_css(key='apoc-M'):
 
 
 GLOW_SIZES = [64, 40, 24, 14]
-GLOW_RATIO = {'dilate': 0.060, 'halo': 0.150, 'core': 0.022}   # as a fraction of font-size
+GLOW_RATIO = {'dilate': 0.060, 'halo': 0.210, 'core': 0.022}   # as a fraction of font-size
 
 
 def glow_filters():
