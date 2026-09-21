@@ -36,7 +36,7 @@
 
   .grain{position:fixed;inset:0;z-index:50;pointer-events:none;
     opacity:var(--gop,.18);mix-blend-mode:var(--gmode,overlay);background-size:var(--gsize,220px) var(--gsize,220px)}
-  .ctrl{position:fixed;right:16px;top:16px;z-index:60;width:190px;display:grid;gap:6px;
+  .ctrl{position:fixed;left:16px;bottom:16px;z-index:60;width:190px;display:grid;gap:6px;
     background:#141614;color:#ECEEE9;border-radius:4px;padding:12px 14px;font-size:11px;letter-spacing:.06em}
   .ctrl label{display:flex;justify-content:space-between;color:#9BA39A}
   .ctrl output{color:#ECEEE9;font-variant-numeric:tabular-nums}
@@ -111,8 +111,8 @@
 <div class="grain" id="grain"></div>
 
 <aside class="ctrl">
-  <label>颗粒 <output id="go">0.18</output></label>
-  <input type="range" id="gop" min="0" max="0.6" step="0.01" value="0.18">
+  <label>颗粒 <output id="go">0.30</output></label>
+  <input type="range" id="gop" min="0" max="0.6" step="0.01" value="0.30">
   <label>粗细 <output id="ff">0.85</output></label>
   <input type="range" id="gfreq" min="0.2" max="2.5" step="0.05" value="0.85">
   <label>混合</label>
