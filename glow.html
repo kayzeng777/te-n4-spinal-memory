@@ -70,15 +70,16 @@
 
   /* ---------- B: one element, text-shadow, every length in em ---------- */
   .vb{
-    color:var(--orange);
-    -webkit-text-stroke:.025em var(--yellow);
+    color:rgba(242,131,49,.14);
+    -webkit-text-stroke:.018em rgba(253,244,142,.45);
     paint-order:stroke fill;
     text-shadow:
-      0 0 .035em var(--yellow),
-      0 0 .085em var(--yellow),
-      0 0 .16em  var(--yellow),
-      0 0 .26em  var(--yellow),
-      0 0 .38em  var(--yellow);
+      0 0 .035em #F28331,
+      0 0 .075em #F28331,
+      0 0 .14em  #F28331,
+      0 0 .22em  #FDF48E,
+      0 0 .32em  #FDF48E,
+      0 0 .45em  #FDF48E;
   }
 
   /* ---------- C: one SVG filter (dilate + blur), sized per font-size ---------- */
@@ -95,32 +96,36 @@
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
   <filter id="glow64" x="-60%" y="-60%" width="220%" height="220%">
-    <feMorphology in="SourceAlpha" operator="dilate" radius="3.8" result="fat"/>
-    <feGaussianBlur in="fat" stdDeviation="9" result="halo"/>
+    <feMorphology in="SourceAlpha" operator="dilate" radius="3.84" result="fat"/>
+    <feGaussianBlur in="fat" stdDeviation="9.60" result="halo"/>
     <feFlood flood-color="#FDF48E" result="col"/>
     <feComposite in="col" in2="halo" operator="in" result="glow"/>
-    <feMerge><feMergeNode in="glow"/><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    <feGaussianBlur in="SourceGraphic" stdDeviation="1.41" result="core"/>
+    <feMerge><feMergeNode in="glow"/><feMergeNode in="glow"/><feMergeNode in="core"/></feMerge>
   </filter>
   <filter id="glow40" x="-60%" y="-60%" width="220%" height="220%">
-    <feMorphology in="SourceAlpha" operator="dilate" radius="2.4" result="fat"/>
-    <feGaussianBlur in="fat" stdDeviation="5.6" result="halo"/>
+    <feMorphology in="SourceAlpha" operator="dilate" radius="2.40" result="fat"/>
+    <feGaussianBlur in="fat" stdDeviation="6.00" result="halo"/>
     <feFlood flood-color="#FDF48E" result="col"/>
     <feComposite in="col" in2="halo" operator="in" result="glow"/>
-    <feMerge><feMergeNode in="glow"/><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    <feGaussianBlur in="SourceGraphic" stdDeviation="0.88" result="core"/>
+    <feMerge><feMergeNode in="glow"/><feMergeNode in="glow"/><feMergeNode in="core"/></feMerge>
   </filter>
   <filter id="glow24" x="-60%" y="-60%" width="220%" height="220%">
-    <feMorphology in="SourceAlpha" operator="dilate" radius="1.4" result="fat"/>
-    <feGaussianBlur in="fat" stdDeviation="3.4" result="halo"/>
+    <feMorphology in="SourceAlpha" operator="dilate" radius="1.44" result="fat"/>
+    <feGaussianBlur in="fat" stdDeviation="3.60" result="halo"/>
     <feFlood flood-color="#FDF48E" result="col"/>
     <feComposite in="col" in2="halo" operator="in" result="glow"/>
-    <feMerge><feMergeNode in="glow"/><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    <feGaussianBlur in="SourceGraphic" stdDeviation="0.53" result="core"/>
+    <feMerge><feMergeNode in="glow"/><feMergeNode in="glow"/><feMergeNode in="core"/></feMerge>
   </filter>
   <filter id="glow14" x="-60%" y="-60%" width="220%" height="220%">
-    <feMorphology in="SourceAlpha" operator="dilate" radius="0.85" result="fat"/>
-    <feGaussianBlur in="fat" stdDeviation="2" result="halo"/>
+    <feMorphology in="SourceAlpha" operator="dilate" radius="0.84" result="fat"/>
+    <feGaussianBlur in="fat" stdDeviation="2.10" result="halo"/>
     <feFlood flood-color="#FDF48E" result="col"/>
     <feComposite in="col" in2="halo" operator="in" result="glow"/>
-    <feMerge><feMergeNode in="glow"/><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    <feGaussianBlur in="SourceGraphic" stdDeviation="0.31" result="core"/>
+    <feMerge><feMergeNode in="glow"/><feMergeNode in="glow"/><feMergeNode in="core"/></feMerge>
   </filter>
 </defs></svg>
 
@@ -138,14 +143,14 @@
 
     <div class="col">
       <h2>B · text-shadow（em）</h2>
-      <p class="note">一个元素，五个阴影叠在一个属性里，全部写成 em，所以字号一变光晕自动等比缩放。缺点是没有 spread，外圈只能靠加大半径近似，衰减比 A 软。</p>
+      <p class="note">一个元素。主体也是模糊的橙色阴影，上面只压一层 14% 的清晰字，所以核心一样被外圈吃掉。全部写成 em，字号一变自动等比缩放。缺点是没有 spread，外圈衰减比 A 软。</p>
       <div class="rows" data-ver="vb"></div>
       <p class="cost">每段文字 1 个 DOM 节点 · 1 套参数</p>
     </div>
 
     <div class="col">
       <h2>C · SVG filter</h2>
-      <p class="note">feMorphology 先把字形撑大，再 feGaussianBlur，等价于 A 的外描边加模糊，一次渲染完成。缺点是 filter 的半径是 px，不跟 font-size 走，每个字号仍要一个 filter。</p>
+      <p class="note">feMorphology 先把字形撑大再模糊做外光，同时对字本身也加一道小模糊，所以核心是糊的。一次渲染完成。缺点是半径是 px，不跟 font-size 走，每个字号一个 filter，由构建脚本按比例生成。</p>
       <div class="rows" data-ver="vc"></div>
       <p class="cost">每段文字 1 个 DOM 节点 · 每字号 1 个 filter</p>
     </div>

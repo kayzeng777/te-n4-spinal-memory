@@ -237,11 +237,32 @@ def version_a_css(key='apoc-M'):
     return '\n  '.join(out)
 
 
+GLOW_SIZES = [64, 40, 24, 14]
+GLOW_RATIO = {'dilate': 0.060, 'halo': 0.150, 'core': 0.022}   # as a fraction of font-size
+
+
+def glow_filters():
+    out = []
+    for fs in GLOW_SIZES:
+        d = fs * GLOW_RATIO['dilate']; h = fs * GLOW_RATIO['halo']; c = fs * GLOW_RATIO['core']
+        out.append(
+            f'  <filter id="glow{fs}" x="-60%" y="-60%" width="220%" height="220%">\n'
+            f'    <feMorphology in="SourceAlpha" operator="dilate" radius="{d:.2f}" result="fat"/>\n'
+            f'    <feGaussianBlur in="fat" stdDeviation="{h:.2f}" result="halo"/>\n'
+            f'    <feFlood flood-color="#FDF48E" result="col"/>\n'
+            f'    <feComposite in="col" in2="halo" operator="in" result="glow"/>\n'
+            f'    <feGaussianBlur in="SourceGraphic" stdDeviation="{c:.2f}" result="core"/>\n'
+            f'    <feMerge><feMergeNode in="glow"/><feMergeNode in="glow"/><feMergeNode in="core"/></feMerge>\n'
+            f'  </filter>')
+    return '\n'.join(out)
+
+
 GLOW = open(os.path.join(HERE, 'glow.template.html')).read()
 glow_doc = ('<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8">\n'
             '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
             + GLOW.replace('__FONTS__', font_faces(False))
                   .replace('__VER_A_CSS__', version_a_css())
+                  .replace('__FILTERS__', glow_filters())
                   .replace('</style>', '</style>\n</head>\n<body>', 1) + '</body>\n</html>\n')
 open(os.path.join(REPO, 'glow.html'), 'w').write(glow_doc)
 
