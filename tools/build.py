@@ -241,6 +241,36 @@ GLOW_SIZES = [64, 40, 24, 14]
 GLOW_RATIO = {'dilate': 0.060, 'halo': 0.210, 'core': 0.022}   # as a fraction of font-size
 
 
+# D: the colour band the blurred falloff is mapped onto, outermost first
+RAMP = ['#FDF48E', '#F28331', '#822D00']
+RAMP_ALPHA = '0 0.85 1'
+RAMP_BLUR = 0.16     # fraction of font-size
+RAMP_CORE = 0.020
+
+
+def ramp_filters():
+    chan = lambda i: ' '.join(f'{int(c[1 + 2 * i:3 + 2 * i], 16) / 255:.3f}' for c in RAMP)
+    out = []
+    for fs in GLOW_SIZES:
+        b = fs * RAMP_BLUR; c = fs * RAMP_CORE
+        out.append(
+            f'  <filter id="ramp{fs}" x="-70%" y="-70%" width="240%" height="240%">\n'
+            f'    <feGaussianBlur in="SourceAlpha" stdDeviation="{b:.2f}" result="blur"/>\n'
+            # copy alpha into rgb, keep alpha, so the tables below read the falloff
+            f'    <feColorMatrix in="blur" type="matrix" result="gray"\n'
+            f'      values="0 0 0 1 0  0 0 0 1 0  0 0 0 1 0  0 0 0 1 0"/>\n'
+            f'    <feComponentTransfer in="gray" result="band">\n'
+            f'      <feFuncR type="table" tableValues="{chan(0)}"/>\n'
+            f'      <feFuncG type="table" tableValues="{chan(1)}"/>\n'
+            f'      <feFuncB type="table" tableValues="{chan(2)}"/>\n'
+            f'      <feFuncA type="table" tableValues="{RAMP_ALPHA}"/>\n'
+            f'    </feComponentTransfer>\n'
+            f'    <feGaussianBlur in="SourceGraphic" stdDeviation="{c:.2f}" result="core"/>\n'
+            f'    <feMerge><feMergeNode in="band"/><feMergeNode in="core"/></feMerge>\n'
+            f'  </filter>')
+    return '\n'.join(out)
+
+
 def glow_filters():
     out = []
     for fs in GLOW_SIZES:
@@ -262,7 +292,7 @@ glow_doc = ('<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8"
             '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
             + GLOW.replace('__FONTS__', font_faces(False))
                   .replace('__VER_A_CSS__', version_a_css())
-                  .replace('__FILTERS__', glow_filters())
+                  .replace('__FILTERS__', glow_filters() + '\n' + ramp_filters())
                   .replace('</style>', '</style>\n</head>\n<body>', 1) + '</body>\n</html>\n')
 open(os.path.join(REPO, 'glow.html'), 'w').write(glow_doc)
 

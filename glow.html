@@ -34,11 +34,11 @@
   .bg::after{content:"";position:absolute;inset:0;opacity:.03;mix-blend-mode:multiply;background-size:200px 200px;
     background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='2.00' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.09  0 0 0 0 0.10  0 0 0 0 0.09  0 0 0 1 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
 
-  main{padding:40px 32px 120px;max-width:1180px;margin:0 auto}
+  main{padding:40px 32px 120px;max-width:1500px;margin:0 auto}
   h1{font-size:13px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;margin:0 0 6px}
   .intro{font-size:13px;line-height:1.6;max-width:70ch;margin:0 0 36px;opacity:.75}
 
-  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:start}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px;align-items:start}
   @media (max-width:860px){.grid{grid-template-columns:1fr}}
   .col{border:1px solid rgba(16,20,16,.3);border-radius:3px;padding:18px 16px 22px;background:rgba(255,255,255,.14);min-width:0}
   .col h2{margin:0 0 4px;font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
@@ -88,6 +88,13 @@
   .vc.s40{filter:url(#glow40)}
   .vc.s24{filter:url(#glow24)}
   .vc.s14{filter:url(#glow14)}
+
+  /* ---------- D: one blur, then a gradient map across the whole falloff ---------- */
+  .vd{color:#822D00}
+  .vd.s64{filter:url(#ramp64)}
+  .vd.s40{filter:url(#ramp40)}
+  .vd.s24{filter:url(#ramp24)}
+  .vd.s14{filter:url(#ramp14)}
 </style>
 </head>
 <body>
@@ -127,11 +134,63 @@
     <feGaussianBlur in="SourceGraphic" stdDeviation="0.31" result="core"/>
     <feMerge><feMergeNode in="glow"/><feMergeNode in="glow"/><feMergeNode in="core"/></feMerge>
   </filter>
+  <filter id="ramp64" x="-70%" y="-70%" width="240%" height="240%">
+    <feGaussianBlur in="SourceAlpha" stdDeviation="10.24" result="blur"/>
+    <feColorMatrix in="blur" type="matrix" result="gray"
+      values="0 0 0 1 0  0 0 0 1 0  0 0 0 1 0  0 0 0 1 0"/>
+    <feComponentTransfer in="gray" result="band">
+      <feFuncR type="table" tableValues="0.992 0.949 0.510"/>
+      <feFuncG type="table" tableValues="0.957 0.514 0.176"/>
+      <feFuncB type="table" tableValues="0.557 0.192 0.000"/>
+      <feFuncA type="table" tableValues="0 0.85 1"/>
+    </feComponentTransfer>
+    <feGaussianBlur in="SourceGraphic" stdDeviation="1.28" result="core"/>
+    <feMerge><feMergeNode in="band"/><feMergeNode in="core"/></feMerge>
+  </filter>
+  <filter id="ramp40" x="-70%" y="-70%" width="240%" height="240%">
+    <feGaussianBlur in="SourceAlpha" stdDeviation="6.40" result="blur"/>
+    <feColorMatrix in="blur" type="matrix" result="gray"
+      values="0 0 0 1 0  0 0 0 1 0  0 0 0 1 0  0 0 0 1 0"/>
+    <feComponentTransfer in="gray" result="band">
+      <feFuncR type="table" tableValues="0.992 0.949 0.510"/>
+      <feFuncG type="table" tableValues="0.957 0.514 0.176"/>
+      <feFuncB type="table" tableValues="0.557 0.192 0.000"/>
+      <feFuncA type="table" tableValues="0 0.85 1"/>
+    </feComponentTransfer>
+    <feGaussianBlur in="SourceGraphic" stdDeviation="0.80" result="core"/>
+    <feMerge><feMergeNode in="band"/><feMergeNode in="core"/></feMerge>
+  </filter>
+  <filter id="ramp24" x="-70%" y="-70%" width="240%" height="240%">
+    <feGaussianBlur in="SourceAlpha" stdDeviation="3.84" result="blur"/>
+    <feColorMatrix in="blur" type="matrix" result="gray"
+      values="0 0 0 1 0  0 0 0 1 0  0 0 0 1 0  0 0 0 1 0"/>
+    <feComponentTransfer in="gray" result="band">
+      <feFuncR type="table" tableValues="0.992 0.949 0.510"/>
+      <feFuncG type="table" tableValues="0.957 0.514 0.176"/>
+      <feFuncB type="table" tableValues="0.557 0.192 0.000"/>
+      <feFuncA type="table" tableValues="0 0.85 1"/>
+    </feComponentTransfer>
+    <feGaussianBlur in="SourceGraphic" stdDeviation="0.48" result="core"/>
+    <feMerge><feMergeNode in="band"/><feMergeNode in="core"/></feMerge>
+  </filter>
+  <filter id="ramp14" x="-70%" y="-70%" width="240%" height="240%">
+    <feGaussianBlur in="SourceAlpha" stdDeviation="2.24" result="blur"/>
+    <feColorMatrix in="blur" type="matrix" result="gray"
+      values="0 0 0 1 0  0 0 0 1 0  0 0 0 1 0  0 0 0 1 0"/>
+    <feComponentTransfer in="gray" result="band">
+      <feFuncR type="table" tableValues="0.992 0.949 0.510"/>
+      <feFuncG type="table" tableValues="0.957 0.514 0.176"/>
+      <feFuncB type="table" tableValues="0.557 0.192 0.000"/>
+      <feFuncA type="table" tableValues="0 0.85 1"/>
+    </feComponentTransfer>
+    <feGaussianBlur in="SourceGraphic" stdDeviation="0.28" result="core"/>
+    <feMerge><feMergeNode in="band"/><feMergeNode in="core"/></feMerge>
+  </filter>
 </defs></svg>
 
 <main>
   <h1>glow · three ways</h1>
-  <p class="intro">同一段字，同一个背景，四个字号，字重 Bold（121）。A 是现在用的六层叠加，参数是 Apoc M 那组的 px 数值，直接套到别的字号上，可以看到小字号被光晕吃掉。B 用一套 em 参数覆盖全部字号。C 每个字号一个 filter，半径按比例算好。</p>
+  <p class="intro">同一段字，同一个背景，四个字号，字重 Bold（121）。A 是现在用的六层叠加，参数是 Apoc M 那组的 px 数值，直接套到别的字号上，可以看到小字号被光晕吃掉。B 用一套 em 参数覆盖全部字号。C 和 D 每个字号一个 filter，半径按比例算好。</p>
 
   <div class="grid">
     <div class="col">
@@ -153,6 +212,13 @@
       <p class="note">feMorphology 先把字形撑大再模糊做外光，同时对字本身也加一道小模糊，所以核心是糊的。一次渲染完成。缺点是半径是 px，不跟 font-size 走，每个字号一个 filter，由构建脚本按比例生成。</p>
       <div class="rows" data-ver="vc"></div>
       <p class="cost">每段文字 1 个 DOM 节点 · 每字号 1 个 filter</p>
+    </div>
+
+    <div class="col">
+      <h2>D · 渐变映射</h2>
+      <p class="note">只模糊一次，再把这条灰阶整体映射到一条色带上：外圈浅黄、中段橙、核心深棕。中间调能变成第三个颜色，是叠加做不到的。色带上加几个停靠点就有几层光。</p>
+      <div class="rows" data-ver="vd"></div>
+      <p class="cost">每段文字 1 个 DOM 节点 · 一条色带</p>
     </div>
   </div>
 </main>
