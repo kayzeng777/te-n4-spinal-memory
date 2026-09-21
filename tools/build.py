@@ -170,23 +170,25 @@ __SPINE__
   addEventListener('pointermove',e=>{lens.style.transform=`translate(${e.clientX}px,${e.clientY}px) translate(-50%,-50%)`;},{passive:true});
   addEventListener('pointerleave',()=>{lens.style.transform='translate(-1000px,-1000px)';});
   // cells: ~5% show a hieroglyph animal at a time, 7s each, then another cell takes over.
-  // cells are white and the shade characters carry the colour; animals are drawn in the darkest ink.
+  // while active the cell takes that glyph's colour as its background, and the animal is
+  // drawn black on the light tones, white on the dark ones.
   (function(){
     const SYMS=Array.from('𓃠𓃰𓃱𓃯𓃸𓃵𓃗𓃙𓃟𓄀𓄁𓄂𓄃𓃚𓃛𓃜𓃞𓃓𓃔𓃕𓃖𓃦𓃬𓃷𓃹𓃻𓃾𓄅𓄇𓆈𓆉𓆌𓆏𓆗𓆙𓆐𓆓𓆊𓆣𓆤𓆦𓆧𓆨𓆝𓆡𓅂𓅐𓅓𓅟𓅮𓅰𓆀');
     const SHARE=0.05, HOLD=7000;
     const ts=[...document.querySelectorAll('.glyphs text')];if(!ts.length)return;
-    const ANIMAL='#822D00';
+    const LIGHT=new Set(['#FDF48E','#D4F724','#F8BC5F']);
     const key=t=>t.dataset.c+','+t.dataset.r;
+    const rects=new Map([...document.querySelectorAll('.seg .cells rect')].map(r=>[r.dataset.c+','+r.dataset.r,r]));
     const idx=new Map(ts.map((t,i)=>[key(t),i])), active=new Set(), TARGET=Math.round(ts.length*SHARE);
     const rnd=n=>Math.floor(Math.random()*n);
     const free=i=>{const c=+ts[i].dataset.c,r=+ts[i].dataset.r;return !active.has(i)&&
       ![[1,0],[-1,0],[0,1],[0,-1]].some(([dc,dr])=>{const j=idx.get((c+dc)+','+(r+dr));return j!==undefined&&active.has(j);});};
-    function on(i,first){const t=ts[i];
+    function on(i,first){const t=ts[i],rect=rects.get(key(t)),col=(t.getAttribute('fill')||'').toUpperCase();
       t.dataset.orig=t.textContent;t.textContent=SYMS[rnd(SYMS.length)];t.classList.add('h');
-      t.style.fill=ANIMAL;active.add(i);
+      t.style.fill=LIGHT.has(col)?'#000':'#fff';if(rect)rect.style.fill=col;active.add(i);
       setTimeout(()=>off(i),first?Math.random()*HOLD:HOLD);}
-    function off(i){const t=ts[i];t.textContent=t.dataset.orig;t.classList.remove('h');
-      t.style.fill='';active.delete(i);spawn(false);}
+    function off(i){const t=ts[i],rect=rects.get(key(t));t.textContent=t.dataset.orig;t.classList.remove('h');
+      t.style.fill='';if(rect)rect.style.fill='';active.delete(i);spawn(false);}
     function spawn(first){for(let k=0;k<80;k++){const i=rnd(ts.length);if(free(i)){on(i,first);return true;}}return false;}
     for(let n=0;n<TARGET*3&&active.size<TARGET;n++)spawn(true);
   })();
