@@ -12,7 +12,6 @@ def load_spine(name):
 
 
 SPINE, SPINE_COLS, SPINE_ROWS = load_spine('spine.seg.part')
-SPINE2, SPINE2_COLS, SPINE2_ROWS = load_spine('spine2.seg.part')
 PRESETS_PATH = os.path.join(HERE, 'presets.json')
 PRESETS = json.load(open(PRESETS_PATH)) if os.path.exists(PRESETS_PATH) else None
 FONT_FAMILY = {'apoc': 'var(--font-display)', 'pp': 'var(--font-sans)', 'cn': 'var(--font-cn)'}
@@ -321,14 +320,9 @@ fx_repo = ('<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8">
            '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
            + FX.replace('__FONTS__', font_faces(False)).replace('__SPINE__', SPINE).replace('</style>', '</style>\n</head>\n<body>', 1) + '</body>\n</html>\n')
 open(os.path.join(REPO, 'fx.html'), 'w').write(fx_repo)
-preview_doc = document(page(False, SPINE2, SPINE2_COLS, SPINE2_ROWS).replace('<title>te online lecture</title>',
-                                                               '<title>te online lecture · preview</title>'))
-open(os.path.join(REPO, 'preview.html'), 'w').write(preview_doc)
-
 # the artifact is the poster itself, fonts inlined
 art = page(True)
 open(os.path.join(REPO, 'artifact.html'), 'w').write(art)
 print(f'index.html {len(repo_doc)//1024} KB ({SPINE_COLS:g}x{SPINE_ROWS}) · '
-      f'preview.html {len(preview_doc)//1024} KB ({SPINE2_COLS:g}x{SPINE2_ROWS}) · '
       f'fx.html {len(fx_repo)//1024} KB · glow.html {len(glow_doc)//1024} KB · '
       f'artifact.html {len(art)//1024} KB')
