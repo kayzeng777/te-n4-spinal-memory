@@ -199,6 +199,7 @@ __SPINE__
     function on(i,first){const t=ts[i],rect=rects.get(key(t)),col=(t.getAttribute('fill')||'').toUpperCase();
       t.dataset.orig=t.textContent;t.textContent=SYMS[rnd(SYMS.length)];t.classList.add('h');
       t.removeAttribute('textLength');t.removeAttribute('lengthAdjust');
+      t.parentNode.appendChild(t);   // paint above the neighbouring cells it overhangs
       t.style.fill=LIGHT.has(col)?'#000':'#fff';if(rect)rect.style.fill=col;active.add(i);
       setTimeout(()=>off(i),first?Math.random()*HOLD:HOLD);}
     function off(i){const t=ts[i],rect=rects.get(key(t));t.textContent=t.dataset.orig;t.classList.remove('h');
