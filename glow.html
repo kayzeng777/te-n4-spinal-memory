@@ -33,32 +33,24 @@
     background:linear-gradient(180deg,#66BF8C 0%,#92CA87 31%,#BED881 63%,#A8D184 74%,#92CA87 87%,#68C08D 100%)}
   .bg::after{content:"";position:absolute;inset:0;opacity:.03;mix-blend-mode:multiply;background-size:200px 200px;
     background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='2.00' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.09  0 0 0 0 0.10  0 0 0 0 0.09  0 0 0 1 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
-
   .grain{position:fixed;inset:0;z-index:50;pointer-events:none;
-    opacity:var(--gop,.18);mix-blend-mode:var(--gmode,overlay);background-size:var(--gsize,220px) var(--gsize,220px)}
-  .ctrl{position:fixed;left:16px;bottom:16px;z-index:60;width:190px;display:grid;gap:6px;
-    background:#141614;color:#ECEEE9;border-radius:4px;padding:12px 14px;font-size:11px;letter-spacing:.06em}
-  .ctrl label{display:flex;justify-content:space-between;color:#9BA39A}
-  .ctrl output{color:#ECEEE9;font-variant-numeric:tabular-nums}
-  .ctrl input[type=range]{width:100%;accent-color:#C8D4C2;margin:0 0 4px}
-  .ctrl select{background:#0D0F0D;color:#ECEEE9;border:1px solid #2A2E2A;border-radius:3px;font:inherit;padding:4px}
-  main{padding:40px 32px 120px;max-width:1500px;margin:0 auto}
+    opacity:var(--gop,.18);mix-blend-mode:var(--gmode,overlay);background-size:220px 220px}
+
+  main{padding:32px 300px 120px 32px;max-width:1500px}
   h1{font-size:13px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;margin:0 0 6px}
-  .intro{font-size:13px;line-height:1.6;max-width:70ch;margin:0 0 36px;opacity:.75}
+  .intro{font-size:12.5px;line-height:1.6;max-width:66ch;margin:0 0 28px;opacity:.75}
 
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px;align-items:start}
-  @media (max-width:860px){.grid{grid-template-columns:1fr}}
-  .col{border:1px solid rgba(16,20,16,.3);border-radius:3px;padding:18px 16px 22px;background:rgba(255,255,255,.14);min-width:0}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;align-items:start}
+  .col{border:1px solid rgba(16,20,16,.3);border-radius:3px;padding:16px 14px 20px;background:rgba(255,255,255,.14);min-width:0}
   .col h2{margin:0 0 4px;font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
-  .col .note{margin:0 0 20px;font-size:11.5px;line-height:1.55;opacity:.75;min-height:4.6em}
-  .col .cost{margin:16px 0 0;font-size:11px;letter-spacing:.06em;opacity:.6;font-variant-numeric:tabular-nums}
-  .row{margin:0 0 26px}
+  .col .note{margin:0 0 18px;font-size:11px;line-height:1.55;opacity:.75;min-height:5.2em}
+  .col .cost{margin:14px 0 0;font-size:10.5px;letter-spacing:.06em;opacity:.6}
+  .row{margin:0 0 22px}
   .row .lab{font-size:10px;letter-spacing:.12em;opacity:.55;margin-bottom:6px}
-  .sample{font-family:var(--font-display);font-weight:121;line-height:1.05;white-space:nowrap}
+  .sample{font-family:var(--font-display);line-height:1.05;white-space:nowrap}
   .s64{font-size:64px}.s40{font-size:40px}.s24{font-size:24px}.s14{font-size:14px}
-  .row{overflow:visible}
 
-  /* ---------- A: the six stacked layers in use now (px values, from presets.json) ---------- */
+  /* A: the six stacked layers in use now, straight from presets.json */
   .va{position:relative;display:inline-block}
   .va .l{position:absolute;inset:0}
   .va .l:first-child{position:relative}
@@ -76,208 +68,205 @@
   .va .l6{z-index:1;opacity:1.0;filter:blur(22.00px);}
   .va .l6 .t{color:#FDF48E;-webkit-text-stroke:10px #FDF48E;}
 
-  /* ---------- B: one element, text-shadow, every length in em ---------- */
-  .vb{
-    color:rgba(242,131,49,.14);
-    -webkit-text-stroke:.018em rgba(253,244,142,.45);
-    paint-order:stroke fill;
-    text-shadow:
-      0 0 .035em #F28331,
-      0 0 .075em #F28331,
-      0 0 .14em  #F28331,
-      0 0 .26em  #FDF48E,
-      0 0 .40em  #FDF48E,
-      0 0 .58em  #FDF48E;
-  }
+  /* B: one element, text-shadow, every length in em */
+  .vb{paint-order:stroke fill}
 
-  /* ---------- C: one SVG filter (dilate + blur), sized per font-size ---------- */
-  .vc{color:var(--orange);-webkit-text-stroke:.025em var(--yellow);paint-order:stroke fill}
-  .vc.s64{filter:url(#glow64)}
-  .vc.s40{filter:url(#glow40)}
-  .vc.s24{filter:url(#glow24)}
-  .vc.s14{filter:url(#glow14)}
+  /* C and D: one SVG filter each, rebuilt live from the panel */
+  .vc,.vd{paint-order:stroke fill}
 
-  /* ---------- D: one blur, then a gradient map across the whole falloff ---------- */
-  .vd{color:#F28331}
-  .vd.s64{filter:url(#ramp64)}
-  .vd.s40{filter:url(#ramp40)}
-  .vd.s24{filter:url(#ramp24)}
-  .vd.s14{filter:url(#ramp14)}
+  /* panel */
+  .ctrl{position:fixed;right:0;top:0;bottom:0;z-index:60;width:272px;overflow:auto;
+    background:#141614;color:#ECEEE9;font-size:11px;letter-spacing:.04em;padding-bottom:24px}
+  .ctrl h3{margin:0;padding:11px 14px;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+    background:#1D201D;color:#9BA39A;position:sticky;top:0}
+  .ctrl section{padding:10px 14px;border-bottom:1px solid #2A2E2A;display:grid;gap:7px}
+  .f{display:grid;grid-template-columns:1fr 3.6em;gap:8px;align-items:center}
+  .f label{color:#C8D4C2}
+  .f input[type=number]{background:#0D0F0D;border:1px solid #2A2E2A;color:#ECEEE9;font:inherit;
+    padding:3px 5px;border-radius:3px;text-align:right;width:100%}
+  .f input[type=range]{grid-column:1/-1;width:100%;accent-color:#C8D4C2;margin:0}
+  .f input[type=color]{width:100%;height:22px;padding:0;border:1px solid #2A2E2A;border-radius:3px;background:none}
+  .ctrl select{background:#0D0F0D;color:#ECEEE9;border:1px solid #2A2E2A;border-radius:3px;font:inherit;padding:4px;width:100%}
+  .ctrl .btn{background:#ECEEE9;color:#141614;border:0;border-radius:3px;font:inherit;padding:7px;cursor:pointer;letter-spacing:.06em}
+  .ctrl textarea{width:100%;height:150px;background:#0D0F0D;color:#C8D4C2;border:1px solid #2A2E2A;border-radius:3px;
+    font:10px/1.45 ui-monospace,Menlo,monospace;padding:7px;resize:vertical}
+  @media (max-width:900px){main{padding-right:32px}.ctrl{position:static;width:auto;height:auto}}
 </style>
 </head>
 <body>
 
 <div class="bg"></div>
 <div class="grain" id="grain"></div>
-
-<aside class="ctrl">
-  <label>颗粒 <output id="go">0.30</output></label>
-  <input type="range" id="gop" min="0" max="0.6" step="0.01" value="0.30">
-  <label>粗细 <output id="ff">0.85</output></label>
-  <input type="range" id="gfreq" min="0.2" max="2.5" step="0.05" value="0.85">
-  <label>混合</label>
-  <select id="gmode">
-    <option value="normal">normal</option>
-    <option value="overlay" selected>overlay</option>
-    <option value="multiply">multiply</option>
-    <option value="soft-light">soft-light</option>
-  </select>
-</aside>
-
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
-  <filter id="glow64" x="-60%" y="-60%" width="220%" height="220%">
-    <feMorphology in="SourceAlpha" operator="dilate" radius="3.84" result="fat"/>
-    <feGaussianBlur in="fat" stdDeviation="13.44" result="halo"/>
-    <feFlood flood-color="#FDF48E" result="col"/>
-    <feComposite in="col" in2="halo" operator="in" result="glow"/>
-    <feGaussianBlur in="SourceGraphic" stdDeviation="1.41" result="core"/>
-    <feMerge><feMergeNode in="glow"/><feMergeNode in="glow"/><feMergeNode in="core"/></feMerge>
-  </filter>
-  <filter id="glow40" x="-60%" y="-60%" width="220%" height="220%">
-    <feMorphology in="SourceAlpha" operator="dilate" radius="2.40" result="fat"/>
-    <feGaussianBlur in="fat" stdDeviation="8.40" result="halo"/>
-    <feFlood flood-color="#FDF48E" result="col"/>
-    <feComposite in="col" in2="halo" operator="in" result="glow"/>
-    <feGaussianBlur in="SourceGraphic" stdDeviation="0.88" result="core"/>
-    <feMerge><feMergeNode in="glow"/><feMergeNode in="glow"/><feMergeNode in="core"/></feMerge>
-  </filter>
-  <filter id="glow24" x="-60%" y="-60%" width="220%" height="220%">
-    <feMorphology in="SourceAlpha" operator="dilate" radius="1.44" result="fat"/>
-    <feGaussianBlur in="fat" stdDeviation="5.04" result="halo"/>
-    <feFlood flood-color="#FDF48E" result="col"/>
-    <feComposite in="col" in2="halo" operator="in" result="glow"/>
-    <feGaussianBlur in="SourceGraphic" stdDeviation="0.53" result="core"/>
-    <feMerge><feMergeNode in="glow"/><feMergeNode in="glow"/><feMergeNode in="core"/></feMerge>
-  </filter>
-  <filter id="glow14" x="-60%" y="-60%" width="220%" height="220%">
-    <feMorphology in="SourceAlpha" operator="dilate" radius="0.84" result="fat"/>
-    <feGaussianBlur in="fat" stdDeviation="2.94" result="halo"/>
-    <feFlood flood-color="#FDF48E" result="col"/>
-    <feComposite in="col" in2="halo" operator="in" result="glow"/>
-    <feGaussianBlur in="SourceGraphic" stdDeviation="0.31" result="core"/>
-    <feMerge><feMergeNode in="glow"/><feMergeNode in="glow"/><feMergeNode in="core"/></feMerge>
-  </filter>
-  <filter id="ramp64" x="-70%" y="-70%" width="240%" height="240%">
-    <feGaussianBlur in="SourceAlpha" stdDeviation="10.24" result="blur"/>
-    <feColorMatrix in="blur" type="matrix" result="gray"
-      values="0 0 0 1 0  0 0 0 1 0  0 0 0 1 0  0 0 0 1 0"/>
-    <feComponentTransfer in="gray" result="band">
-      <feFuncR type="table" tableValues="0.992 0.973 0.949"/>
-      <feFuncG type="table" tableValues="0.957 0.737 0.514"/>
-      <feFuncB type="table" tableValues="0.557 0.373 0.192"/>
-      <feFuncA type="table" tableValues="0 0.85 1"/>
-    </feComponentTransfer>
-    <feGaussianBlur in="SourceGraphic" stdDeviation="1.28" result="core"/>
-    <feMerge><feMergeNode in="band"/><feMergeNode in="core"/></feMerge>
-  </filter>
-  <filter id="ramp40" x="-70%" y="-70%" width="240%" height="240%">
-    <feGaussianBlur in="SourceAlpha" stdDeviation="6.40" result="blur"/>
-    <feColorMatrix in="blur" type="matrix" result="gray"
-      values="0 0 0 1 0  0 0 0 1 0  0 0 0 1 0  0 0 0 1 0"/>
-    <feComponentTransfer in="gray" result="band">
-      <feFuncR type="table" tableValues="0.992 0.973 0.949"/>
-      <feFuncG type="table" tableValues="0.957 0.737 0.514"/>
-      <feFuncB type="table" tableValues="0.557 0.373 0.192"/>
-      <feFuncA type="table" tableValues="0 0.85 1"/>
-    </feComponentTransfer>
-    <feGaussianBlur in="SourceGraphic" stdDeviation="0.80" result="core"/>
-    <feMerge><feMergeNode in="band"/><feMergeNode in="core"/></feMerge>
-  </filter>
-  <filter id="ramp24" x="-70%" y="-70%" width="240%" height="240%">
-    <feGaussianBlur in="SourceAlpha" stdDeviation="3.84" result="blur"/>
-    <feColorMatrix in="blur" type="matrix" result="gray"
-      values="0 0 0 1 0  0 0 0 1 0  0 0 0 1 0  0 0 0 1 0"/>
-    <feComponentTransfer in="gray" result="band">
-      <feFuncR type="table" tableValues="0.992 0.973 0.949"/>
-      <feFuncG type="table" tableValues="0.957 0.737 0.514"/>
-      <feFuncB type="table" tableValues="0.557 0.373 0.192"/>
-      <feFuncA type="table" tableValues="0 0.85 1"/>
-    </feComponentTransfer>
-    <feGaussianBlur in="SourceGraphic" stdDeviation="0.48" result="core"/>
-    <feMerge><feMergeNode in="band"/><feMergeNode in="core"/></feMerge>
-  </filter>
-  <filter id="ramp14" x="-70%" y="-70%" width="240%" height="240%">
-    <feGaussianBlur in="SourceAlpha" stdDeviation="2.24" result="blur"/>
-    <feColorMatrix in="blur" type="matrix" result="gray"
-      values="0 0 0 1 0  0 0 0 1 0  0 0 0 1 0  0 0 0 1 0"/>
-    <feComponentTransfer in="gray" result="band">
-      <feFuncR type="table" tableValues="0.992 0.973 0.949"/>
-      <feFuncG type="table" tableValues="0.957 0.737 0.514"/>
-      <feFuncB type="table" tableValues="0.557 0.373 0.192"/>
-      <feFuncA type="table" tableValues="0 0.85 1"/>
-    </feComponentTransfer>
-    <feGaussianBlur in="SourceGraphic" stdDeviation="0.28" result="core"/>
-    <feMerge><feMergeNode in="band"/><feMergeNode in="core"/></feMerge>
-  </filter>
-</defs></svg>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs id="fxdefs"></defs></svg>
 
 <main>
-  <h1>glow · three ways</h1>
-  <p class="intro">同一段字，同一个背景，四个字号，字重 Bold（121）。A 是现在用的六层叠加，参数是 Apoc M 那组的 px 数值，直接套到别的字号上，可以看到小字号被光晕吃掉。B 用一套 em 参数覆盖全部字号。C 和 D 每个字号一个 filter，半径按比例算好。</p>
+  <h1>glow · four ways</h1>
+  <p class="intro">同一段字，同一个背景，四个字号。A 是现在用的六层叠加，参数是 Apoc M 那组的 px 值直接套到别的字号上。B、C、D 各用一套参数覆盖全部字号，右侧面板实时调 C 和 D。</p>
 
   <div class="grid">
     <div class="col">
       <h2>A · 六层叠加（现在）</h2>
-      <p class="note">每层一份文字副本，各自带 opacity、外描边、模糊。所有长度是 px，所以换字号必须重调，现在共 13 组预设。</p>
+      <p class="note">每层一份文字副本，各自带 opacity、外描边、模糊。长度是 px，换字号必须重调，现在共 13 组预设。</p>
       <div class="rows" data-ver="va"></div>
-      <p class="cost">每段文字 12 个 DOM 节点 · 6 个合成层</p>
+      <p class="cost">12 个 DOM 节点 · 6 个合成层</p>
     </div>
-
     <div class="col">
-      <h2>B · text-shadow（em）</h2>
-      <p class="note">一个元素。主体也是模糊的橙色阴影，上面只压一层 14% 的清晰字，所以核心一样被外圈吃掉。全部写成 em，字号一变自动等比缩放。缺点是没有 spread，外圈衰减比 A 软。</p>
+      <h2>B · text-shadow</h2>
+      <p class="note">一个元素，阴影叠在一个属性里，全部写成 em 所以自动等比缩放。缺点是没有 spread，也无法模糊字本身，核心偏实。</p>
       <div class="rows" data-ver="vb"></div>
-      <p class="cost">每段文字 1 个 DOM 节点 · 1 套参数</p>
+      <p class="cost">1 个 DOM 节点 · 1 套参数</p>
     </div>
-
     <div class="col">
       <h2>C · SVG filter</h2>
-      <p class="note">feMorphology 先把字形撑大再模糊做外光，同时对字本身也加一道小模糊，所以核心是糊的。一次渲染完成。缺点是半径是 px，不跟 font-size 走，每个字号一个 filter，由构建脚本按比例生成。</p>
+      <p class="note">feMorphology 把字形撑大再模糊做外光，同时对字本身加一道小模糊，所以核心是糊的。一次渲染完成。</p>
       <div class="rows" data-ver="vc"></div>
-      <p class="cost">每段文字 1 个 DOM 节点 · 每字号 1 个 filter</p>
+      <p class="cost">1 个 DOM 节点 · 每字号 1 个 filter</p>
     </div>
-
     <div class="col">
       <h2>D · 渐变映射</h2>
-      <p class="note">只模糊一次，再把这条灰阶映射到一条色带上，色带只用你自己的浅黄和橙。加几个停靠点就有几层光，改的是一行数组。</p>
+      <p class="note">只模糊一次，把这条灰阶映射到一条色带上。中间调能是第三个颜色，加几个停靠点就有几层光。</p>
       <div class="rows" data-ver="vd"></div>
-      <p class="cost">每段文字 1 个 DOM 节点 · 一条色带</p>
+      <p class="cost">1 个 DOM 节点 · 一条色带</p>
     </div>
   </div>
 </main>
 
+<aside class="ctrl" id="ctrl">
+  <h3>C · SVG filter</h3>
+  <section id="cBox"></section>
+  <h3>D · 渐变映射</h3>
+  <section id="dBox"></section>
+  <h3>全局颗粒</h3>
+  <section id="gBox"></section>
+  <h3>导出</h3>
+  <section>
+    <textarea id="out" readonly spellcheck="false"></textarea>
+    <button class="btn" id="copy" type="button">复制参数</button>
+  </section>
+</aside>
+
 <script>
 (function(){
-  // one grain layer over the whole page, text and glow included
-  const grain=document.getElementById('grain');
-  const url=f=>`url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'>`+
-    `<filter id='n'><feTurbulence type='fractalNoise' baseFrequency='${f}' numOctaves='2' stitchTiles='stitch'/>`+
-    `<feColorMatrix type='saturate' values='0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")`;
-  const set=()=>{
-    const op=document.getElementById('gop').value, f=(+document.getElementById('gfreq').value).toFixed(2);
-    document.getElementById('go').textContent=op;document.getElementById('ff').textContent=f;
-    grain.style.setProperty('--gop',op);
-    grain.style.setProperty('--gmode',document.getElementById('gmode').value);
-    grain.style.backgroundImage=url(f);
+  const SIZES=[64,40,24,14], TEXT='Spinal';
+  const S={
+    weight:121,
+    c:{stroke:.025, dilate:.060, halo:.210, core:.022, fill:'#F28331', glow:'#FDF48E'},
+    d:{blur:.160, core:.020, alphaMid:.85, a:'#FDF48E', b:'#F8BC5F', c:'#F28331'},
+    b:{fill:.14, stroke:.018, r1:.035, r2:.075, r3:.14, r4:.26, r5:.40, r6:.58},
+    grain:{op:.18, freq:.85, mode:'overlay'},
   };
-  ['gop','gfreq','gmode'].forEach(id=>document.getElementById(id).addEventListener('input',set));
-  set();
-})();
-(function(){
-  const SIZES=[['s64','64px'],['s40','40px'],['s24','24px'],['s14','14px']];
-  const TEXT='Spinal';
+  const $=id=>document.getElementById(id);
+  const hex=(h,i)=>(parseInt(h.slice(1+2*i,3+2*i),16)/255).toFixed(3);
+
+  // ---- samples ----
   document.querySelectorAll('.rows').forEach(box=>{
-    const ver=box.dataset.ver;
-    box.innerHTML=SIZES.map(([cls,label])=>
-      `<div class="row"><div class="lab">${label}</div>`+
-      `<span class="sample ${cls} ${ver}">${TEXT}</span></div>`).join('');
+    box.innerHTML=SIZES.map(s=>`<div class="row"><div class="lab">${s}px</div>`+
+      `<span class="sample s${s} ${box.dataset.ver}">${TEXT}</span></div>`).join('');
   });
-  // version A needs its six stacked copies
   document.querySelectorAll('.va').forEach(el=>{
     const html=el.innerHTML;el.innerHTML='';
     for(let i=1;i<=6;i++){const l=document.createElement('span');l.className='l l'+i;
       l.innerHTML='<span class="t">'+html+'</span>';el.appendChild(l);}
   });
+
+  // ---- filters, rebuilt whenever a control moves ----
+  function svg(tag,attrs,kids){
+    const e=document.createElementNS('http://www.w3.org/2000/svg',tag);
+    for(const k in attrs) e.setAttribute(k,attrs[k]);
+    (kids||[]).forEach(k=>e.appendChild(k));
+    return e;
+  }
+  function render(){
+    const defs=$('fxdefs'); defs.textContent='';
+    for(const fs of SIZES){
+      const c=S.c;
+      defs.appendChild(svg('filter',{id:'glow'+fs,x:'-70%',y:'-70%',width:'240%',height:'240%'},[
+        svg('feMorphology',{in:'SourceAlpha',operator:'dilate',radius:(fs*c.dilate).toFixed(2),result:'fat'}),
+        svg('feGaussianBlur',{in:'fat',stdDeviation:(fs*c.halo).toFixed(2),result:'halo'}),
+        svg('feFlood',{'flood-color':c.glow,result:'col'}),
+        svg('feComposite',{in:'col',in2:'halo',operator:'in',result:'glow'}),
+        svg('feGaussianBlur',{in:'SourceGraphic',stdDeviation:(fs*c.core).toFixed(2),result:'core'}),
+        svg('feMerge',{},[svg('feMergeNode',{in:'glow'}),svg('feMergeNode',{in:'glow'}),svg('feMergeNode',{in:'core'})]),
+      ]));
+      const d=S.d, band=[d.a,d.b,d.c];
+      defs.appendChild(svg('filter',{id:'ramp'+fs,x:'-70%',y:'-70%',width:'240%',height:'240%'},[
+        svg('feGaussianBlur',{in:'SourceAlpha',stdDeviation:(fs*d.blur).toFixed(2),result:'blur'}),
+        svg('feColorMatrix',{in:'blur',type:'matrix',result:'gray',
+          values:'0 0 0 1 0  0 0 0 1 0  0 0 0 1 0  0 0 0 1 0'}),
+        svg('feComponentTransfer',{in:'gray',result:'band'},[
+          svg('feFuncR',{type:'table',tableValues:band.map(h=>hex(h,0)).join(' ')}),
+          svg('feFuncG',{type:'table',tableValues:band.map(h=>hex(h,1)).join(' ')}),
+          svg('feFuncB',{type:'table',tableValues:band.map(h=>hex(h,2)).join(' ')}),
+          svg('feFuncA',{type:'table',tableValues:'0 '+d.alphaMid+' 1'}),
+        ]),
+        svg('feGaussianBlur',{in:'SourceGraphic',stdDeviation:(fs*d.core).toFixed(2),result:'core'}),
+        svg('feMerge',{},[svg('feMergeNode',{in:'band'}),svg('feMergeNode',{in:'core'})]),
+      ]));
+    }
+    // per-version CSS
+    const b=S.b, rgba=(h,a)=>`rgba(${parseInt(h.slice(1,3),16)},${parseInt(h.slice(3,5),16)},${parseInt(h.slice(5,7),16)},${a})`;
+    let css=`.sample{font-weight:${S.weight}}\n`;
+    css+=`.vb{color:${rgba(S.c.fill,b.fill)};-webkit-text-stroke:${b.stroke}em ${rgba(S.c.glow,.45)};text-shadow:`+
+      `0 0 ${b.r1}em ${S.c.fill},0 0 ${b.r2}em ${S.c.fill},0 0 ${b.r3}em ${S.c.fill},`+
+      `0 0 ${b.r4}em ${S.c.glow},0 0 ${b.r5}em ${S.c.glow},0 0 ${b.r6}em ${S.c.glow}}\n`;
+    css+=`.vc{color:${S.c.fill};-webkit-text-stroke:${S.c.stroke}em ${S.c.glow}}\n`;
+    css+=`.vd{color:${S.d.c}}\n`;
+    SIZES.forEach(fs=>{css+=`.vc.s${fs}{filter:url(#glow${fs})}.vd.s${fs}{filter:url(#ramp${fs})}\n`});
+    $('live').textContent=css;
+    const g=S.grain, gu=`url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'>`+
+      `<filter id='n'><feTurbulence type='fractalNoise' baseFrequency='${g.freq}' numOctaves='2' stitchTiles='stitch'/>`+
+      `<feColorMatrix type='saturate' values='0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")`;
+    $('grain').style.cssText=`--gop:${g.op};--gmode:${g.mode}`;
+    $('grain').style.backgroundImage=gu;
+    $('out').value=JSON.stringify(S,null,1);
+  }
+
+  // ---- panel ----
+  function field(box,label,obj,key,min,max,step){
+    const d=document.createElement('div');d.className='f';
+    d.innerHTML=`<label>${label}</label><input type="number" step="${step}" value="${obj[key]}">`+
+                `<input type="range" min="${min}" max="${max}" step="${step}" value="${obj[key]}">`;
+    const n=d.querySelector('input[type=number]'), r=d.querySelector('input[type=range]');
+    const set=v=>{obj[key]=+v;n.value=v;r.value=v;render();};
+    n.addEventListener('input',e=>set(e.target.value));
+    r.addEventListener('input',e=>set(e.target.value));
+    box.appendChild(d);
+  }
+  function colour(box,label,obj,key){
+    const d=document.createElement('div');d.className='f';
+    d.innerHTML=`<label>${label}</label><input type="color" value="${obj[key]}">`;
+    d.querySelector('input').addEventListener('input',e=>{obj[key]=e.target.value.toUpperCase();render();});
+    box.appendChild(d);
+  }
+  const cB=$('cBox');
+  field(cB,'字重',S,'weight',80,145,1);
+  field(cB,'描边 em',S.c,'stroke',0,.08,.005);
+  field(cB,'撑大 ×fs',S.c,'dilate',0,.2,.005);
+  field(cB,'外光模糊 ×fs',S.c,'halo',0,.5,.005);
+  field(cB,'核心模糊 ×fs',S.c,'core',0,.08,.002);
+  colour(cB,'字色',S.c,'fill');
+  colour(cB,'光色',S.c,'glow');
+  const dB=$('dBox');
+  field(dB,'模糊 ×fs',S.d,'blur',0,.5,.005);
+  field(dB,'核心模糊 ×fs',S.d,'core',0,.08,.002);
+  field(dB,'色带中点',S.d,'alphaMid',0,1,.01);
+  colour(dB,'外圈',S.d,'a'); colour(dB,'中段',S.d,'b'); colour(dB,'核心',S.d,'c');
+  const gB=$('gBox');
+  field(gB,'颗粒',S.grain,'op',0,.6,.01);
+  field(gB,'粗细',S.grain,'freq',.2,2.5,.05);
+  const sel=document.createElement('select');
+  sel.innerHTML=['normal','overlay','multiply','soft-light'].map(m=>`<option${m==='overlay'?' selected':''}>${m}</option>`).join('');
+  sel.addEventListener('change',e=>{S.grain.mode=e.target.value;render();});
+  gB.appendChild(sel);
+
+  $('copy').addEventListener('click',async()=>{
+    try{await navigator.clipboard.writeText($('out').value);$('copy').textContent='已复制';}
+    catch(e){$('out').select();$('copy').textContent='请手动复制';}
+    setTimeout(()=>$('copy').textContent='复制参数',1400);
+  });
+
+  const st=document.createElement('style');st.id='live';document.head.appendChild(st);
+  render();
 })();
 </script>
 </body>

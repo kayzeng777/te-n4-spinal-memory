@@ -256,62 +256,11 @@ def version_a_css(key='apoc-M'):
     return '\n  '.join(out)
 
 
-GLOW_SIZES = [64, 40, 24, 14]
-GLOW_RATIO = {'dilate': 0.060, 'halo': 0.210, 'core': 0.022}   # as a fraction of font-size
-
-
-# D: the colour band the blurred falloff is mapped onto, outermost first
-RAMP = ['#FDF48E', '#F8BC5F', '#F28331']
-RAMP_ALPHA = '0 0.85 1'
-RAMP_BLUR = 0.16     # fraction of font-size
-RAMP_CORE = 0.020
-
-
-def ramp_filters():
-    chan = lambda i: ' '.join(f'{int(c[1 + 2 * i:3 + 2 * i], 16) / 255:.3f}' for c in RAMP)
-    out = []
-    for fs in GLOW_SIZES:
-        b = fs * RAMP_BLUR; c = fs * RAMP_CORE
-        out.append(
-            f'  <filter id="ramp{fs}" x="-70%" y="-70%" width="240%" height="240%">\n'
-            f'    <feGaussianBlur in="SourceAlpha" stdDeviation="{b:.2f}" result="blur"/>\n'
-            # copy alpha into rgb, keep alpha, so the tables below read the falloff
-            f'    <feColorMatrix in="blur" type="matrix" result="gray"\n'
-            f'      values="0 0 0 1 0  0 0 0 1 0  0 0 0 1 0  0 0 0 1 0"/>\n'
-            f'    <feComponentTransfer in="gray" result="band">\n'
-            f'      <feFuncR type="table" tableValues="{chan(0)}"/>\n'
-            f'      <feFuncG type="table" tableValues="{chan(1)}"/>\n'
-            f'      <feFuncB type="table" tableValues="{chan(2)}"/>\n'
-            f'      <feFuncA type="table" tableValues="{RAMP_ALPHA}"/>\n'
-            f'    </feComponentTransfer>\n'
-            f'    <feGaussianBlur in="SourceGraphic" stdDeviation="{c:.2f}" result="core"/>\n'
-            f'    <feMerge><feMergeNode in="band"/><feMergeNode in="core"/></feMerge>\n'
-            f'  </filter>')
-    return '\n'.join(out)
-
-
-def glow_filters():
-    out = []
-    for fs in GLOW_SIZES:
-        d = fs * GLOW_RATIO['dilate']; h = fs * GLOW_RATIO['halo']; c = fs * GLOW_RATIO['core']
-        out.append(
-            f'  <filter id="glow{fs}" x="-60%" y="-60%" width="220%" height="220%">\n'
-            f'    <feMorphology in="SourceAlpha" operator="dilate" radius="{d:.2f}" result="fat"/>\n'
-            f'    <feGaussianBlur in="fat" stdDeviation="{h:.2f}" result="halo"/>\n'
-            f'    <feFlood flood-color="#FDF48E" result="col"/>\n'
-            f'    <feComposite in="col" in2="halo" operator="in" result="glow"/>\n'
-            f'    <feGaussianBlur in="SourceGraphic" stdDeviation="{c:.2f}" result="core"/>\n'
-            f'    <feMerge><feMergeNode in="glow"/><feMergeNode in="glow"/><feMergeNode in="core"/></feMerge>\n'
-            f'  </filter>')
-    return '\n'.join(out)
-
-
 GLOW = open(os.path.join(HERE, 'glow.template.html')).read()
 glow_doc = ('<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8">\n'
             '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
             + GLOW.replace('__FONTS__', font_faces(False))
                   .replace('__VER_A_CSS__', version_a_css())
-                  .replace('__FILTERS__', glow_filters() + '\n' + ramp_filters())
                   .replace('</style>', '</style>\n</head>\n<body>', 1) + '</body>\n</html>\n')
 open(os.path.join(REPO, 'glow.html'), 'w').write(glow_doc)
 
