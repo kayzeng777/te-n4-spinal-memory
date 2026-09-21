@@ -7,7 +7,7 @@ REPO = os.path.dirname(HERE)
 def load_spine(name):
     svg = open(os.path.join(HERE, name)).read()
     m = re.search(r'viewBox="0 0 ([\d.]+) ([\d.]+)"', svg)
-    cols, height = int(float(m.group(1))), float(m.group(2))
+    cols, height = float(m.group(1)), float(m.group(2))
     return svg, cols, round(height / 1.6)
 
 
@@ -227,7 +227,7 @@ def page(inline, spine=None, cols=None, rows=None):
     cols = SPINE_COLS if cols is None else cols
     rows = SPINE_ROWS if rows is None else rows
     return (HEAD.replace('__FONTS__', font_faces(inline)).replace('__FXBASE__', FX_BASE_CSS)
-                .replace('__FXPRESETS__', preset_css()).replace('__COLS__', str(cols))
+                .replace('__FXPRESETS__', preset_css()).replace('__COLS__', f'{cols:g}')
                 .replace('__ROWS__', str(rows))
             + BODY.replace('__SPINE__', spine).replace('__FXJS__', FX_JS)
                   .replace('__LOGO__', LOGO).replace('__NOISEDEFS__', noise_defs()))
@@ -328,7 +328,7 @@ open(os.path.join(REPO, 'preview.html'), 'w').write(preview_doc)
 # the artifact is the poster itself, fonts inlined
 art = page(True)
 open(os.path.join(REPO, 'artifact.html'), 'w').write(art)
-print(f'index.html {len(repo_doc)//1024} KB ({SPINE_COLS}x{SPINE_ROWS}) · '
-      f'preview.html {len(preview_doc)//1024} KB ({SPINE2_COLS}x{SPINE2_ROWS}) · '
+print(f'index.html {len(repo_doc)//1024} KB ({SPINE_COLS:g}x{SPINE_ROWS}) · '
+      f'preview.html {len(preview_doc)//1024} KB ({SPINE2_COLS:g}x{SPINE2_ROWS}) · '
       f'fx.html {len(fx_repo)//1024} KB · glow.html {len(glow_doc)//1024} KB · '
       f'artifact.html {len(art)//1024} KB')
