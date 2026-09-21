@@ -117,7 +117,7 @@ HEAD = '''<title>te online lecture</title>
   main{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;padding:8vh 0 12vh}
   .spine{width:calc(__COLS__ * var(--cell));height:auto;overflow:visible;display:block}
   .cells rect{stroke:#cccccc;stroke-width:.05;stroke-dasharray:.14 .1;shape-rendering:crispEdges}
-  .glyphs text{font-family:Menlo,Consolas,"DejaVu Sans Mono",monospace;font-size:1.6px;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+  .glyphs text{font-family:Menlo,Consolas,"DejaVu Sans Mono",monospace;font-size:1.85px;text-anchor:middle;dominant-baseline:central;pointer-events:none}
   .glyphs text.h{font-family:"Noto Sans Egyptian Hieroglyphs",sans-serif;font-size:1.5px}
   .seg .pic{opacity:0;transition:opacity .25s ease}
   .seg:hover .pic,.seg.active .pic{opacity:1}

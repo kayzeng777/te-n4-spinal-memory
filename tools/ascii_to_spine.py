@@ -3,8 +3,7 @@
 
 One cell per non-space character: a
 white cell with the character drawn on it in the colour for its shade level.
-Each cell's white bleeds a little into the blank space above and below it, so the
-white reads as a deliberate edge rather than a gap.
+Blank cells enclosed by the drawing are filled with the background green.
 Cells are 1 unit wide and ASPECT tall, matching a monospace character box, so the
 drawing keeps the proportions it had in a terminal.
 """
@@ -22,7 +21,7 @@ TONE = {'░': '#FDF48E', '▒': '#F8BC5F', '▓': '#F38530', '█': '#822D00'}
 GLYPH = '▓'
 FALLBACK = '#F38530'
 CELL = '#ffffff'
-EXT = 0.40    # how far a cell's white bleeds into the blank space above or below it
+HOLE = '#65BE8D'   # blank cells enclosed by the drawing, no character
 
 lines = open(SRC).read().split('\n')
 cells = {(x, y): ch for y, line in enumerate(lines)
@@ -35,7 +34,32 @@ x0, y0 = min(xs), min(ys)
 COLS = max(xs) - x0 + 1 + 2 * PAD
 ROWS = max(ys) - y0 + 1 + 2 * PAD
 
+# blanks the outside can reach are background; the rest are holes inside the spine
+def interior_blanks():
+    seen, stack = set(), []
+    lo_c, hi_c, lo_r, hi_r = -PAD, COLS - PAD, -PAD, ROWS - PAD
+    for c in range(lo_c, hi_c + 1):
+        stack += [(c, lo_r), (c, hi_r)]
+    for r in range(lo_r, hi_r + 1):
+        stack += [(lo_c, r), (hi_c, r)]
+    while stack:
+        c, r = stack.pop()
+        if (c, r) in seen or not (lo_c <= c <= hi_c and lo_r <= r <= hi_r): continue
+        if (c + x0, r + y0) in cells: continue
+        seen.add((c, r))
+        stack += [(c + 1, r), (c - 1, r), (c, r + 1), (c, r - 1)]
+    return {(c, r) for c in range(0, COLS - 2 * PAD) for r in range(0, ROWS - 2 * PAD)
+            if (c + x0, r + y0) not in cells and (c, r) not in seen}
+
+
+HOLES = interior_blanks()
+
 rects, glyphs = [], []
+for c, r in sorted(HOLES, key=lambda p: (p[1], p[0])):
+    cx, cy = c + PAD, (r + PAD) * ASPECT
+    rects.append(f'<rect x="{cx}" y="{cy:g}" width="1" height="{ASPECT:g}" '
+                 f'data-c="{cx}" data-r="{r + PAD}" fill="{HOLE}"/>')
+
 
 for (x, y), ch in sorted(cells.items(), key=lambda kv: (kv[0][1], kv[0][0])):
     cx = x - x0 + PAD
@@ -43,9 +67,7 @@ for (x, y), ch in sorted(cells.items(), key=lambda kv: (kv[0][1], kv[0][0])):
     r = y - y0 + PAD
     tone = TONE.get(ch, FALLBACK)
     glyph = GLYPH
-    up = 0 if (x, y - 1) in cells else EXT      # bleed only into blank space,
-    down = 0 if (x, y + 1) in cells else EXT     # so no glyph is ever covered
-    rects.append(f'<rect x="{cx}" y="{cy - up:g}" width="1" height="{ASPECT + up + down:g}" '
+    rects.append(f'<rect x="{cx}" y="{cy:g}" width="1" height="{ASPECT:g}" '
                  f'data-c="{cx}" data-r="{r}" fill="{CELL}"/>')
     glyphs.append(f'<text x="{cx + 0.5:g}" y="{cy + ASPECT / 2:g}" data-c="{cx}" data-r="{r}" '
                   f'textLength="1" lengthAdjust="spacingAndGlyphs" fill="{tone}">{glyph}</text>')
@@ -56,6 +78,7 @@ out = (f'<svg class="spine" viewBox="0 0 {COLS} {ROWS * ASPECT:g}" '
 open(os.path.join(HERE, 'spine.svg.part'), 'w').write(out)
 
 tally = collections.Counter(cells.values())
-print(f'grid {COLS} x {ROWS} cells (pad {PAD}, aspect {ASPECT}), {len(cells)} drawn')
+print(f'grid {COLS} x {ROWS} cells (pad {PAD}, aspect {ASPECT}), '
+      f'{len(cells)} drawn + {len(HOLES)} enclosed blanks in {HOLE}')
 for ch, n in sorted(tally.items(), key=lambda kv: list(TONE).index(kv[0])):
     print(f'  {ch} -> {GLYPH}  {n:5d}  ink {TONE[ch]}')
