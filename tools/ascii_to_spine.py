@@ -3,8 +3,8 @@
 
 One cell per non-space character: a
 white cell with the character drawn on it in the colour for its shade level.
-The character is stretched to the full cell width but is shorter than the cell,
-so every row keeps a white band above and below the colour.
+Each cell's white bleeds a little into the blank space above and below it, so the
+white reads as a deliberate edge rather than a gap.
 Cells are 1 unit wide and ASPECT tall, matching a monospace character box, so the
 drawing keeps the proportions it had in a terminal.
 """
@@ -22,6 +22,7 @@ TONE = {'░': '#FDF48E', '▒': '#F8BC5F', '▓': '#F38530', '█': '#822D00'}
 GLYPH = '▓'
 FALLBACK = '#F38530'
 CELL = '#ffffff'
+EXT = 0.40    # how far a cell's white bleeds into the blank space above or below it
 
 lines = open(SRC).read().split('\n')
 cells = {(x, y): ch for y, line in enumerate(lines)
@@ -42,7 +43,9 @@ for (x, y), ch in sorted(cells.items(), key=lambda kv: (kv[0][1], kv[0][0])):
     r = y - y0 + PAD
     tone = TONE.get(ch, FALLBACK)
     glyph = GLYPH
-    rects.append(f'<rect x="{cx}" y="{cy:g}" width="1" height="{ASPECT:g}" '
+    up = 0 if (x, y - 1) in cells else EXT      # bleed only into blank space,
+    down = 0 if (x, y + 1) in cells else EXT     # so no glyph is ever covered
+    rects.append(f'<rect x="{cx}" y="{cy - up:g}" width="1" height="{ASPECT + up + down:g}" '
                  f'data-c="{cx}" data-r="{r}" fill="{CELL}"/>')
     glyphs.append(f'<text x="{cx + 0.5:g}" y="{cy + ASPECT / 2:g}" data-c="{cx}" data-r="{r}" '
                   f'textLength="1" lengthAdjust="spacingAndGlyphs" fill="{tone}">{glyph}</text>')

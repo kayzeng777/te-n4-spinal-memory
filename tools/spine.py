@@ -20,10 +20,11 @@ head = re.match(r'<svg[^>]*>', src).group(0)
 defs = ''
 cells_src = re.search(r'<g class="cells">(.*?)</g>', src, re.S).group(1)
 RECT = r'<rect x="(-?[\d.]+)" y="(-?[\d.]+)" width="([\d.]+)" height="([\d.]+)"[^>]*/>'
-rects = [(el, float(y)) for el, y in re.findall(r'(' + RECT + r')', cells_src)[0:0]] or \
-        [(m.group(0), float(m.group(2))) for m in re.finditer(RECT, cells_src)]
-glyph_els = [(m.group(0), float(m.group(1))) for m in
-             re.finditer(r'<text x="[-\d.]+" y="(-?[\d.]+)"[^>]*>.*?</text>', src)]
+# group by the grid row (data-r), not the drawn y, which cells may overshoot
+rects = [(m.group(0), int(re.search(r'data-r="(\d+)"', m.group(0)).group(1)))
+         for m in re.finditer(RECT, cells_src)]
+glyph_els = [(m.group(0), int(re.search(r'data-r="(\d+)"', m.group(0)).group(1)))
+             for m in re.finditer(r'<text [^>]*>.*?</text>', src)]
 
 width = collections.Counter(y for _, y in rects)
 rows = sorted(width)
