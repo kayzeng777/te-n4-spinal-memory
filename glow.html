@@ -140,7 +140,8 @@
     lh:{serif:.95, sans:1.05},
     ls:{serif:0, sans:0},
     e:{morph:0, stroke:0, feather:.045, grainSize:.022, scaleGrain:1, grain:1.1, hard:6,
-       soften:.018, core:.012, inset:1, dilate:.060, halo:.210, fill:'#F28331', glow:'#FDF48E'},
+       soften:.018, core:.012, inset:1, evenness:3, dilate:.060, halo:.210,
+       fill:'#F28331', glow:'#FDF48E'},
     grain:{op:.18, freq:.85, mode:'overlay'},
   };
   const $=id=>document.getElementById(id);
@@ -183,8 +184,15 @@
         svg('feTurbulence',{type:'fractalNoise',numOctaves:'2',seed:'7',result:'turb',
           // period = grainSize x font-size, so the grain keeps its scale against the letterform
           baseFrequency:(e.scaleGrain ? 1/(fs*e.grainSize) : 1/(64*e.grainSize)).toFixed(3)}),
-        svg('feColorMatrix',{in:'turb',type:'matrix',result:'noise',
+        svg('feColorMatrix',{in:'turb',type:'matrix',result:'noiseRaw',
           values:'0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  .33 .33 .33 0 0'}),
+        // fractalNoise carries a slow large-scale drift; hardening turns that into
+        // blotches where whole letters are eaten more than their neighbours. Subtract
+        // a blurred copy of the noise so only the local, even jitter is left.
+        svg('feGaussianBlur',{in:'noiseRaw',result:'noiseLow',
+          stdDeviation:(e.evenness ? (fs*e.grainSize*e.evenness) : 0).toFixed(2)}),
+        svg('feComposite',{in:'noiseRaw',in2:'noiseLow',operator:'arithmetic',result:'noise',
+          k1:'0',k2:'1',k3:e.evenness?'-1':'0',k4:e.evenness?'0.5':'0'}),
         svg('feComposite',{in:'soft',in2:'noise',operator:'arithmetic',
           k1:'0',k2:'1',k3:e.grain,k4:(-e.grain/2).toFixed(3),result:'stirred'}),
         svg('feComponentTransfer',{in:'stirred',result:'eaten'},[
@@ -254,6 +262,7 @@
   field(eB,'羽化 ×fs',S.e,'feather',0,.15,.005);
   field(eB,'噪点粗细 ÷fs',S.e,'grainSize',.004,.12,.002);
   field(eB,'噪点强度',S.e,'grain',0,3,.05);
+  field(eB,'噪点均匀度',S.e,'evenness',0,10,.5);
   field(eB,'压硬',S.e,'hard',1,20,.5);
   field(eB,'边缘模糊 ×fs',S.e,'soften',0,.08,.002);
   field(eB,'字身模糊 ×fs',S.e,'core',0,.06,.002);
