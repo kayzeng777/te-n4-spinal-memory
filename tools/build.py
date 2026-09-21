@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Build index.html (repo, file fonts) and artifact.html (inline fonts) from parts."""
-import base64, os, sys
+import base64, json, os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
 SPINE = open(os.path.join(HERE, 'spine.seg.part')).read()
-import json, re
+SPINE_COLS = int(float(re.search(r'viewBox="0 0 ([\d.]+) ', SPINE).group(1)))
 PRESETS_PATH = os.path.join(HERE, 'presets.json')
 PRESETS = json.load(open(PRESETS_PATH)) if os.path.exists(PRESETS_PATH) else None
 FONT_FAMILY = {'apoc': 'var(--font-display)', 'pp': 'var(--font-sans)', 'cn': 'var(--font-cn)'}
@@ -94,9 +94,9 @@ HEAD = '''<title>te online lecture</title>
     --font-display:"Apoc",Georgia,serif;
     --font-sans:"PP Neue Montreal",-apple-system,"Helvetica Neue",Arial,sans-serif;
     --ink:#101410; --ink-brown:#822D00; --ink-soft:rgba(16,20,16,.7);
-    --cell:12px;
+    --cell:8px;
   }
-  @media (max-width:760px){:root{--cell:7px}}
+  @media (max-width:760px){:root{--cell:5px}}
   *{box-sizing:border-box}
   html,body{margin:0;min-height:100%}
   body{min-height:100vh;background:#92CA87;color:var(--ink);position:relative;font-family:var(--font-sans);}
@@ -115,7 +115,7 @@ HEAD = '''<title>te online lecture</title>
     background-size:var(--cell) var(--cell);
     background-position:calc(50% + var(--cell) / 2) 8vh;}
   main{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;padding:8vh 0 12vh}
-  .spine{width:calc(32 * var(--cell));height:auto;overflow:visible;display:block}
+  .spine{width:calc(__COLS__ * var(--cell));height:auto;overflow:visible;display:block}
   .cells rect{fill:#fff;stroke:#cccccc;stroke-width:.05;stroke-dasharray:.14 .1;shape-rendering:crispEdges}
   .glyphs text{font-family:Menlo,Consolas,"DejaVu Sans Mono",monospace;text-anchor:middle;dominant-baseline:central;pointer-events:none}
   .glyphs text.h{font-family:"Noto Sans Egyptian Hieroglyphs",sans-serif;font-size:1.1px}
@@ -197,7 +197,7 @@ __FXJS__
 '''
 
 def page(inline):
-    return (HEAD.replace('__FONTS__', font_faces(inline)).replace('__FXBASE__', FX_BASE_CSS).replace('__FXPRESETS__', preset_css())
+    return (HEAD.replace('__FONTS__', font_faces(inline)).replace('__FXBASE__', FX_BASE_CSS).replace('__FXPRESETS__', preset_css()).replace('__COLS__', str(SPINE_COLS))
             + BODY.replace('__SPINE__', SPINE).replace('__FXJS__', FX_JS).replace('__LOGO__', LOGO).replace('__NOISEDEFS__', noise_defs()))
 
 repo_doc = ('<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8">\n'
