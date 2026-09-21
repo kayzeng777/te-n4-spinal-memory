@@ -18,8 +18,11 @@ ASPECT = 1.6       # cell height / cell width, i.e. a monospace character box
 # are the palette; #F8BC5F is their cream-orange midpoint, filling the fourth step.
 # Every cell draws the same character; the four source levels are told apart by
 # colour alone. Cells are white and the colour is on the character.
-# tints of the accent #F28532, mixed with white at 75 / 55 / 30 / 0 percent
-TONE = {'░': '#FCE0CC', '▒': '#F9C8A3', '▓': '#F6AA70', '█': '#F28532'}
+# tints of the accent #F28532, mixed with white at 75 / 55 / 30 / 0 percent.
+# Only the shade levels the drawing actually uses are spread across this ramp,
+# so a three-level drawing still reaches the accent at its darkest.
+RAMP = ['#FCE0CC', '#F9C8A3', '#F6AA70', '#F28532']
+DENSITY = '░▒▓█'
 GLYPH = '▓'
 FALLBACK = '#F6AA70'
 CELL = '#ffffff'
@@ -56,8 +59,14 @@ def interior_blanks():
 
 HOLES = interior_blanks()
 
+levels = sorted({ch for ch in cells.values() if ch in DENSITY}, key=DENSITY.index)
+TONE = {ch: RAMP[round(i * (len(RAMP) - 1) / max(1, len(levels) - 1))]
+        for i, ch in enumerate(levels)}
+for ch in set(cells.values()) - set(TONE):
+    TONE[ch] = FALLBACK
+
 # every cell, drawn or enclosed blank, is white with a ▓ in its own colour
-PAINT = {(x, y): TONE.get(ch, FALLBACK) for (x, y), ch in cells.items()}
+PAINT = {(x, y): TONE[ch] for (x, y), ch in cells.items()}
 PAINT.update({(c + x0, r + y0): HOLE for c, r in HOLES})
 
 rects, glyphs = [], []
@@ -81,6 +90,6 @@ open(OUT, 'w').write(out)
 tally = collections.Counter(cells.values())
 print(f'grid {COLS} x {ROWS} cells (pad {PAD}, aspect {ASPECT}), '
       f'{len(cells)} drawn + {len(HOLES)} enclosed blanks, all as {GLYPH}')
-for ch, n in sorted(tally.items(), key=lambda kv: list(TONE).index(kv[0])):
+for ch, n in sorted(tally.items(), key=lambda kv: DENSITY.index(kv[0]) if kv[0] in DENSITY else 9):
     print(f'  {ch} -> {GLYPH}  {n:5d}  ink {TONE[ch]}')
 print(f'  hole -> {GLYPH}  {len(HOLES):5d}  ink {HOLE}')
