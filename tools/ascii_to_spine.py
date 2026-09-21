@@ -17,9 +17,9 @@ ASPECT = 1.6       # cell height / cell width, i.e. a monospace character box
 # are the palette; #F8BC5F is their cream-orange midpoint, filling the fourth step.
 # Every cell draws the same character; the four source levels are told apart by
 # colour alone. Cells are white and the colour is on the character.
-TONE = {'░': '#FDF48E', '▒': '#F8BC5F', '▓': '#F38530', '█': '#822D00'}
+TONE = {'░': '#EDE7D2', '▒': '#DCCFA2', '▓': '#B3AA98', '█': '#877E6F'}
 GLYPH = '▓'
-FALLBACK = '#F38530'
+FALLBACK = '#B3AA98'
 CELL = '#ffffff'
 HOLE = '#86C689'   # blank cells enclosed by the drawing get a ▓ in this green
 
