@@ -242,7 +242,7 @@ GLOW_RATIO = {'dilate': 0.060, 'halo': 0.210, 'core': 0.022}   # as a fraction o
 
 
 # D: the colour band the blurred falloff is mapped onto, outermost first
-RAMP = ['#FDF48E', '#F28331', '#822D00']
+RAMP = ['#FDF48E', '#F8BC5F', '#F28331']
 RAMP_ALPHA = '0 0.85 1'
 RAMP_BLUR = 0.16     # fraction of font-size
 RAMP_CORE = 0.020
