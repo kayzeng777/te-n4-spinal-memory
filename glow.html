@@ -48,7 +48,7 @@
   .row .lab{font-size:10px;letter-spacing:.12em;opacity:.55;margin-bottom:6px}
   .pair{display:block;margin:0 0 8px}
   .face{display:block;font-family:var(--font-sans);font-size:9px;letter-spacing:.1em;opacity:.4;margin-bottom:2px}
-  .sample{line-height:1.05;white-space:nowrap;display:inline-block}
+  .sample{white-space:nowrap;display:inline-block}
   .s64{font-size:64px}.s28{font-size:28px}.s14{font-size:14px}
 
   /* A: the six stacked layers in use now, straight from presets.json */
@@ -118,7 +118,7 @@
 </main>
 
 <aside class="ctrl" id="ctrl">
-  <h3>字重</h3>
+  <h3>排版</h3>
   <section id="wBox"></section>
   <h3>参数</h3>
   <section id="eBox"></section>
@@ -133,10 +133,12 @@
 
 <script>
 (function(){
-  const SIZES=[64,28,14], TEXT='Spinal';
+  const SIZES=[64,28,14], TEXT='Spinal<br>Memory';
   const FACES=[['serif','var(--font-display)'],['sans','var(--font-sans)']];
   const S={
     w:{serif:121, sans:500},
+    lh:{serif:.95, sans:1.05},
+    ls:{serif:0, sans:0},
     e:{morph:0, stroke:0, feather:.045, grainSize:.022, scaleGrain:1, grain:1.1, hard:6,
        soften:.018, core:.012, inset:1, dilate:.060, halo:.210, fill:'#F28331', glow:'#FDF48E'},
     grain:{op:.18, freq:.85, mode:'overlay'},
@@ -197,8 +199,10 @@
         svg('feMerge',{},[svg('feMergeNode',{in:'glow'}),svg('feMergeNode',{in:'glow'}),svg('feMergeNode',{in:'core'})]),
       ]));
     }
-    let css=`.sample[data-face=serif]{font-weight:${S.w.serif}}\n`+
-            `.sample[data-face=sans]{font-weight:${S.w.sans}}\n`+
+    let css=`.sample[data-face=serif]{font-weight:${S.w.serif};line-height:${S.lh.serif};`+
+              `letter-spacing:${S.ls.serif}em}\n`+
+            `.sample[data-face=sans]{font-weight:${S.w.sans};line-height:${S.lh.sans};`+
+              `letter-spacing:${S.ls.sans}em}\n`+
             `.vb{color:${e.fill};-webkit-text-stroke:${e.stroke}em ${e.glow}}\n`;
     SIZES.forEach(fs=>{css+=`.vb.s${fs}{filter:url(#edge${fs})}\n`});
     $('live').textContent=css;
@@ -237,8 +241,12 @@
   }
 
   const wB=$('wBox');
-  field(wB,'衬线 Apoc',S.w,'serif',80,145,1);
-  field(wB,'无衬线 PP',S.w,'sans',100,700,10);
+  field(wB,'衬线 字重',S.w,'serif',80,145,1);
+  field(wB,'衬线 行高',S.lh,'serif',.7,2,.01);
+  field(wB,'衬线 字距 em',S.ls,'serif',-.08,.4,.005);
+  field(wB,'无衬线 字重',S.w,'sans',100,700,10);
+  field(wB,'无衬线 行高',S.lh,'sans',.7,2,.01);
+  field(wB,'无衬线 字距 em',S.ls,'sans',-.08,.4,.005);
 
   const eB=$('eBox');
   field(eB,'胖瘦 ×fs',S.e,'morph',-.04,.04,.002);
