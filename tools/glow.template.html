@@ -92,7 +92,7 @@
     </div>
     <div class="col">
       <h2>E · 羽化 + 噪点</h2>
-      <p class="note">先把字形羽化成一圈渐变，再往渐变里掺噪点，最后压硬。渐变于是碎成颗粒，边缘被有机地蚕食掉，而不是平滑淡出。</p>
+      <p class="note">先把字形羽化成一圈渐变，往渐变里掺噪点，压硬使它碎成颗粒，再补一道模糊。边缘于是被有机地蚕食掉，而且碎口本身也是糊的。</p>
       <div class="rows" data-ver="ve"></div>
       <p class="cost">1 个 DOM 节点 · 每字号 1 个 filter</p>
     </div>
@@ -129,7 +129,7 @@
     c:{stroke:.025, dilate:.060, halo:.210, core:.022, fill:'#F28331', glow:'#FDF48E'},
     d:{blur:.160, core:.020, alphaMid:.85, a:'#FDF48E', b:'#F8BC5F', c:'#F28331'},
     b:{fill:.14, stroke:.018, r1:.035, r2:.075, r3:.14, r4:.26, r5:.40, r6:.58},
-    e:{feather:.045, freq:.55, grain:1.1, hard:6, dilate:.060, halo:.210},
+    e:{feather:.045, freq:1.2, grain:1.1, hard:6, soften:.018, dilate:.060, halo:.210},
     grain:{op:.18, freq:.85, mode:'overlay'},
   };
   const $=id=>document.getElementById(id);
@@ -181,8 +181,10 @@
           k1:'0',k2:'1',k3:e.grain,k4:(-e.grain/2).toFixed(3),result:'stirred'}),
         svg('feComponentTransfer',{in:'stirred',result:'eaten'},[
           svg('feFuncA',{type:'linear',slope:e.hard,intercept:mid})]),
+        // soften the broken edge again, so it reads as blurred grain rather than a hard dither
+        svg('feGaussianBlur',{in:'eaten',stdDeviation:(fs*e.soften).toFixed(2),result:'edgesoft'}),
         svg('feFlood',{'flood-color':S.c.fill,result:'fcol'}),
-        svg('feComposite',{in:'fcol',in2:'eaten',operator:'in',result:'core'}),
+        svg('feComposite',{in:'fcol',in2:'edgesoft',operator:'in',result:'core'}),
         svg('feMerge',{},[svg('feMergeNode',{in:'glow'}),svg('feMergeNode',{in:'glow'}),svg('feMergeNode',{in:'core'})]),
       ]));
       const d=S.d, band=[d.a,d.b,d.c];
@@ -247,9 +249,10 @@
   colour(cB,'光色',S.c,'glow');
   const eB=$('eBox');
   field(eB,'羽化 ×fs',S.e,'feather',0,.15,.005);
-  field(eB,'噪点粗细',S.e,'freq',.05,2,.01);
+  field(eB,'噪点粗细',S.e,'freq',.05,5,.01);
   field(eB,'噪点强度',S.e,'grain',0,3,.05);
   field(eB,'压硬',S.e,'hard',1,20,.5);
+  field(eB,'边缘模糊 ×fs',S.e,'soften',0,.08,.002);
   field(eB,'撑大 ×fs',S.e,'dilate',0,.2,.005);
   field(eB,'外光模糊 ×fs',S.e,'halo',0,.5,.005);
   const dB=$('dBox');
