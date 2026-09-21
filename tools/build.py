@@ -190,7 +190,7 @@ __SPINE__
     const SYMS=Array.from('𓃠𓃰𓃱𓃯𓃸𓃵𓃗𓃙𓃟𓄀𓄁𓄂𓄃𓃚𓃛𓃜𓃞𓃓𓃔𓃕𓃖𓃦𓃬𓃷𓃹𓃻𓃾𓄅𓄇𓆈𓆉𓆌𓆏𓆗𓆙𓆐𓆓𓆊𓆣𓆤𓆦𓆧𓆨𓆝𓆡𓅂𓅐𓅓𓅟𓅮𓅰𓆀');
     const SHARE=0.05, HOLD=7000;
     const ts=[...document.querySelectorAll('.glyphs text')];if(!ts.length)return;
-    const LIGHT=new Set(['#EDE7D2','#DCCFA2','#B3AA98','#86C689']);
+    const LIGHT=new Set(['#F4DDCB','#EAB994','#D49F77','#86C689']);
     const key=t=>t.dataset.c+','+t.dataset.r;
     const rects=new Map([...document.querySelectorAll('.seg .cells rect')].map(r=>[r.dataset.c+','+r.dataset.r,r]));
     const idx=new Map(ts.map((t,i)=>[key(t),i])), active=new Set(), TARGET=Math.round(ts.length*SHARE);
