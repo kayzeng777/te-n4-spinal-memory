@@ -19,8 +19,8 @@
   h1{font-size:13px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;margin:0 0 6px}
   .intro{font-size:13px;line-height:1.6;max-width:70ch;margin:0 0 36px;opacity:.75}
 
-  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;align-items:start}
-  @media (max-width:1100px){.grid{grid-template-columns:1fr}}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:start}
+  @media (max-width:860px){.grid{grid-template-columns:1fr}}
   .col{border:1px solid rgba(16,20,16,.3);border-radius:3px;padding:18px 16px 22px;background:rgba(255,255,255,.14)}
   .col h2{margin:0 0 4px;font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
   .col .note{margin:0 0 20px;font-size:11.5px;line-height:1.55;opacity:.75;min-height:4.6em}
@@ -28,7 +28,8 @@
   .row{margin:0 0 26px}
   .row .lab{font-size:10px;letter-spacing:.12em;opacity:.55;margin-bottom:6px}
   .sample{font-family:var(--font-display);font-weight:106;line-height:1.05;white-space:nowrap}
-  .s100{font-size:100px}.s48{font-size:48px}.s28{font-size:28px}.s16{font-size:16px}
+  .s64{font-size:64px}.s40{font-size:40px}.s24{font-size:24px}.s14{font-size:14px}
+  .row{overflow:visible}
 
   /* ---------- A: the six stacked layers in use now (px values, from presets.json) ---------- */
   .va{position:relative;display:inline-block}
@@ -52,39 +53,39 @@
 
   /* ---------- C: one SVG filter (dilate + blur), sized per font-size ---------- */
   .vc{color:var(--orange);-webkit-text-stroke:.025em var(--yellow);paint-order:stroke fill}
-  .vc.s100{filter:url(#glow100)}
-  .vc.s48 {filter:url(#glow48)}
-  .vc.s28 {filter:url(#glow28)}
-  .vc.s16 {filter:url(#glow16)}
+  .vc.s64{filter:url(#glow64)}
+  .vc.s40{filter:url(#glow40)}
+  .vc.s24{filter:url(#glow24)}
+  .vc.s14{filter:url(#glow14)}
 </style>
 
 <div class="bg"></div>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
-  <filter id="glow100" x="-60%" y="-60%" width="220%" height="220%">
-    <feMorphology in="SourceAlpha" operator="dilate" radius="6" result="fat"/>
-    <feGaussianBlur in="fat" stdDeviation="14" result="halo"/>
+  <filter id="glow64" x="-60%" y="-60%" width="220%" height="220%">
+    <feMorphology in="SourceAlpha" operator="dilate" radius="3.8" result="fat"/>
+    <feGaussianBlur in="fat" stdDeviation="9" result="halo"/>
     <feFlood flood-color="#FDF48E" result="col"/>
     <feComposite in="col" in2="halo" operator="in" result="glow"/>
     <feMerge><feMergeNode in="glow"/><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
   </filter>
-  <filter id="glow48" x="-60%" y="-60%" width="220%" height="220%">
-    <feMorphology in="SourceAlpha" operator="dilate" radius="2.9" result="fat"/>
-    <feGaussianBlur in="fat" stdDeviation="6.7" result="halo"/>
+  <filter id="glow40" x="-60%" y="-60%" width="220%" height="220%">
+    <feMorphology in="SourceAlpha" operator="dilate" radius="2.4" result="fat"/>
+    <feGaussianBlur in="fat" stdDeviation="5.6" result="halo"/>
     <feFlood flood-color="#FDF48E" result="col"/>
     <feComposite in="col" in2="halo" operator="in" result="glow"/>
     <feMerge><feMergeNode in="glow"/><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
   </filter>
-  <filter id="glow28" x="-60%" y="-60%" width="220%" height="220%">
-    <feMorphology in="SourceAlpha" operator="dilate" radius="1.7" result="fat"/>
-    <feGaussianBlur in="fat" stdDeviation="3.9" result="halo"/>
+  <filter id="glow24" x="-60%" y="-60%" width="220%" height="220%">
+    <feMorphology in="SourceAlpha" operator="dilate" radius="1.4" result="fat"/>
+    <feGaussianBlur in="fat" stdDeviation="3.4" result="halo"/>
     <feFlood flood-color="#FDF48E" result="col"/>
     <feComposite in="col" in2="halo" operator="in" result="glow"/>
     <feMerge><feMergeNode in="glow"/><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
   </filter>
-  <filter id="glow16" x="-60%" y="-60%" width="220%" height="220%">
-    <feMorphology in="SourceAlpha" operator="dilate" radius="1" result="fat"/>
-    <feGaussianBlur in="fat" stdDeviation="2.2" result="halo"/>
+  <filter id="glow14" x="-60%" y="-60%" width="220%" height="220%">
+    <feMorphology in="SourceAlpha" operator="dilate" radius="0.85" result="fat"/>
+    <feGaussianBlur in="fat" stdDeviation="2" result="halo"/>
     <feFlood flood-color="#FDF48E" result="col"/>
     <feComposite in="col" in2="halo" operator="in" result="glow"/>
     <feMerge><feMergeNode in="glow"/><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
@@ -93,7 +94,7 @@
 
 <main>
   <h1>glow · three ways</h1>
-  <p class="intro">同一段字，同一个背景，四个字号。A 是现在用的六层叠加，参数是 Apoc M 那组的 px 数值，直接套到别的字号上。B 和 C 各用一套参数覆盖全部字号。</p>
+  <p class="intro">同一段字，同一个背景，四个字号。A 是现在用的六层叠加，参数是 Apoc M 那组的 px 数值，直接套到别的字号上，可以看到小字号被光晕吃掉。B 用一套 em 参数覆盖全部字号。C 每个字号一个 filter，半径按比例算好。</p>
 
   <div class="grid">
     <div class="col">
@@ -121,7 +122,7 @@
 
 <script>
 (function(){
-  const SIZES=[['s100','100px'],['s48','48px'],['s28','28px'],['s16','16px']];
+  const SIZES=[['s64','64px'],['s40','40px'],['s24','24px'],['s14','14px']];
   const TEXT='Spinal Memory';
   document.querySelectorAll('.rows').forEach(box=>{
     const ver=box.dataset.ver;
