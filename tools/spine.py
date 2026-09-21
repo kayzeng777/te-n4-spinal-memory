@@ -17,12 +17,13 @@ PLACEHOLDER_FILL = ['#822D00', '#F38530', '#FDF48E', '#D4F724', '#822D00',
                     '#F38530', '#FDF48E', '#D4F724', '#822D00']
 
 head = re.match(r'<svg[^>]*>', src).group(0)
-defs = re.search(r'<defs>.*?</defs>', src, re.S).group(0)
+defs = ''
 cells_src = re.search(r'<g class="cells">(.*?)</g>', src, re.S).group(1)
-rects = [(int(x), int(y)) for x, y in
-         re.findall(r'<rect x="(\d+)" y="(\d+)" width="1" height="1"/>', cells_src)]
-glyph_els = [(el, int(y)) for el, y in
-             re.findall(r'(<g clip-path="url\(#k..\)" transform="translate\(\d+,(\d+)\)">.*?</g>)', src, re.S)]
+RECT = r'<rect x="(-?[\d.]+)" y="(-?[\d.]+)" width="([\d.]+)" height="([\d.]+)"[^>]*/>'
+rects = [(el, float(y)) for el, y in re.findall(r'(' + RECT + r')', cells_src)[0:0]] or \
+        [(m.group(0), float(m.group(2))) for m in re.finditer(RECT, cells_src)]
+glyph_els = [(m.group(0), float(m.group(1))) for m in
+             re.finditer(r'<text x="[-\d.]+" y="(-?[\d.]+)"[^>]*>.*?</text>', src)]
 
 width = collections.Counter(y for _, y in rects)
 rows = sorted(width)
@@ -46,27 +47,34 @@ CUTS = find_cuts()
 seg_of = lambda y: sum(1 for c in CUTS if y >= c)
 
 segs = [{'rects': [], 'glyphs': []} for _ in range(N_SEGS)]
-for x, y in rects:
-    segs[seg_of(y)]['rects'].append((x, y))
+for el, y in rects:
+    segs[seg_of(y)]['rects'].append((el, y))
 for el, y in glyph_els:
     segs[seg_of(y)]['glyphs'].append(el)
 
-out = [head, defs]
+def bbox(els):
+    xs, ys = [], []
+    for el, _ in els:
+        m = re.search(RECT, el)
+        x, y, w, h = map(float, m.groups())
+        xs += [x, x + w]; ys += [y, y + h]
+    return min(xs), min(ys), max(xs), max(ys)
+
+out = [head]
 for i, s in enumerate(segs):
-    xs = [x for x, _ in s['rects']]; ys = [y for _, y in s['rects']]
-    sx0, sy0, sx1, sy1 = min(xs), min(ys), max(xs) + 1, max(ys) + 1
-    rect_str = ''.join(f'<rect x="{x}" y="{y}" width="1" height="1"/>' for x, y in s['rects'])
+    sx0, sy0, sx1, sy1 = bbox(s['rects'])
+    rect_str = ''.join(el for el, _ in s['rects'])
     out.append(
         f'<g class="seg" data-seg="{i}">'
         f'<clipPath id="segclip-{i}">{rect_str}</clipPath>'
         f'<g class="cells">{rect_str}</g>'
         f'<g class="glyphs">{"".join(s["glyphs"])}</g>'
         f'<g class="pic" clip-path="url(#segclip-{i})">'
-        f'<rect x="{sx0}" y="{sy0}" width="{sx1-sx0}" height="{sy1-sy0}" fill="{PLACEHOLDER_FILL[i]}"/>'
-        f'<image href="{IMAGES[i]}" x="{sx0}" y="{sy0}" width="{sx1-sx0}" height="{sy1-sy0}" '
+        f'<rect x="{sx0:g}" y="{sy0:g}" width="{sx1-sx0:g}" height="{sy1-sy0:g}" fill="{PLACEHOLDER_FILL[i]}"/>'
+        f'<image href="{IMAGES[i]}" x="{sx0:g}" y="{sy0:g}" width="{sx1-sx0:g}" height="{sy1-sy0:g}" '
         f'preserveAspectRatio="xMidYMid slice"/>'
         f'</g></g>')
-    print(f'seg {i}: rows {sy0}-{sy1-1}, {len(s["rects"])} cells')
+    print(f'seg {i}: y {sy0:g}-{sy1:g}, {len(s["rects"])} cells, {len(s["glyphs"])} glyphs')
 out.append('</svg>')
 open(os.path.join(HERE, 'spine.seg.part'), 'w').write('\n'.join(out))
 print('cuts at rows', CUTS)

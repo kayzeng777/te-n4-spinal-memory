@@ -94,9 +94,9 @@ HEAD = '''<title>te online lecture</title>
     --font-display:"Apoc",Georgia,serif;
     --font-sans:"PP Neue Montreal",-apple-system,"Helvetica Neue",Arial,sans-serif;
     --ink:#101410; --ink-brown:#822D00; --ink-soft:rgba(16,20,16,.7);
-    --cell:8px;
+    --cell:10px;
   }
-  @media (max-width:760px){:root{--cell:5px}}
+  @media (max-width:760px){:root{--cell:6px}}
   *{box-sizing:border-box}
   html,body{margin:0;min-height:100%}
   body{min-height:100vh;background:#92CA87;color:var(--ink);position:relative;font-family:var(--font-sans);}
@@ -117,9 +117,8 @@ HEAD = '''<title>te online lecture</title>
   main{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;padding:8vh 0 12vh}
   .spine{width:calc(__COLS__ * var(--cell));height:auto;overflow:visible;display:block}
   .cells rect{fill:#fff;stroke:#cccccc;stroke-width:.05;stroke-dasharray:.14 .1;shape-rendering:crispEdges}
-  .glyphs text{font-family:Menlo,Consolas,"DejaVu Sans Mono",monospace;text-anchor:middle;dominant-baseline:central;pointer-events:none}
-  .glyphs text.h{font-family:"Noto Sans Egyptian Hieroglyphs",sans-serif;font-size:1.1px}
-  .glyphs g.sym{clip-path:none}
+  .glyphs text{font-family:Menlo,Consolas,"DejaVu Sans Mono",monospace;font-size:1.6px;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+  .glyphs text.h{font-family:"Noto Sans Egyptian Hieroglyphs",sans-serif;font-size:1.5px}
   .seg .pic{opacity:0;transition:opacity .25s ease}
   .seg:hover .pic,.seg.active .pic{opacity:1}
   .seg{cursor:pointer}
@@ -170,25 +169,27 @@ __SPINE__
   if(q.get('feather'))lens.style.setProperty('--feather',q.get('feather')+'px');
   addEventListener('pointermove',e=>{lens.style.transform=`translate(${e.clientX}px,${e.clientY}px) translate(-50%,-50%)`;},{passive:true});
   addEventListener('pointerleave',()=>{lens.style.transform='translate(-1000px,-1000px)';});
-  // cells: ~5% show a hieroglyph animal at any time, 7s each, then another cell takes over.
-  // while active, the cell takes the glyph's colour as background; symbol is black on light cells, white on dark.
+  // cells: ~5% swap their shade character for a hieroglyph animal, 7s each, then another cell takes over.
+  // while active the cell takes the glyph's colour as background, symbol black on light / white on dark.
   (function(){
     const SYMS=Array.from('𓃠𓃰𓃱𓃯𓃸𓃵𓃗𓃙𓃟𓄀𓄁𓄂𓄃𓃚𓃛𓃜𓃞𓃓𓃔𓃕𓃖𓃦𓃬𓃷𓃹𓃻𓃾𓄅𓄇𓆈𓆉𓆌𓆏𓆗𓆙𓆐𓆓𓆊𓆣𓆤𓆦𓆧𓆨𓆝𓆡𓅂𓅐𓅓𓅟𓅮𓅰𓆀');
     const LIGHT=new Set(['#FDF48E','#D4F724']), SHARE=0.05, HOLD=7000;
-    const gs=[...document.querySelectorAll('.glyphs g[clip-path]')];if(!gs.length)return;
-    const pos=gs.map(g=>{const m=/translate\\((\\d+),(\\d+)\\)/.exec(g.getAttribute('transform'));return [+m[1],+m[2]];});
-    const idx=new Map(pos.map((p,i)=>[p.join(','),i])), active=new Set(), TARGET=Math.round(gs.length*SHARE);
-    const rects=new Map([...document.querySelectorAll('.seg .cells rect')].map(r=>[r.getAttribute('x')+','+r.getAttribute('y'),r]));
+    const ts=[...document.querySelectorAll('.glyphs text')];if(!ts.length)return;
+    const cell=t=>t.dataset.c+','+t.dataset.r;
+    const idx=new Map(ts.map((t,i)=>[cell(t),i])), active=new Set(), TARGET=Math.round(ts.length*SHARE);
+    const rects=new Map([...document.querySelectorAll('.seg .cells rect')].map(r=>[r.dataset.c+','+r.dataset.r,r]));
     const rnd=n=>Math.floor(Math.random()*n);
-    const free=i=>{const [x,y]=pos[i];return !active.has(i)&&
-      ![[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dy])=>{const j=idx.get((x+dx)+','+(y+dy));return j!==undefined&&active.has(j);});};
-    function on(i,first){const t=gs[i].querySelector('text'),r=rects.get(pos[i].join(',')),c=(t.getAttribute('fill')||'').toUpperCase();
-      t.dataset.orig=t.textContent;t.textContent=SYMS[rnd(SYMS.length)];t.classList.add('h');gs[i].classList.add('sym');
-      t.style.fill=LIGHT.has(c)?'#000':'#fff';if(r)r.style.fill=c;active.add(i);
+    const free=i=>{const c=+ts[i].dataset.c,r=+ts[i].dataset.r;return !active.has(i)&&
+      ![[1,0],[-1,0],[0,1],[0,-1]].some(([dc,dr])=>{const j=idx.get((c+dc)+','+(r+dr));return j!==undefined&&active.has(j);});};
+    function on(i,first){const t=ts[i],rect=rects.get(cell(t)),col=(t.getAttribute('fill')||'').toUpperCase();
+      t.dataset.orig=t.textContent;t.textContent=SYMS[rnd(SYMS.length)];t.classList.add('h');
+      t.removeAttribute('textLength');t.removeAttribute('lengthAdjust');
+      t.style.fill=LIGHT.has(col)?'#000':'#fff';if(rect)rect.style.fill=col;active.add(i);
       setTimeout(()=>off(i),first?Math.random()*HOLD:HOLD);}
-    function off(i){const t=gs[i].querySelector('text'),r=rects.get(pos[i].join(','));t.textContent=t.dataset.orig;t.classList.remove('h');
-      gs[i].classList.remove('sym');t.style.fill='';if(r)r.style.fill='';active.delete(i);spawn(false);}
-    function spawn(first){for(let k=0;k<80;k++){const i=rnd(gs.length);if(free(i)){on(i,first);return true;}}return false;}
+    function off(i){const t=ts[i],rect=rects.get(cell(t));t.textContent=t.dataset.orig;t.classList.remove('h');
+      t.setAttribute('textLength','1');t.setAttribute('lengthAdjust','spacingAndGlyphs');
+      t.style.fill='';if(rect)rect.style.fill='';active.delete(i);spawn(false);}
+    function spawn(first){for(let k=0;k<80;k++){const i=rnd(ts.length);if(free(i)){on(i,first);return true;}}return false;}
     for(let n=0;n<TARGET*3&&active.size<TARGET;n++)spawn(true);
   })();
 </script>
