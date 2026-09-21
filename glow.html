@@ -72,7 +72,7 @@
   .vb{paint-order:stroke fill}
 
   /* C and D: one SVG filter each, rebuilt live from the panel */
-  .vc,.vd{paint-order:stroke fill}
+  .vc,.vd,.ve{paint-order:stroke fill}
 
   /* panel */
   .ctrl{position:fixed;right:0;top:0;bottom:0;z-index:60;width:272px;overflow:auto;
@@ -100,8 +100,8 @@
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs id="fxdefs"></defs></svg>
 
 <main>
-  <h1>glow · four ways</h1>
-  <p class="intro">同一段字，同一个背景，四个字号。A 是现在用的六层叠加，参数是 Apoc M 那组的 px 值直接套到别的字号上。B、C、D 各用一套参数覆盖全部字号，右侧面板实时调 C 和 D。</p>
+  <h1>glow · five ways</h1>
+  <p class="intro">同一段字，同一个背景，四个字号。A 是现在用的六层叠加，参数是 Apoc M 那组的 px 值直接套到别的字号上。B、C、E、D 各用一套参数覆盖全部字号，右侧面板实时调 C、E、D。</p>
 
   <div class="grid">
     <div class="col">
@@ -123,6 +123,12 @@
       <p class="cost">1 个 DOM 节点 · 每字号 1 个 filter</p>
     </div>
     <div class="col">
+      <h2>E · 羽化 + 噪点</h2>
+      <p class="note">先把字形羽化成一圈渐变，再往渐变里掺噪点，最后压硬。渐变于是碎成颗粒，边缘被有机地蚕食掉，而不是平滑淡出。</p>
+      <div class="rows" data-ver="ve"></div>
+      <p class="cost">1 个 DOM 节点 · 每字号 1 个 filter</p>
+    </div>
+    <div class="col">
       <h2>D · 渐变映射</h2>
       <p class="note">只模糊一次，把这条灰阶映射到一条色带上。中间调能是第三个颜色，加几个停靠点就有几层光。</p>
       <div class="rows" data-ver="vd"></div>
@@ -134,6 +140,8 @@
 <aside class="ctrl" id="ctrl">
   <h3>C · SVG filter</h3>
   <section id="cBox"></section>
+  <h3>E · 羽化 + 噪点</h3>
+  <section id="eBox"></section>
   <h3>D · 渐变映射</h3>
   <section id="dBox"></section>
   <h3>全局颗粒</h3>
@@ -153,6 +161,7 @@
     c:{stroke:.025, dilate:.060, halo:.210, core:.022, fill:'#F28331', glow:'#FDF48E'},
     d:{blur:.160, core:.020, alphaMid:.85, a:'#FDF48E', b:'#F8BC5F', c:'#F28331'},
     b:{fill:.14, stroke:.018, r1:.035, r2:.075, r3:.14, r4:.26, r5:.40, r6:.58},
+    e:{feather:.045, freq:.55, grain:1.1, hard:6, dilate:.060, halo:.210},
     grain:{op:.18, freq:.85, mode:'overlay'},
   };
   const $=id=>document.getElementById(id);
@@ -188,6 +197,26 @@
         svg('feGaussianBlur',{in:'SourceGraphic',stdDeviation:(fs*c.core).toFixed(2),result:'core'}),
         svg('feMerge',{},[svg('feMergeNode',{in:'glow'}),svg('feMergeNode',{in:'glow'}),svg('feMergeNode',{in:'core'})]),
       ]));
+      const e=S.e, mid=(0.5-0.5*e.hard).toFixed(3);
+      defs.appendChild(svg('filter',{id:'edge'+fs,x:'-70%',y:'-70%',width:'240%',height:'240%'},[
+        // outer glow, same recipe as C
+        svg('feMorphology',{in:'SourceAlpha',operator:'dilate',radius:(fs*e.dilate).toFixed(2),result:'fat'}),
+        svg('feGaussianBlur',{in:'fat',stdDeviation:(fs*e.halo).toFixed(2),result:'halo'}),
+        svg('feFlood',{'flood-color':S.c.glow,result:'gcol'}),
+        svg('feComposite',{in:'gcol',in2:'halo',operator:'in',result:'glow'}),
+        // feather the glyph into a ramp, stir noise through it, then harden
+        svg('feGaussianBlur',{in:'SourceAlpha',stdDeviation:(fs*e.feather).toFixed(2),result:'soft'}),
+        svg('feTurbulence',{type:'fractalNoise',baseFrequency:e.freq,numOctaves:'2',seed:'7',result:'turb'}),
+        svg('feColorMatrix',{in:'turb',type:'matrix',result:'noise',
+          values:'0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  .33 .33 .33 0 0'}),
+        svg('feComposite',{in:'soft',in2:'noise',operator:'arithmetic',
+          k1:'0',k2:'1',k3:e.grain,k4:(-e.grain/2).toFixed(3),result:'stirred'}),
+        svg('feComponentTransfer',{in:'stirred',result:'eaten'},[
+          svg('feFuncA',{type:'linear',slope:e.hard,intercept:mid})]),
+        svg('feFlood',{'flood-color':S.c.fill,result:'fcol'}),
+        svg('feComposite',{in:'fcol',in2:'eaten',operator:'in',result:'core'}),
+        svg('feMerge',{},[svg('feMergeNode',{in:'glow'}),svg('feMergeNode',{in:'glow'}),svg('feMergeNode',{in:'core'})]),
+      ]));
       const d=S.d, band=[d.a,d.b,d.c];
       defs.appendChild(svg('filter',{id:'ramp'+fs,x:'-70%',y:'-70%',width:'240%',height:'240%'},[
         svg('feGaussianBlur',{in:'SourceAlpha',stdDeviation:(fs*d.blur).toFixed(2),result:'blur'}),
@@ -211,7 +240,9 @@
       `0 0 ${b.r4}em ${S.c.glow},0 0 ${b.r5}em ${S.c.glow},0 0 ${b.r6}em ${S.c.glow}}\n`;
     css+=`.vc{color:${S.c.fill};-webkit-text-stroke:${S.c.stroke}em ${S.c.glow}}\n`;
     css+=`.vd{color:${S.d.c}}\n`;
-    SIZES.forEach(fs=>{css+=`.vc.s${fs}{filter:url(#glow${fs})}.vd.s${fs}{filter:url(#ramp${fs})}\n`});
+    css+=`.ve{color:${S.c.fill}}\n`;
+    SIZES.forEach(fs=>{css+=`.vc.s${fs}{filter:url(#glow${fs})}.vd.s${fs}{filter:url(#ramp${fs})}`+
+      `.ve.s${fs}{filter:url(#edge${fs})}\n`});
     $('live').textContent=css;
     const g=S.grain, gu=`url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'>`+
       `<filter id='n'><feTurbulence type='fractalNoise' baseFrequency='${g.freq}' numOctaves='2' stitchTiles='stitch'/>`+
@@ -246,6 +277,13 @@
   field(cB,'核心模糊 ×fs',S.c,'core',0,.08,.002);
   colour(cB,'字色',S.c,'fill');
   colour(cB,'光色',S.c,'glow');
+  const eB=$('eBox');
+  field(eB,'羽化 ×fs',S.e,'feather',0,.15,.005);
+  field(eB,'噪点粗细',S.e,'freq',.05,2,.01);
+  field(eB,'噪点强度',S.e,'grain',0,3,.05);
+  field(eB,'压硬',S.e,'hard',1,20,.5);
+  field(eB,'撑大 ×fs',S.e,'dilate',0,.2,.005);
+  field(eB,'外光模糊 ×fs',S.e,'halo',0,.5,.005);
   const dB=$('dBox');
   field(dB,'模糊 ×fs',S.d,'blur',0,.5,.005);
   field(dB,'核心模糊 ×fs',S.d,'core',0,.08,.002);
