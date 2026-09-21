@@ -29,9 +29,8 @@
     --font-display:"Apoc",Georgia,serif;
     --font-sans:"PP Neue Montreal",-apple-system,"Helvetica Neue",Arial,sans-serif;
     --ink:#101410; --ink-brown:#822D00; --ink-soft:rgba(16,20,16,.7);
-    --cell:10px;
+    --cell:clamp(3px, calc(100vh * 1.7 / (173 * 1.6)), 10px);
   }
-  @media (max-width:760px){:root{--cell:6px}}
   *{box-sizing:border-box}
   html,body{margin:0;min-height:100%}
   body{min-height:100vh;background:#92CA87;color:var(--ink);position:relative;font-family:var(--font-sans);}
