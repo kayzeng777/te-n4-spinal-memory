@@ -17,10 +17,10 @@ ASPECT = 1.6       # cell height / cell width, i.e. a monospace character box
 # are the palette; #F8BC5F is their cream-orange midpoint, filling the fourth step.
 # Every cell draws the same character; the four source levels are told apart by
 # colour alone. Cells are white and the colour is on the character.
-# bone tones from a real spine, hue pulled onto the accent orange #F28532
-TONE = {'░': '#F4DDCB', '▒': '#EAB994', '▓': '#D49F77', '█': '#F28532'}
+# tints of the accent #F28532, mixed with white at 75 / 55 / 30 / 0 percent
+TONE = {'░': '#FCE0CC', '▒': '#F9C8A3', '▓': '#F6AA70', '█': '#F28532'}
 GLYPH = '▓'
-FALLBACK = '#D49F77'
+FALLBACK = '#F6AA70'
 CELL = '#ffffff'
 HOLE = '#86C689'   # blank cells enclosed by the drawing get a ▓ in this green
 
