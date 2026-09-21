@@ -2,8 +2,8 @@
 """Turn an ASCII-shade drawing into spine.svg.part.
 
 One cell per non-space character, filled with a solid colour for that character's
-shade level, so the tonal range survives at small cell sizes. The character itself
-is kept in the markup (invisible) so the hieroglyph cycling has somewhere to land.
+shade level, with that same character drawn on top in ink, so the tonal range
+survives at small cell sizes and the four symbols stay visible.
 Cells are 1 unit wide and ASPECT tall, matching a monospace character box, so the
 drawing keeps the proportions it had in a terminal.
 """
@@ -17,6 +17,7 @@ ASPECT = 1.6       # cell height / cell width, i.e. a monospace character box
 # are the palette; #F8BC5F is their cream-orange midpoint, filling the fourth step.
 TONE = {'░': '#FDF48E', '▒': '#F8BC5F', '▓': '#F38530', '█': '#822D00'}
 FALLBACK = '#F38530'
+INK = '#822D00'    # the shade character drawn on top of its cell
 
 lines = open(SRC).read().split('\n')
 cells = {(x, y): ch for y, line in enumerate(lines)
@@ -38,7 +39,7 @@ for (x, y), ch in sorted(cells.items(), key=lambda kv: (kv[0][1], kv[0][0])):
     rects.append(f'<rect x="{cx}" y="{cy:g}" width="1" height="{ASPECT:g}" '
                  f'data-c="{cx}" data-r="{r}" fill="{tone}"/>')
     glyphs.append(f'<text x="{cx + 0.5:g}" y="{cy + ASPECT / 2:g}" data-c="{cx}" data-r="{r}" '
-                  f'fill="{tone}">{ch}</text>')
+                  f'data-tone="{tone}" fill="{INK}">{ch}</text>')
 
 out = (f'<svg class="spine" viewBox="0 0 {COLS} {ROWS * ASPECT:g}" '
        f'xmlns="http://www.w3.org/2000/svg" aria-label="spine">\n'

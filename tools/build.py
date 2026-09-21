@@ -117,8 +117,8 @@ HEAD = '''<title>te online lecture</title>
   main{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;padding:8vh 0 12vh}
   .spine{width:calc(__COLS__ * var(--cell));height:auto;overflow:visible;display:block}
   .cells rect{stroke:#cccccc;stroke-width:.05;stroke-dasharray:.14 .1;shape-rendering:crispEdges}
-  .glyphs text{font-size:1.6px;text-anchor:middle;dominant-baseline:central;pointer-events:none;fill-opacity:0}
-  .glyphs text.h{font-family:"Noto Sans Egyptian Hieroglyphs",sans-serif;font-size:1.5px;fill-opacity:1}
+  .glyphs text{font-family:Menlo,Consolas,"DejaVu Sans Mono",monospace;font-size:1.6px;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+  .glyphs text.h{font-family:"Noto Sans Egyptian Hieroglyphs",sans-serif;font-size:1.5px}
   .seg .pic{opacity:0;transition:opacity .25s ease}
   .seg:hover .pic,.seg.active .pic{opacity:1}
   .seg{cursor:pointer}
@@ -185,7 +185,7 @@ __SPINE__
       ![[1,0],[-1,0],[0,1],[0,-1]].some(([dc,dr])=>{const j=idx.get((c+dc)+','+(r+dr));return j!==undefined&&active.has(j);});};
     function on(i,first){const t=ts[i];
       t.dataset.orig=t.textContent;t.textContent=SYMS[rnd(SYMS.length)];t.classList.add('h');
-      t.style.fill=lum(t.getAttribute('fill')||'#000')>0.2?'#000':'#fff';active.add(i);
+      t.style.fill=lum(t.dataset.tone||'#fff')>0.2?'#000':'#fff';active.add(i);
       setTimeout(()=>off(i),first?Math.random()*HOLD:HOLD);}
     function off(i){const t=ts[i];t.textContent=t.dataset.orig;t.classList.remove('h');
       t.style.fill='';active.delete(i);spawn(false);}
