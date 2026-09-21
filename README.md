@@ -19,5 +19,6 @@ The first step turns an ASCII shade drawing into cells, straightens the
 per-row drift and centres on the centre of mass. The second splits it into
 nine hoverable segments. The third assembles the pages.
 
-`tools/ascii-art-3.txt` is an alternative drawing; point step one at it to
-try another spine.
+`tools/ascii-art.txt` is the drawing in use. `tools/ascii-art-4level.txt` and
+`tools/ascii-art-2.txt` are alternatives; point step one at one of them to try
+another spine.
