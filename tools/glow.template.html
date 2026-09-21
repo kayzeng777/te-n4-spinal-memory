@@ -1,11 +1,10 @@
-<title>te · glow comparison</title>
+<title>te · glow</title>
 <style>
   __FONTS__
 
   :root{
     --font-display:"Apoc",Georgia,serif;
     --font-sans:"PP Neue Montreal",-apple-system,"Helvetica Neue",Arial,sans-serif;
-    --orange:#F28331; --yellow:#FDF48E;
   }
   *{box-sizing:border-box}
   html,body{margin:0;min-height:100%}
@@ -17,21 +16,21 @@
   .grain{position:fixed;inset:0;z-index:50;pointer-events:none;
     opacity:var(--gop,.18);mix-blend-mode:var(--gmode,overlay);background-size:220px 220px}
 
-  main{padding:32px 300px 120px 32px;max-width:1500px}
+  main{padding:32px 300px 120px 32px;max-width:1200px}
   h1{font-size:13px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;margin:0 0 6px}
-  .intro{font-size:12.5px;line-height:1.6;max-width:66ch;margin:0 0 28px;opacity:.75}
+  .intro{font-size:12.5px;line-height:1.6;max-width:62ch;margin:0 0 28px;opacity:.75}
 
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;align-items:start}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;align-items:start}
   .col{border:1px solid rgba(16,20,16,.3);border-radius:3px;padding:16px 14px 20px;background:rgba(255,255,255,.14);min-width:0}
   .col h2{margin:0 0 4px;font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
-  .col .note{margin:0 0 18px;font-size:11px;line-height:1.55;opacity:.75;min-height:5.2em}
+  .col .note{margin:0 0 18px;font-size:11px;line-height:1.55;opacity:.75;min-height:6.5em}
   .col .cost{margin:14px 0 0;font-size:10.5px;letter-spacing:.06em;opacity:.6}
-  .row{margin:0 0 22px}
+  .row{margin:0 0 20px}
   .row .lab{font-size:10px;letter-spacing:.12em;opacity:.55;margin-bottom:6px}
-  .sample{line-height:1.05;white-space:nowrap;display:inline-block}
-  .s64{font-size:64px}.s28{font-size:28px}.s14{font-size:14px}
   .pair{display:block;margin:0 0 8px}
   .face{display:block;font-family:var(--font-sans);font-size:9px;letter-spacing:.1em;opacity:.4;margin-bottom:2px}
+  .sample{line-height:1.05;white-space:nowrap;display:inline-block}
+  .s64{font-size:64px}.s28{font-size:28px}.s14{font-size:14px}
 
   /* A: the six stacked layers in use now, straight from presets.json */
   .va{position:relative;display:inline-block}
@@ -40,11 +39,8 @@
   .va .t{paint-order:stroke fill}
   __VER_A_CSS__
 
-  /* B: one element, text-shadow, every length in em */
+  /* B: one SVG filter, rebuilt live from the panel */
   .vb{paint-order:stroke fill}
-
-  /* C and D: one SVG filter each, rebuilt live from the panel */
-  .vc,.vd,.ve{paint-order:stroke fill}
 
   /* panel */
   .ctrl{position:fixed;right:0;top:0;bottom:0;z-index:60;width:272px;overflow:auto;
@@ -60,7 +56,7 @@
   .f input[type=color]{width:100%;height:22px;padding:0;border:1px solid #2A2E2A;border-radius:3px;background:none}
   .ctrl select{background:#0D0F0D;color:#ECEEE9;border:1px solid #2A2E2A;border-radius:3px;font:inherit;padding:4px;width:100%}
   .ctrl .btn{background:#ECEEE9;color:#141614;border:0;border-radius:3px;font:inherit;padding:7px;cursor:pointer;letter-spacing:.06em}
-  .ctrl textarea{width:100%;height:150px;background:#0D0F0D;color:#C8D4C2;border:1px solid #2A2E2A;border-radius:3px;
+  .ctrl textarea{width:100%;height:170px;background:#0D0F0D;color:#C8D4C2;border:1px solid #2A2E2A;border-radius:3px;
     font:10px/1.45 ui-monospace,Menlo,monospace;padding:7px;resize:vertical}
   @media (max-width:900px){main{padding-right:32px}.ctrl{position:static;width:auto;height:auto}}
 </style>
@@ -70,52 +66,30 @@
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs id="fxdefs"></defs></svg>
 
 <main>
-  <h1>glow · five ways</h1>
-  <p class="intro">同一段字，同一个背景，三个字号，每个字号各用衬线和无衬线跑一遍。A 是现在用的六层叠加，参数是 Apoc M 那组的 px 值直接套到别的字号上。B、C、E、D 各用一套参数覆盖全部字号，右侧面板实时调 C、E、D。</p>
+  <h1>glow</h1>
+  <p class="intro">同一段字，同一个背景，三个字号，每个字号各用衬线和无衬线跑一遍。左边是现在用的六层叠加作为参照，右边是新方案，一个滤镜、一套参数覆盖全部字号，右侧面板实时调。</p>
 
   <div class="grid">
     <div class="col">
-      <h2>A · 六层叠加（现在）</h2>
-      <p class="note">每层一份文字副本，各自带 opacity、外描边、模糊。长度是 px，换字号必须重调，现在共 13 组预设。</p>
+      <h2>现在 · 六层叠加</h2>
+      <p class="note">每层一份文字副本，各自带 opacity、外描边、模糊。所有长度是 px，换字号必须重调，现在共 13 组预设。</p>
       <div class="rows" data-ver="va"></div>
-      <p class="cost">12 个 DOM 节点 · 6 个合成层</p>
+      <p class="cost">12 个 DOM 节点 · 6 个合成层 · 13 组参数</p>
     </div>
     <div class="col">
-      <h2>B · text-shadow</h2>
-      <p class="note">一个元素，阴影叠在一个属性里，全部写成 em 所以自动等比缩放。缺点是没有 spread，也无法模糊字本身，核心偏实。</p>
+      <h2>新方案 · 外光 + 噪点边缘</h2>
+      <p class="note">撑大字形做外光；同时把字形羽化成一圈渐变、掺入噪点、压硬、再模糊，得到被颗粒蚕食的边缘，最后把真实字形合成进这个形状，保留它自己的颜色和描边。噪点强度归零就退化成单纯的柔边。</p>
       <div class="rows" data-ver="vb"></div>
-      <p class="cost">1 个 DOM 节点 · 1 套参数</p>
-    </div>
-    <div class="col">
-      <h2>C · SVG filter</h2>
-      <p class="note">feMorphology 把字形撑大再模糊做外光，同时对字本身加一道小模糊，所以核心是糊的。一次渲染完成。</p>
-      <div class="rows" data-ver="vc"></div>
-      <p class="cost">1 个 DOM 节点 · 每字号 1 个 filter</p>
-    </div>
-    <div class="col">
-      <h2>E · 羽化 + 噪点</h2>
-      <p class="note">先把字形羽化成一圈渐变，往渐变里掺噪点，压硬使它碎成颗粒，再补一道模糊。边缘于是被有机地蚕食掉，而且碎口本身也是糊的。</p>
-      <div class="rows" data-ver="ve"></div>
-      <p class="cost">1 个 DOM 节点 · 每字号 1 个 filter</p>
-    </div>
-    <div class="col">
-      <h2>D · 渐变映射</h2>
-      <p class="note">只模糊一次，把这条灰阶映射到一条色带上。中间调能是第三个颜色，加几个停靠点就有几层光。</p>
-      <div class="rows" data-ver="vd"></div>
-      <p class="cost">1 个 DOM 节点 · 一条色带</p>
+      <p class="cost">1 个 DOM 节点 · 每字号 1 个 filter · 1 套参数</p>
     </div>
   </div>
 </main>
 
 <aside class="ctrl" id="ctrl">
-  <h3>字重（全部版本）</h3>
+  <h3>字重</h3>
   <section id="wBox"></section>
-  <h3>C · SVG filter</h3>
-  <section id="cBox"></section>
-  <h3>E · 羽化 + 噪点</h3>
+  <h3>参数</h3>
   <section id="eBox"></section>
-  <h3>D · 渐变映射</h3>
-  <section id="dBox"></section>
   <h3>全局颗粒</h3>
   <section id="gBox"></section>
   <h3>导出</h3>
@@ -131,22 +105,18 @@
   const FACES=[['serif','var(--font-display)'],['sans','var(--font-sans)']];
   const S={
     w:{serif:121, sans:500},
-    c:{stroke:.025, dilate:.060, halo:.210, core:.022, fill:'#F28331', glow:'#FDF48E'},
-    d:{blur:.160, core:.020, alphaMid:.85, a:'#FDF48E', b:'#F8BC5F', c:'#F28331'},
-    b:{fill:.14, stroke:.018, r1:.035, r2:.075, r3:.14, r4:.26, r5:.40, r6:.58},
     e:{morph:0, stroke:0, feather:.045, grainSize:.022, scaleGrain:1, grain:1.1, hard:6,
-       soften:.018, dilate:.060, halo:.210},
+       soften:.018, core:.012, inset:1, dilate:.060, halo:.210, fill:'#F28331', glow:'#FDF48E'},
     grain:{op:.18, freq:.85, mode:'overlay'},
   };
   const $=id=>document.getElementById(id);
-  const hex=(h,i)=>(parseInt(h.slice(1+2*i,3+2*i),16)/255).toFixed(3);
 
   // ---- samples ----
   document.querySelectorAll('.rows').forEach(box=>{
     box.innerHTML=SIZES.map(s=>`<div class="row"><div class="lab">${s}px</div>`+
       FACES.map(([n,f])=>`<div class="pair"><span class="face">${n}</span>`+
-        `<span class="sample s${s} ${box.dataset.ver}" data-face="${n}" style="font-family:${f}">${TEXT}</span></div>`).join('')+
-      `</div>`).join('');
+        `<span class="sample s${s} ${box.dataset.ver}" data-face="${n}" style="font-family:${f}">${TEXT}</span>`+
+        `</div>`).join('')+`</div>`).join('');
   });
   document.querySelectorAll('.va').forEach(el=>{
     const html=el.innerHTML;el.innerHTML='';
@@ -154,39 +124,30 @@
       l.innerHTML='<span class="t">'+html+'</span>';el.appendChild(l);}
   });
 
-  // ---- filters, rebuilt whenever a control moves ----
+  // ---- one filter per size, rebuilt whenever a control moves ----
   function svg(tag,attrs,kids){
-    const e=document.createElementNS('http://www.w3.org/2000/svg',tag);
-    for(const k in attrs) e.setAttribute(k,attrs[k]);
-    (kids||[]).forEach(k=>e.appendChild(k));
-    return e;
+    const el=document.createElementNS('http://www.w3.org/2000/svg',tag);
+    for(const k in attrs) el.setAttribute(k,attrs[k]);
+    (kids||[]).forEach(k=>el.appendChild(k));
+    return el;
   }
   function render(){
     const defs=$('fxdefs'); defs.textContent='';
+    const e=S.e, mid=(0.5-0.5*e.hard).toFixed(3);
     for(const fs of SIZES){
-      const c=S.c;
-      defs.appendChild(svg('filter',{id:'glow'+fs,x:'-70%',y:'-70%',width:'240%',height:'240%'},[
-        svg('feMorphology',{in:'SourceAlpha',operator:'dilate',radius:(fs*c.dilate).toFixed(2),result:'fat'}),
-        svg('feGaussianBlur',{in:'fat',stdDeviation:(fs*c.halo).toFixed(2),result:'halo'}),
-        svg('feFlood',{'flood-color':c.glow,result:'col'}),
-        svg('feComposite',{in:'col',in2:'halo',operator:'in',result:'glow'}),
-        svg('feGaussianBlur',{in:'SourceGraphic',stdDeviation:(fs*c.core).toFixed(2),result:'core'}),
-        svg('feMerge',{},[svg('feMergeNode',{in:'glow'}),svg('feMergeNode',{in:'glow'}),svg('feMergeNode',{in:'core'})]),
-      ]));
-      const e=S.e, mid=(0.5-0.5*e.hard).toFixed(3);
       defs.appendChild(svg('filter',{id:'edge'+fs,x:'-70%',y:'-70%',width:'240%',height:'240%'},[
-        // thicken or thin the letterform first; everything else works from that shape
+        // thicken or thin the letterform first; everything works from that shape
         svg('feMorphology',{in:'SourceAlpha',operator:e.morph>=0?'dilate':'erode',
           radius:Math.abs(fs*e.morph).toFixed(2),result:'shape'}),
-        // outer glow, same recipe as C
+        // outer glow: grow the shape, blur it, fill it with the glow colour
         svg('feMorphology',{in:'shape',operator:'dilate',radius:(fs*e.dilate).toFixed(2),result:'fat'}),
         svg('feGaussianBlur',{in:'fat',stdDeviation:(fs*e.halo).toFixed(2),result:'halo'}),
-        svg('feFlood',{'flood-color':S.c.glow,result:'gcol'}),
+        svg('feFlood',{'flood-color':e.glow,result:'gcol'}),
         svg('feComposite',{in:'gcol',in2:'halo',operator:'in',result:'glow'}),
-        // feather the glyph into a ramp, stir noise through it, then harden
+        // eaten edge: feather the shape, stir noise through the ramp, harden, soften again
         svg('feGaussianBlur',{in:'shape',stdDeviation:(fs*e.feather).toFixed(2),result:'soft'}),
         svg('feTurbulence',{type:'fractalNoise',numOctaves:'2',seed:'7',result:'turb',
-          // period = grainSize x font-size, so the grain scales with the letterform
+          // period = grainSize x font-size, so the grain keeps its scale against the letterform
           baseFrequency:(e.scaleGrain ? 1/(fs*e.grainSize) : 1/(64*e.grainSize)).toFixed(3)}),
         svg('feColorMatrix',{in:'turb',type:'matrix',result:'noise',
           values:'0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  .33 .33 .33 0 0'}),
@@ -194,45 +155,28 @@
           k1:'0',k2:'1',k3:e.grain,k4:(-e.grain/2).toFixed(3),result:'stirred'}),
         svg('feComponentTransfer',{in:'stirred',result:'eaten'},[
           svg('feFuncA',{type:'linear',slope:e.hard,intercept:mid})]),
-        // soften the broken edge again, so it reads as blurred grain rather than a hard dither
         svg('feGaussianBlur',{in:'eaten',stdDeviation:(fs*e.soften).toFixed(2),result:'edgesoft'}),
-        svg('feFlood',{'flood-color':S.c.fill,result:'fcol'}),
-        svg('feComposite',{in:'fcol',in2:'edgesoft',operator:'in',result:'core'}),
+        // keep the inside solid: the noise should only eat the outer band, not speckle the stem
+        svg('feMorphology',{in:'shape',operator:'erode',radius:(fs*e.feather*e.inset).toFixed(2),result:'solid'}),
+        svg('feComposite',{in:'solid',in2:'edgesoft',operator:'over',result:'alpha'}),
+        // mask the real glyph with that edge, so its own fill and stroke survive
+        svg('feGaussianBlur',{in:'SourceGraphic',stdDeviation:(fs*e.core).toFixed(2),result:'glyph'}),
+        svg('feComposite',{in:'glyph',in2:'alpha',operator:'in',result:'core'}),
         svg('feMerge',{},[svg('feMergeNode',{in:'glow'}),svg('feMergeNode',{in:'glow'}),svg('feMergeNode',{in:'core'})]),
       ]));
-      const d=S.d, band=[d.a,d.b,d.c];
-      defs.appendChild(svg('filter',{id:'ramp'+fs,x:'-70%',y:'-70%',width:'240%',height:'240%'},[
-        svg('feGaussianBlur',{in:'SourceAlpha',stdDeviation:(fs*d.blur).toFixed(2),result:'blur'}),
-        svg('feColorMatrix',{in:'blur',type:'matrix',result:'gray',
-          values:'0 0 0 1 0  0 0 0 1 0  0 0 0 1 0  0 0 0 1 0'}),
-        svg('feComponentTransfer',{in:'gray',result:'band'},[
-          svg('feFuncR',{type:'table',tableValues:band.map(h=>hex(h,0)).join(' ')}),
-          svg('feFuncG',{type:'table',tableValues:band.map(h=>hex(h,1)).join(' ')}),
-          svg('feFuncB',{type:'table',tableValues:band.map(h=>hex(h,2)).join(' ')}),
-          svg('feFuncA',{type:'table',tableValues:'0 '+d.alphaMid+' 1'}),
-        ]),
-        svg('feGaussianBlur',{in:'SourceGraphic',stdDeviation:(fs*d.core).toFixed(2),result:'core'}),
-        svg('feMerge',{},[svg('feMergeNode',{in:'band'}),svg('feMergeNode',{in:'core'})]),
-      ]));
     }
-    // per-version CSS
-    const b=S.b, rgba=(h,a)=>`rgba(${parseInt(h.slice(1,3),16)},${parseInt(h.slice(3,5),16)},${parseInt(h.slice(5,7),16)},${a})`;
     let css=`.sample[data-face=serif]{font-weight:${S.w.serif}}\n`+
-            `.sample[data-face=sans]{font-weight:${S.w.sans}}\n`;
-    css+=`.vb{color:${rgba(S.c.fill,b.fill)};-webkit-text-stroke:${b.stroke}em ${rgba(S.c.glow,.45)};text-shadow:`+
-      `0 0 ${b.r1}em ${S.c.fill},0 0 ${b.r2}em ${S.c.fill},0 0 ${b.r3}em ${S.c.fill},`+
-      `0 0 ${b.r4}em ${S.c.glow},0 0 ${b.r5}em ${S.c.glow},0 0 ${b.r6}em ${S.c.glow}}\n`;
-    css+=`.vc{color:${S.c.fill};-webkit-text-stroke:${S.c.stroke}em ${S.c.glow}}\n`;
-    css+=`.vd{color:${S.d.c}}\n`;
-    css+=`.ve{color:${S.c.fill};-webkit-text-stroke:${S.e.stroke}em ${S.c.fill}}\n`;
-    SIZES.forEach(fs=>{css+=`.vc.s${fs}{filter:url(#glow${fs})}.vd.s${fs}{filter:url(#ramp${fs})}`+
-      `.ve.s${fs}{filter:url(#edge${fs})}\n`});
+            `.sample[data-face=sans]{font-weight:${S.w.sans}}\n`+
+            `.vb{color:${e.fill};-webkit-text-stroke:${e.stroke}em ${e.glow}}\n`;
+    SIZES.forEach(fs=>{css+=`.vb.s${fs}{filter:url(#edge${fs})}\n`});
     $('live').textContent=css;
-    const g=S.grain, gu=`url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'>`+
+
+    const g=S.grain;
+    $('grain').style.cssText=`--gop:${g.op};--gmode:${g.mode}`;
+    $('grain').style.backgroundImage=
+      `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'>`+
       `<filter id='n'><feTurbulence type='fractalNoise' baseFrequency='${g.freq}' numOctaves='2' stitchTiles='stitch'/>`+
       `<feColorMatrix type='saturate' values='0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")`;
-    $('grain').style.cssText=`--gop:${g.op};--gmode:${g.mode}`;
-    $('grain').style.backgroundImage=gu;
     $('out').value=JSON.stringify(S,null,1);
   }
 
@@ -243,32 +187,27 @@
                 `<input type="range" min="${min}" max="${max}" step="${step}" value="${obj[key]}">`;
     const n=d.querySelector('input[type=number]'), r=d.querySelector('input[type=range]');
     const set=v=>{obj[key]=+v;n.value=v;r.value=v;render();};
-    n.addEventListener('input',e=>set(e.target.value));
-    r.addEventListener('input',e=>set(e.target.value));
+    n.addEventListener('input',ev=>set(ev.target.value));
+    r.addEventListener('input',ev=>set(ev.target.value));
     box.appendChild(d);
   }
   function toggle(box,label,obj,key){
     const d=document.createElement('div');d.className='f';
     d.innerHTML=`<label>${label}</label><input type="checkbox" ${obj[key]?'checked':''}>`;
-    d.querySelector('input').addEventListener('change',e=>{obj[key]=e.target.checked?1:0;render();});
+    d.querySelector('input').addEventListener('change',ev=>{obj[key]=ev.target.checked?1:0;render();});
     box.appendChild(d);
   }
   function colour(box,label,obj,key){
     const d=document.createElement('div');d.className='f';
     d.innerHTML=`<label>${label}</label><input type="color" value="${obj[key]}">`;
-    d.querySelector('input').addEventListener('input',e=>{obj[key]=e.target.value.toUpperCase();render();});
+    d.querySelector('input').addEventListener('input',ev=>{obj[key]=ev.target.value.toUpperCase();render();});
     box.appendChild(d);
   }
+
   const wB=$('wBox');
   field(wB,'衬线 Apoc',S.w,'serif',80,145,1);
   field(wB,'无衬线 PP',S.w,'sans',100,700,10);
-  const cB=$('cBox');
-  field(cB,'描边 em',S.c,'stroke',0,.08,.005);
-  field(cB,'撑大 ×fs',S.c,'dilate',0,.2,.005);
-  field(cB,'外光模糊 ×fs',S.c,'halo',0,.5,.005);
-  field(cB,'核心模糊 ×fs',S.c,'core',0,.08,.002);
-  colour(cB,'字色',S.c,'fill');
-  colour(cB,'光色',S.c,'glow');
+
   const eB=$('eBox');
   field(eB,'胖瘦 ×fs',S.e,'morph',-.04,.04,.002);
   field(eB,'描边 em',S.e,'stroke',0,.06,.002);
@@ -277,25 +216,26 @@
   field(eB,'噪点强度',S.e,'grain',0,3,.05);
   field(eB,'压硬',S.e,'hard',1,20,.5);
   field(eB,'边缘模糊 ×fs',S.e,'soften',0,.08,.002);
-  toggle(eB,'噪点跟随字号',S.e,'scaleGrain');
+  field(eB,'字身模糊 ×fs',S.e,'core',0,.06,.002);
+  field(eB,'实心内核',S.e,'inset',0,3,.1);
   field(eB,'撑大 ×fs',S.e,'dilate',0,.2,.005);
   field(eB,'外光模糊 ×fs',S.e,'halo',0,.5,.005);
-  const dB=$('dBox');
-  field(dB,'模糊 ×fs',S.d,'blur',0,.5,.005);
-  field(dB,'核心模糊 ×fs',S.d,'core',0,.08,.002);
-  field(dB,'色带中点',S.d,'alphaMid',0,1,.01);
-  colour(dB,'外圈',S.d,'a'); colour(dB,'中段',S.d,'b'); colour(dB,'核心',S.d,'c');
+  toggle(eB,'噪点跟随字号',S.e,'scaleGrain');
+  colour(eB,'字色',S.e,'fill');
+  colour(eB,'光色',S.e,'glow');
+
   const gB=$('gBox');
   field(gB,'颗粒',S.grain,'op',0,.6,.01);
   field(gB,'粗细',S.grain,'freq',.2,2.5,.05);
   const sel=document.createElement('select');
-  sel.innerHTML=['normal','overlay','multiply','soft-light'].map(m=>`<option${m==='overlay'?' selected':''}>${m}</option>`).join('');
-  sel.addEventListener('change',e=>{S.grain.mode=e.target.value;render();});
+  sel.innerHTML=['normal','overlay','multiply','soft-light']
+    .map(m=>`<option${m==='overlay'?' selected':''}>${m}</option>`).join('');
+  sel.addEventListener('change',ev=>{S.grain.mode=ev.target.value;render();});
   gB.appendChild(sel);
 
   $('copy').addEventListener('click',async()=>{
     try{await navigator.clipboard.writeText($('out').value);$('copy').textContent='已复制';}
-    catch(e){$('out').select();$('copy').textContent='请手动复制';}
+    catch(err){$('out').select();$('copy').textContent='请手动复制';}
     setTimeout(()=>$('copy').textContent='复制参数',1400);
   });
 
