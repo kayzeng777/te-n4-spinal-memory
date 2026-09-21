@@ -71,13 +71,11 @@ x0, y0 = min(xs), min(ys)
 W = max(xs) - x0 + 1
 ROWS = max(ys) - y0 + 1 + 2 * PAD
 
-# the drawing's mass usually sits off the middle of its bounding box, so pad the
-# lighter side until the centre of mass lands on the middle of the viewBox
-com = sum(xs) / len(xs) - x0 + 0.5          # centre of mass, in cell units
-PAD_L = PAD + max(0, round(W - 2 * com))
-while PAD_L + com <= (PAD_L + W + PAD) / 2:  # keep at least PAD clear on the right
-    PAD_L += 1
-COLS = 2 * (PAD_L + com)                     # viewBox centre == centre of mass
+# Centre on the silhouette, not on the centre of mass. The widest part of the
+# drawing sets how the left and right margins read, and straighten() has already
+# put the rows on a common axis, so equal padding is what looks balanced.
+PAD_L = PAD
+COLS = W + 2 * PAD
 
 # blanks the outside can reach are background; the rest are holes inside the spine
 def interior_blanks():
