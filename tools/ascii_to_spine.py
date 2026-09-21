@@ -2,8 +2,8 @@
 """Turn an ASCII-shade drawing into spine.svg.part.
 
 One cell per non-space character: a
-white cell with the source character drawn on it in the colour for that
-character's shade level.
+cell tinted with a light version of that character's colour, and the character
+itself drawn on top in the full colour, so no level washes out to white.
 Cells are 1 unit wide and ASPECT tall, matching a monospace character box, so the
 drawing keeps the proportions it had in a terminal.
 """
@@ -20,7 +20,14 @@ ASPECT = 1.6       # cell height / cell width, i.e. a monospace character box
 TONE = {'░': '#FDF48E', '▒': '#F8BC5F', '▓': '#F38530', '█': '#822D00'}
 GLYPH = '▓'
 FALLBACK = '#F38530'
-CELL = '#ffffff'
+TINT = 0.40   # how much of the symbol colour is mixed into its cell background
+
+
+def tint(hex_colour, amount=None):
+    """A light version of a colour: that much of it mixed into white."""
+    a = TINT if amount is None else amount
+    rgb = [int(hex_colour[i:i + 2], 16) for i in (1, 3, 5)]
+    return '#%02X%02X%02X' % tuple(round(c * a + 255 * (1 - a)) for c in rgb)
 
 lines = open(SRC).read().split('\n')
 cells = {(x, y): ch for y, line in enumerate(lines)
@@ -42,7 +49,7 @@ for (x, y), ch in sorted(cells.items(), key=lambda kv: (kv[0][1], kv[0][0])):
     tone = TONE.get(ch, FALLBACK)
     glyph = GLYPH
     rects.append(f'<rect x="{cx}" y="{cy:g}" width="1" height="{ASPECT:g}" '
-                 f'data-c="{cx}" data-r="{r}" fill="{CELL}"/>')
+                 f'data-c="{cx}" data-r="{r}" fill="{tint(tone)}"/>')
     glyphs.append(f'<text x="{cx + 0.5:g}" y="{cy + ASPECT / 2:g}" data-c="{cx}" data-r="{r}" '
                   f'fill="{tone}">{glyph}</text>')
 
@@ -54,4 +61,4 @@ open(os.path.join(HERE, 'spine.svg.part'), 'w').write(out)
 tally = collections.Counter(cells.values())
 print(f'grid {COLS} x {ROWS} cells (pad {PAD}, aspect {ASPECT}), {len(cells)} drawn')
 for ch, n in sorted(tally.items(), key=lambda kv: list(TONE).index(kv[0])):
-    print(f'  {ch} -> {GLYPH}  {n:5d}  ink {TONE[ch]}')
+    print(f'  {ch} -> {GLYPH}  {n:5d}  ink {TONE[ch]}  cell {tint(TONE[ch])}')
