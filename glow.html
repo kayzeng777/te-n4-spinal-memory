@@ -139,8 +139,9 @@
     w:{serif:121, sans:500},
     lh:{serif:.95, sans:1.05},
     ls:{serif:0, sans:0},
-    e:{morph:0, stroke:0, feather:.045, grainSize:.022, scaleGrain:1, grain:1.1, hard:6,
-       soften:.018, core:.012, inset:.008, evenness:3, dilate:.060, halo:.210,
+    e:{morph:0, stroke:0, feather:.060, grainSize:.022, scaleGrain:1, grain:1.3, hard:2.5,
+       soften:.035, core:.012, inset:.006, evenness:3, body:.8, bodyBlur:.055,
+       dilate:.060, halo:.210,
        fill:'#F28331', glow:'#FDF48E'},
     grain:{op:.18, freq:.85, mode:'overlay'},
   };
@@ -207,7 +208,13 @@
         // mask the real glyph with that edge, so its own fill and stroke survive
         svg('feGaussianBlur',{in:'SourceGraphic',stdDeviation:(fs*e.core).toFixed(2),result:'glyph'}),
         svg('feComposite',{in:'glyph',in2:'alpha',operator:'in',result:'core'}),
-        svg('feMerge',{},[svg('feMergeNode',{in:'glow'}),svg('feMergeNode',{in:'glow'}),svg('feMergeNode',{in:'core'})]),
+        // an unmasked blurred copy of the glyph underneath: masking the core by the eaten
+        // alpha re-sharpens it, so this is what gives the letterform its soft bloom
+        svg('feGaussianBlur',{in:'SourceGraphic',stdDeviation:(fs*e.bodyBlur).toFixed(2),result:'bodyBlur'}),
+        svg('feComponentTransfer',{in:'bodyBlur',result:'body'},[
+          svg('feFuncA',{type:'linear',slope:e.body,intercept:'0'})]),
+        svg('feMerge',{},[svg('feMergeNode',{in:'glow'}),svg('feMergeNode',{in:'glow'}),
+          svg('feMergeNode',{in:'body'}),svg('feMergeNode',{in:'core'})]),
       ]));
     }
     let css=`.sample[data-face=serif]{font-weight:${S.w.serif};line-height:${S.lh.serif};`+
@@ -267,8 +274,10 @@
   field(eB,'噪点强度',S.e,'grain',0,3,.05);
   field(eB,'噪点均匀度',S.e,'evenness',0,10,.5);
   field(eB,'压硬',S.e,'hard',1,20,.5);
-  field(eB,'边缘模糊 ×fs',S.e,'soften',0,.08,.002);
+  field(eB,'边缘模糊 ×fs',S.e,'soften',0,.15,.002);
   field(eB,'字身模糊 ×fs',S.e,'core',0,.06,.002);
+  field(eB,'柔光强度',S.e,'body',0,1,.05);
+  field(eB,'柔光模糊 ×fs',S.e,'bodyBlur',0,.15,.005);
   field(eB,'实心内核 ×fs',S.e,'inset',0,.05,.002);
   field(eB,'撑大 ×fs',S.e,'dilate',0,.2,.005);
   field(eB,'外光模糊 ×fs',S.e,'halo',0,.5,.005);
