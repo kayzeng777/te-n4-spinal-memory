@@ -101,7 +101,7 @@ HEAD = '''<title>te online lecture</title>
     --font-display:"Apoc",Georgia,serif;
     --font-sans:"PP Neue Montreal",-apple-system,"Helvetica Neue",Arial,sans-serif;
     --ink:#101410; --ink-brown:#822D00; --ink-soft:rgba(16,20,16,.7);
-    --cell:clamp(3px, calc(100vh * 1.7 / (__ROWS__ * 1.6)), 10px);
+    --cell:clamp(4px, calc(100vh * 2.4 / (__ROWS__ * 1.6)), 12px);
   }
   *{box-sizing:border-box}
   html,body{margin:0;min-height:100%}
