@@ -28,8 +28,10 @@
   .col .cost{margin:14px 0 0;font-size:10.5px;letter-spacing:.06em;opacity:.6}
   .row{margin:0 0 22px}
   .row .lab{font-size:10px;letter-spacing:.12em;opacity:.55;margin-bottom:6px}
-  .sample{font-family:var(--font-display);line-height:1.05;white-space:nowrap}
-  .s64{font-size:64px}.s40{font-size:40px}.s24{font-size:24px}.s14{font-size:14px}
+  .sample{line-height:1.05;white-space:nowrap;display:inline-block}
+  .s64{font-size:64px}.s28{font-size:28px}.s14{font-size:14px}
+  .pair{display:block;margin:0 0 8px}
+  .face{display:block;font-family:var(--font-sans);font-size:9px;letter-spacing:.1em;opacity:.4;margin-bottom:2px}
 
   /* A: the six stacked layers in use now, straight from presets.json */
   .va{position:relative;display:inline-block}
@@ -69,7 +71,7 @@
 
 <main>
   <h1>glow · five ways</h1>
-  <p class="intro">同一段字，同一个背景，四个字号。A 是现在用的六层叠加，参数是 Apoc M 那组的 px 值直接套到别的字号上。B、C、E、D 各用一套参数覆盖全部字号，右侧面板实时调 C、E、D。</p>
+  <p class="intro">同一段字，同一个背景，三个字号，每个字号各用衬线和无衬线跑一遍。A 是现在用的六层叠加，参数是 Apoc M 那组的 px 值直接套到别的字号上。B、C、E、D 各用一套参数覆盖全部字号，右侧面板实时调 C、E、D。</p>
 
   <div class="grid">
     <div class="col">
@@ -123,13 +125,14 @@
 
 <script>
 (function(){
-  const SIZES=[64,40,24,14], TEXT='Spinal';
+  const SIZES=[64,28,14], TEXT='Spinal';
+  const FACES=[['serif','var(--font-display)'],['sans','var(--font-sans)']];
   const S={
     weight:121,
     c:{stroke:.025, dilate:.060, halo:.210, core:.022, fill:'#F28331', glow:'#FDF48E'},
     d:{blur:.160, core:.020, alphaMid:.85, a:'#FDF48E', b:'#F8BC5F', c:'#F28331'},
     b:{fill:.14, stroke:.018, r1:.035, r2:.075, r3:.14, r4:.26, r5:.40, r6:.58},
-    e:{feather:.045, freq:1.2, grain:1.1, hard:6, soften:.018, dilate:.060, halo:.210},
+    e:{feather:.045, grainSize:.022, scaleGrain:1, grain:1.1, hard:6, soften:.018, dilate:.060, halo:.210},
     grain:{op:.18, freq:.85, mode:'overlay'},
   };
   const $=id=>document.getElementById(id);
@@ -138,7 +141,9 @@
   // ---- samples ----
   document.querySelectorAll('.rows').forEach(box=>{
     box.innerHTML=SIZES.map(s=>`<div class="row"><div class="lab">${s}px</div>`+
-      `<span class="sample s${s} ${box.dataset.ver}">${TEXT}</span></div>`).join('');
+      FACES.map(([n,f])=>`<div class="pair"><span class="face">${n}</span>`+
+        `<span class="sample s${s} ${box.dataset.ver}" style="font-family:${f}">${TEXT}</span></div>`).join('')+
+      `</div>`).join('');
   });
   document.querySelectorAll('.va').forEach(el=>{
     const html=el.innerHTML;el.innerHTML='';
@@ -174,7 +179,9 @@
         svg('feComposite',{in:'gcol',in2:'halo',operator:'in',result:'glow'}),
         // feather the glyph into a ramp, stir noise through it, then harden
         svg('feGaussianBlur',{in:'SourceAlpha',stdDeviation:(fs*e.feather).toFixed(2),result:'soft'}),
-        svg('feTurbulence',{type:'fractalNoise',baseFrequency:e.freq,numOctaves:'2',seed:'7',result:'turb'}),
+        svg('feTurbulence',{type:'fractalNoise',numOctaves:'2',seed:'7',result:'turb',
+          // period = grainSize x font-size, so the grain scales with the letterform
+          baseFrequency:(e.scaleGrain ? 1/(fs*e.grainSize) : 1/(64*e.grainSize)).toFixed(3)}),
         svg('feColorMatrix',{in:'turb',type:'matrix',result:'noise',
           values:'0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  .33 .33 .33 0 0'}),
         svg('feComposite',{in:'soft',in2:'noise',operator:'arithmetic',
@@ -233,6 +240,12 @@
     r.addEventListener('input',e=>set(e.target.value));
     box.appendChild(d);
   }
+  function toggle(box,label,obj,key){
+    const d=document.createElement('div');d.className='f';
+    d.innerHTML=`<label>${label}</label><input type="checkbox" ${obj[key]?'checked':''}>`;
+    d.querySelector('input').addEventListener('change',e=>{obj[key]=e.target.checked?1:0;render();});
+    box.appendChild(d);
+  }
   function colour(box,label,obj,key){
     const d=document.createElement('div');d.className='f';
     d.innerHTML=`<label>${label}</label><input type="color" value="${obj[key]}">`;
@@ -249,10 +262,11 @@
   colour(cB,'光色',S.c,'glow');
   const eB=$('eBox');
   field(eB,'羽化 ×fs',S.e,'feather',0,.15,.005);
-  field(eB,'噪点粗细',S.e,'freq',.05,5,.01);
+  field(eB,'噪点粗细 ÷fs',S.e,'grainSize',.004,.12,.002);
   field(eB,'噪点强度',S.e,'grain',0,3,.05);
   field(eB,'压硬',S.e,'hard',1,20,.5);
   field(eB,'边缘模糊 ×fs',S.e,'soften',0,.08,.002);
+  toggle(eB,'噪点跟随字号',S.e,'scaleGrain');
   field(eB,'撑大 ×fs',S.e,'dilate',0,.2,.005);
   field(eB,'外光模糊 ×fs',S.e,'halo',0,.5,.005);
   const dB=$('dBox');
