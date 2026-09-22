@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Build index.html (repo, file fonts) and artifact.html (inline fonts) from parts."""
-import base64, json, os, re
+import base64, os, re
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
@@ -12,8 +12,6 @@ def load_spine(name):
 
 
 SPINE, SPINE_COLS, SPINE_ROWS = load_spine('spine.seg.part')
-PRESETS_PATH = os.path.join(HERE, 'presets.json')
-PRESETS = json.load(open(PRESETS_PATH)) if os.path.exists(PRESETS_PATH) else None
 # ---------------------------------------------------------------------------
 # Poster type. One SVG filter per role per breakpoint, built from a distance
 # field: feMorphology erode stacked into equal-width shells around the contour.
@@ -190,10 +188,10 @@ def font_src(name, inline):
         return f"url(data:font/woff2;base64,{b}) format('woff2')"
     return f"url(fonts/{name}.woff2) format('woff2')"
 
-def font_faces(inline, apoc=True):
-    """The poster no longer sets any type in Apoc, so it skips that face; fx.html
-    and glow.html still use it."""
-    out = [f"@font-face{{font-family:'Apoc';src:{font_src('Apoc-Variable', inline)};font-weight:80 145;font-display:swap}}"] if apoc else []
+def font_faces(inline):
+    """PP only. Nothing is set in Apoc any more, so that face is not served;
+    fonts/Apoc-Variable.woff2 is kept on disk but unused."""
+    out = []
     for n, w, s in PP:
         out.append(f"@font-face{{font-family:'PP Neue Montreal';src:{font_src('PPNeueMontreal-'+n, inline)};font-weight:{w};font-style:{s};font-display:swap}}")
     return '\n  '.join(out)
@@ -201,12 +199,11 @@ def font_faces(inline, apoc=True):
 HEAD = '''<title>te online lecture</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@200;300;400;500;600;700;900&family=Noto+Sans+Egyptian+Hieroglyphs&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Egyptian+Hieroglyphs&display=swap">
 <style>
   __FONTS__
 
   :root{
-    --font-cn:"Noto Serif SC","Source Han Serif CN","Source Han Serif SC","Songti SC",serif;
     --font-sans:"PP Neue Montreal",-apple-system,"Helvetica Neue",Arial,sans-serif;
     --ink:#101410; --ink-brown:#822D00; --ink-soft:rgba(16,20,16,.7);
     --cell:min(8px, calc(66vw / __COLS__));
@@ -345,7 +342,7 @@ def page(inline, spine=None, cols=None, rows=None):
     spine = SPINE if spine is None else spine
     cols = SPINE_COLS if cols is None else cols
     rows = SPINE_ROWS if rows is None else rows
-    return (HEAD.replace('__FONTS__', font_faces(inline, apoc=False)).replace('__TYPECSS__', type_css())
+    return (HEAD.replace('__FONTS__', font_faces(inline)).replace('__TYPECSS__', type_css())
                 .replace('__TYPECSS_SMALL__', type_css_small()).replace('__COLS__', f'{cols:g}')
                 .replace('__ROWS__', str(rows))
             + BODY.replace('__SPINE__', spine)
@@ -356,37 +353,8 @@ repo_doc = ('<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8"
             '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
             + page(False).replace('</style>', '</style>\n</head>\n<body>', 1) + '</body>\n</html>\n')
 open(os.path.join(REPO, 'index.html'), 'w').write(repo_doc)
-def version_a_css(key='apoc-M'):
-    """The six stacked layers exactly as the live page renders them, in px."""
-    p = PRESETS['presets'][key]
-    out = []
-    for i, l in enumerate(p['layers'], 1):
-        if not l['on']:
-            out.append(f'.va .l{i}{{display:none}}'); continue
-        blur = f"filter:blur({l['blur']/2:.2f}px);" if l['blur'] else ''
-        stroke = (f"-webkit-text-stroke:{l['stroke']*2}px {l['strokeColor']};"
-                  if l['stroke'] else '-webkit-text-stroke:0;')
-        out.append(f".va .l{i}{{z-index:{7-i};opacity:{l['opacity']/100};{blur}}}")
-        out.append(f".va .l{i} .t{{color:{l['fill'] or 'transparent'};{stroke}}}")
-    return '\n  '.join(out)
-
-
-GLOW = open(os.path.join(HERE, 'glow.template.html')).read()
-glow_doc = ('<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8">\n'
-            '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
-            + GLOW.replace('__FONTS__', font_faces(False))
-                  .replace('__VER_A_CSS__', version_a_css())
-                  .replace('</style>', '</style>\n</head>\n<body>', 1) + '</body>\n</html>\n')
-open(os.path.join(REPO, 'glow.html'), 'w').write(glow_doc)
-
-FX = open(os.path.join(HERE, 'fx.template.html')).read()
-fx_repo = ('<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8">\n'
-           '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
-           + FX.replace('__FONTS__', font_faces(False)).replace('__SPINE__', SPINE).replace('</style>', '</style>\n</head>\n<body>', 1) + '</body>\n</html>\n')
-open(os.path.join(REPO, 'fx.html'), 'w').write(fx_repo)
 # the artifact is the poster itself, fonts inlined
 art = page(True)
 open(os.path.join(REPO, 'artifact.html'), 'w').write(art)
 print(f'index.html {len(repo_doc)//1024} KB ({SPINE_COLS:g}x{SPINE_ROWS}) · '
-      f'fx.html {len(fx_repo)//1024} KB · glow.html {len(glow_doc)//1024} KB · '
       f'artifact.html {len(art)//1024} KB')

@@ -4,8 +4,6 @@ Poster site for the *Spinal Memory* online lecture series.
 
 - `index.html` — the poster. Built, not hand-edited.
 - `artifact.html` — the poster with fonts inlined (gitignored).
-- `fx.html`, `glow.html` — tuners for the old six-layer type effect. The poster no
-  longer uses it; they are kept for reference and still read `tools/presets.json`.
 
 ## Building
 
@@ -14,6 +12,9 @@ python3 tools/ascii_to_spine.py tools/ascii-art.txt tools/spine.svg.part
 python3 tools/spine.py          tools/spine.svg.part tools/spine.seg.part
 python3 tools/build.py
 ```
+
+The poster is set entirely in PP Neue Montreal. `fonts/Apoc-Variable.woff2` is
+left on disk but no longer served.
 
 The first step turns an ASCII shade drawing into cells, straightens the
 per-row drift and centres on the centre of mass. The second splits it into
