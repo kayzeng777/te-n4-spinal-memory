@@ -110,7 +110,7 @@
     </div>
     <div class="col">
       <h2>新方案 · 弥散 + 噪点 + 外光</h2>
-      <p class="note">字身从笔画中心的满色，一路淡到边缘消失，弥散控制这段渐变有多长。噪点乘在这个渐变上，所以颗粒只活在字里，边缘淡到哪就消失到哪。外光是另一层。全局颗粒是第三层，盖在整张画面上。</p>
+      <p class="note">字身由两个独立的场叠成：柔化范围决定颜色淡出多远，颗粒范围决定颗粒散布多宽，两者互不影响。噪点强度为 0 时颗粒消失，只剩柔化。外光是另一层，全局颗粒是第三层。</p>
       <div class="rows" data-ver="vb"></div>
       <p class="cost">1 个 DOM 节点 · 每字号 1 个 filter · 1 套参数</p>
     </div>
@@ -139,7 +139,7 @@
     w:{serif:121, sans:500},
     lh:{serif:.95, sans:1.05},
     ls:{serif:0, sans:0},
-    e:{morph:0, stroke:0, feather:.05, grain:.45, grainSize:.02, particles:1, hard:8,
+    e:{morph:0, stroke:0, feather:.05, scatter:.05, grain:.45, grainSize:.02, hard:8,
        dilate:.060, halo:.210,
        fill:'#F28331', glow:'#FDF48E'},
     grain:{op:.18, freq:.85, mode:'overlay'},
@@ -179,28 +179,23 @@
         svg('feGaussianBlur',{in:'fat',stdDeviation:(fs*e.halo).toFixed(2),result:'halo'}),
         svg('feFlood',{'flood-color':e.glow,result:'gcol'}),
         svg('feComposite',{in:'gcol',in2:'halo',operator:'in',result:'glow'}),
-        // The letterform fades from solid in the middle of a stroke to nothing at its
-        // edge: blurring the alpha gives exactly that field. Noise then modulates it
-        // multiplicatively, so the grain lives inside the fade and dies where the alpha does.
-        svg('feGaussianBlur',{in:'SourceAlpha',stdDeviation:(fs*e.feather).toFixed(2),result:'fade'}),
+        // Two independent fields build the letterform:
+        //   smooth  - how far the colour fades out, a plain translucent falloff
+        //   density - how far the particles scatter before they run out
+        // The particle mask is density compared against noise, and the smooth falloff is
+        // multiplied through it, so each can be dialled without touching the other.
+        svg('feGaussianBlur',{in:'SourceAlpha',stdDeviation:(fs*e.feather).toFixed(2),result:'smooth'}),
+        svg('feGaussianBlur',{in:'SourceAlpha',stdDeviation:(fs*e.scatter).toFixed(2),result:'density'}),
         svg('feTurbulence',{type:'fractalNoise',numOctaves:'2',seed:'7',result:'turb',
           baseFrequency:(1/(fs*e.grainSize)).toFixed(3)}),
         svg('feColorMatrix',{in:'turb',type:'matrix',result:'noise',
           values:'0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  .33 .33 .33 0 0'}),
-        // Two readings of "dispersion".
-        //   gradient - noise multiplies the fade, so the edge is an even translucent ramp
-        //   particles - the fade is compared against the noise and wins or loses, so every
-        //               surviving pixel keeps full colour and only their density falls off.
-        //               That is dispersion in the physical sense, and it breaks into grain.
-        ...(e.particles ? [
-          svg('feComposite',{in:'fade',in2:'noise',operator:'arithmetic',result:'diff',
-            k1:'0',k2:'1',k3:(-e.grain).toFixed(3),k4:(0.5*e.grain).toFixed(3)}),
-          svg('feComponentTransfer',{in:'diff',result:'grainy'},[
-            svg('feFuncA',{type:'linear',slope:e.hard,intercept:(0.5-e.hard*0.5).toFixed(3)})]),
-        ] : [
-          svg('feComposite',{in:'fade',in2:'noise',operator:'arithmetic',result:'grainy',
-            k1:(2*e.grain).toFixed(3),k2:(1-e.grain).toFixed(3),k3:'0',k4:'0'}),
-        ]),
+        svg('feComposite',{in:'density',in2:'noise',operator:'arithmetic',result:'diff',
+          k1:'0',k2:'1',k3:(-e.grain).toFixed(3),k4:(0.5*e.grain).toFixed(3)}),
+        svg('feComponentTransfer',{in:'diff',result:'mask'},[
+          svg('feFuncA',{type:'linear',slope:e.hard,intercept:(0.5-e.hard*0.5).toFixed(3)})]),
+        svg('feComposite',{in:'smooth',in2:'mask',operator:'arithmetic',result:'grainy',
+          k1:'1',k2:'0',k3:'0',k4:'0'}),
         svg('feFlood',{'flood-color':e.fill,result:'fcol'}),
         svg('feComposite',{in:'fcol',in2:'grainy',operator:'in',result:'core'}),
         svg('feMerge',{},[svg('feMergeNode',{in:'glow'}),svg('feMergeNode',{in:'glow'}),
@@ -257,10 +252,10 @@
   field(wB,'无衬线 字距 em',S.ls,'sans',-.08,.4,.005);
 
   const eB=$('eBox');
-  field(eB,'弥散 ×fs',S.e,'feather',0,.2,.005);
+  field(eB,'柔化范围 ×fs',S.e,'feather',0,.2,.005);
+  field(eB,'颗粒范围 ×fs',S.e,'scatter',0,.2,.005);
   field(eB,'噪点强度',S.e,'grain',0,1,.05);
   field(eB,'噪点粗细 ÷fs',S.e,'grainSize',.004,.1,.002);
-  toggle(eB,'颗粒化（否则半透明渐变）',S.e,'particles');
   field(eB,'颗粒硬度',S.e,'hard',1,30,.5);
   field(eB,'胖瘦 ×fs',S.e,'morph',-.04,.04,.002);
   field(eB,'描边 em',S.e,'stroke',0,.06,.002);
