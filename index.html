@@ -408,6 +408,22 @@
   // region 3.4x the box in each direction, which is 11x the area to rasterise.
   if(q.has('nofilter')||q.has('plain'))
     document.querySelectorAll('.t .slab').forEach(e=>e.remove());
+  // Three knives for the type, each cutting one suspect and nothing else.
+  // ?nodilate  the feMorphology only -- the slowest primitive in the chain,
+  //            roughly O(radius^2) per pixel, and the radius is in device px.
+  // ?tight     the filter REGION: 340% of the box each way is 11x its area,
+  //            and the halo only ever needs about 3 sigma of margin.
+  // ?onelayer  everything but the crisp copy: no slab, no bloom, no tight,
+  //            no ink. Tests the five-times-over rendering rather than any
+  //            one effect in it.
+  if(q.has('nodilate'))
+    document.querySelectorAll('[data-bl=dilate]').forEach(e=>e.setAttribute('radius','0'));
+  if(q.has('tight'))
+    document.querySelectorAll('filter[id^=bl-]').forEach(f=>{
+      f.setAttribute('x','-40%');f.setAttribute('y','-90%');
+      f.setAttribute('width','180%');f.setAttribute('height','280%');});
+  if(q.has('onelayer'))
+    document.querySelectorAll('.t .slab,.t .bloom,.t .tight,.t .ink').forEach(e=>e.remove());
   // ?nostroke: every cell draws its own dashed outline, and a dashed stroke is
   // walked dash by dash at raster time -- 4766 cells x ~22 dashes is ~100k
   // segments per repaint of the spine, at whatever the device pixel ratio is.
