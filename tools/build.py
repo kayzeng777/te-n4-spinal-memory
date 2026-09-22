@@ -53,32 +53,48 @@ TYPE = dict(
 # 3px while 16px reads 2px), so a single ratio is the honest summary.
 PP_STEM = .167          # PP Neue Montreal 600
 PP_WEIGHT, PP_LS, PP_LH = 600, -.06, .9
+# The logo is a drawn mark, so its stroke was measured the same way but off a
+# rasterised copy of the SVG: 0.100 of the mark's height, steady from 32 to 200px.
+# It is noticeably lighter than PP's 0.167 per em, which is why the logo needs a
+# much larger ratio to get a comparable edge.
+LOGO_STEM = .100
+
+# The logo is not type and does not want the same numbers: a much wider edge (it
+# has plenty of core to spare at any size), a tighter, harder glow, and its
+# compensation starting higher up. Anything not named here falls back to TYPE.
+LOGO_FX = dict(ratio=.4, mult=.45, comp=.35, ref_size=56,
+               steps=4, falloff=1.25, round=1.0, peak=1.0,
+               g_fat=.08, g_blur=.045, g_amp=1.0, g_gamma=3.0)
+TYPE_MULT = dict(info=1.4)
 
 # role -> (size on the poster, size under the 760px breakpoint)
 # Apoc is gone from the poster; `te` stays because it is an SVG logotype, not type.
 TYPE_SIZES = dict(logo=(120, 72), info=(20, 15))
-TYPE_MULT = dict(logo=.55, info=1.4)
-# The logo is a drawn mark, so it has no stem to measure. Its inward distance is
-# given directly as a fraction of the mark's height, pending its own tuning pass.
-LOGO_STEM = .05
+
+
+def _fx(role):
+    """Per-role parameters: the type defaults, with the logo's overrides on top."""
+    t = dict(TYPE)
+    t['mult'] = TYPE_MULT.get(role, 1.0)
+    if role == 'logo':
+        t.update(LOGO_FX)
+    return t
 
 
 def _stem(role, fs):
     return (LOGO_STEM if role == 'logo' else PP_STEM) * fs
 
 
-def _boost(fs):
+def _boost(t, fs):
     """Small sizes get a wider edge, tapering back to 1 at ref_size."""
-    t = TYPE
     return 1 + t['comp'] * max(0.0, (t['ref_size'] - fs) / t['ref_size'])
 
 
 def _inward(role, fs):
     """Inward distance in px, or 0 when too little core would be left."""
-    t = TYPE
+    t = _fx(role)
     stem = _stem(role, fs)
-    ratio = min(.48, t['ratio'] * _boost(fs))
-    d = stem * ratio * TYPE_MULT[role]
+    d = stem * min(.48, t['ratio'] * _boost(t, fs)) * t['mult']
     return 0.0 if stem - 2 * d < t['min_core'] else d
 
 
@@ -107,7 +123,8 @@ def _shells(op, total, n, peak, falloff, round_by):
 
 
 def type_filter(role, fs, fid):
-    t, b = TYPE, _boost(fs)
+    t = _fx(role)
+    b = _boost(t, fs)
     glow = (f'<feMorphology in="SourceAlpha" operator="dilate" radius="{fs*t["g_fat"]*b:.2f}" result="gfat"/>'
             f'<feGaussianBlur in="gfat" stdDeviation="{fs*t["g_blur"]*b:.2f}" result="gb"/>'
             f'<feComponentTransfer in="gb" result="gsh"><feFuncA type="gamma" '
