@@ -402,8 +402,12 @@
   // judged on. Both of these are full-viewport composites and they are stacked:
   // the lens blends with everything under it and moves with the pointer, and the
   // grain blends over everything including the lens. ?nolens / ?nograin / ?flat.
-  if(q.has('nolens')||q.has('flat'))lens.remove();
-  if(q.has('nograin')||q.has('flat')){const g=document.querySelector('.grain');if(g)g.remove();}
+  if(q.has('nolens')||q.has('flat')||q.has('plain'))lens.remove();
+  if(q.has('nograin')||q.has('flat')||q.has('plain')){const g=document.querySelector('.grain');if(g)g.remove();}
+  // ?nofilter drops the backlight: one SVG filter chain per role, over a filter
+  // region 3.4x the box in each direction, which is 11x the area to rasterise.
+  if(q.has('nofilter')||q.has('plain'))
+    document.querySelectorAll('.t .slab').forEach(e=>e.remove());
   // a high-polling-rate mouse fires far more than once a frame, and the lens blends
   // against the whole page, so each write is expensive: coalesce onto one frame.
   let lx=0,ly=0,lqueued=false;
@@ -428,6 +432,7 @@
   // while active the cell takes that glyph's colour as its background, and the animal is
   // drawn black on the light tones, white on the dark ones.
   (function(){
+    if(/[?&](noanim|plain)/.test(location.search))return;
     const SYMS=Array.from('𓃠𓃰𓃱𓃯𓃸𓃵𓃗𓃙𓃟𓄀𓄁𓄂𓄃𓃚𓃛𓃜𓃞𓃓𓃔𓃕𓃖𓃦𓃬𓃷𓃹𓃻𓃾𓄅𓄇𓆈𓆉𓆌𓆏𓆗𓆙𓆐𓆓𓆊𓆣𓆤𓆦𓆧𓆨𓆝𓆡𓅂𓅐𓅓𓅟𓅮𓅰𓆀');
     const SHARE=0.05, HOLD=7000;
     const ts=[...document.querySelectorAll('.glyphs text')];if(!ts.length)return;
