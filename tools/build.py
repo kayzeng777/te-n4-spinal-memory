@@ -482,18 +482,14 @@ HEAD = '''<title>te online lecture</title>
   .lens{position:fixed;left:0;top:0;width:var(--lens,100px);height:var(--lens,100px);border-radius:50%;--lens-rgb:138 138 138;background:rgb(var(--lens-rgb));filter:blur(var(--feather,8px));
     mix-blend-mode:difference;pointer-events:none;z-index:100;transform:translate(-1000px,-1000px);will-change:transform;display:none}
   @media (hover:hover) and (pointer:fine){.lens{display:block}}
-  /* The blur is the same blur, drawn into an image once, instead of run on
-     every frame the lens moves or the page scrolls beneath it. A blend cannot
-     be cached -- it is recomputed against whatever is behind it -- and the
-     filter widened the patch of backdrop it had to read; this leaves the blend
-     and nothing else. ?blurlens goes back to the live filter, to compare. */
-  .lens{filter:none;border-radius:0;background:none no-repeat center/100% 100%;
-    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='148' height='148'><filter id='f' x='-50%25' y='-50%25' width='200%25' height='200%25'><feGaussianBlur stdDeviation='8'/></filter><circle cx='74' cy='74' r='50' fill='rgb(138,138,138)' filter='url(%23f)'/></svg>");
+  /* ?bakedlens draws the same Gaussian into an image once instead of running
+     the filter on every frame. It is cheaper -- a blend cannot be cached and
+     the filter widens the patch of backdrop it has to read -- but the live
+     filter is the one that looks right, so it is the one that ships. */
+  .lens.baked{filter:none;border-radius:0;background:none no-repeat center/100% 100%;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'><path d='M0 0H1M0 0V1' fill='none' stroke='%23cccccc' stroke-width='.05' stroke-dasharray='.14 .1'/></svg>");
     width:calc(var(--lens,100px) + 6 * var(--feather,8px));
     height:calc(var(--lens,100px) + 6 * var(--feather,8px))}
-  .lens.blurred{filter:blur(var(--feather,8px));border-radius:50%;background-image:none;
-    background-color:rgb(var(--lens-rgb));
-    width:var(--lens,100px);height:var(--lens,100px)}
     width:calc(var(--lens,100px) + 6 * var(--feather,8px));
     height:calc(var(--lens,100px) + 6 * var(--feather,8px));
     background:radial-gradient(circle closest-side,rgb(var(--lens-rgb) / 1.000) 0%,rgb(var(--lens-rgb) / 1.000) 10%,rgb(var(--lens-rgb) / 1.000) 20%,rgb(var(--lens-rgb) / 1.000) 30%,rgb(var(--lens-rgb) / 0.995) 40%,rgb(var(--lens-rgb) / 0.948) 50%,rgb(var(--lens-rgb) / 0.758) 60%,rgb(var(--lens-rgb) / 0.411) 70%,rgb(var(--lens-rgb) / 0.125) 80%,rgb(var(--lens-rgb) / 0.019) 90%,rgb(var(--lens-rgb) / 0.001) 100%)}
@@ -729,7 +725,7 @@ __LECS__
   if(q.get('lenscolor')){const h=q.get('lenscolor').replace('#','');
     lens.style.setProperty('--lens-rgb',
       [0,2,4].map(i=>parseInt(h.substr(i,2),16)).join(' '));}
-  if(q.has('blurlens'))lens.classList.add('blurred');
+  if(q.has('bakedlens'))lens.classList.add('baked');
   if(q.has('scrollgrain')){const g=document.querySelector('.grain');if(g)g.classList.add('scroll');}
   if(q.get('cell'))document.documentElement.style.setProperty('--cell',q.get('cell')+'px');
   // Two switches for judging what the blending costs, on the machine it is being
