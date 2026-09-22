@@ -403,16 +403,25 @@ HEAD = '''<title>te online lecture</title>
     background-position:calc(50% + var(--cell) / 2) 8vh;}
   main{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;
     padding:8vh 0 12vh;margin-right:var(--tools,0)}
+  /* Three drawings in one place. The base is the 9,300 elements that never
+     change, so it gets a layer of its own and is rasterised once; the two
+     above hold the only things that move. Neither takes the pointer, so a
+     hit test still lands on the cells in the base. */
   .spine{width:calc(__COLS__ * var(--cell));height:auto;overflow:visible;display:block}
+  .spine.base{will-change:transform}
+  .spine.anim,.spine.pics{position:absolute;left:0;top:0;pointer-events:none}
   .cells rect{stroke:#cccccc;stroke-width:.05;stroke-dasharray:.14 .1;shape-rendering:crispEdges}
   .glyphs{--gfs:1.57px;--gdy:0.41px}
   .glyphs text{font-family:Menlo,Consolas,"DejaVu Sans Mono",monospace;font-size:var(--gfs);text-anchor:middle;dominant-baseline:auto;transform:translateY(var(--gdy));pointer-events:none}
   .glyphs text.h{font-family:"Noto Sans Egyptian Hieroglyphs",sans-serif;font-size:1.5px;dominant-baseline:central;transform:none}
-  .seg .pic{opacity:0;transition:opacity var(--lec-out,.26s) ease}
-  /* `hot` is hover as the script sees it. Not the same as :hover — after a
-     click glides the spine under a still cursor, nothing is hovered until
-     the reader moves, and :hover cannot be told that. */
-  .seg.hot .pic,.seg.active .pic{opacity:1}
+  /* The photo left the segment for a layer of its own, so it is lit by its
+     own class now rather than by the segment's. Fading it there no longer
+     touches the drawing underneath it. */
+  .pic{opacity:0;transition:opacity var(--lec-out,.26s) ease}
+  /* `on` is hover-or-open as the script sees it. Not the same as :hover —
+     after a click glides the spine under a still cursor, nothing is hovered
+     until the reader moves, and :hover cannot be told that. */
+  .pic.on{opacity:1}
   .seg{cursor:pointer}
   __TYPEBASE__
   __TOOLSCSS__
@@ -575,6 +584,8 @@ __LECS__
     const segs=[...document.querySelectorAll('.seg')];
     const lecs=segs.map((g,i)=>document.querySelector('.lec[data-lec="'+i+'"]'));
     const nos=segs.map((g,i)=>document.querySelector('.t-lecno[data-lec="'+i+'"]'));
+    // the photo moved to a layer of its own, so it is lit directly
+    const pics=segs.map((g,i)=>document.querySelector('.pics .pic[data-seg="'+i+'"]'));
     // A collapsed .more is height:0 with its content overflowing, so the inner
     // box still lays out at full size and can be measured where it stands.
     // Measured at the moment of opening, which is the only moment the number is
@@ -600,6 +611,7 @@ __LECS__
     function sync(){segs.forEach((g,i)=>{
       g.classList.toggle('active',i===open);
       g.classList.toggle('hot',i===hot);
+      if(pics[i])pics[i].classList.toggle('on',i===hot||i===open);
       const l=lecs[i];if(!l)return;
       l.classList.toggle('on',i===hot||i===open);
       l.classList.toggle('open',i===open);});
@@ -735,40 +747,72 @@ __LECS__
       g.style.setProperty('--gfs',fs.toFixed(4)+'px');
       g.style.setProperty('--gdy',(CELL*a/(a+d)-CELL/2).toFixed(4)+'px');});
   })();
-  // cells: ~5% show a hieroglyph animal at a time, 7s each, then another cell takes over.
-  // while active the cell takes that glyph's colour as its background, and the animal is
-  // drawn black on the light tones, white on the dark ones.
+  // cells: ~5% show a hieroglyph animal at a time, 7s each, then another cell
+  // takes over. While one is up, its cell takes that glyph's colour as a solid
+  // block and the animal is drawn black on the light tones, white on the dark.
+  //
+  // None of that touches the drawing. The base is read once for where the cells
+  // are and what colour each one is, and everything after that is written into
+  // the layer above it, out of a pool made at the start: an opaque block in the
+  // cell's own colour, which hides the ▓ beneath it, and the animal over that.
+  // The animal overhangs its cell, and being in the layer above is what puts it
+  // over its neighbours -- the old drawing had to re-order nodes to manage it.
   (function(){
     if(/[?&](noanim|plain)/.test(location.search))return;
     const SYMS=Array.from('𓃠𓃰𓃱𓃯𓃸𓃵𓃗𓃙𓃟𓄀𓄁𓄂𓄃𓃚𓃛𓃜𓃞𓃓𓃔𓃕𓃖𓃦𓃬𓃷𓃹𓃻𓃾𓄅𓄇𓆈𓆉𓆌𓆏𓆗𓆙𓆐𓆓𓆊𓆣𓆤𓆦𓆧𓆨𓆝𓆡𓅂𓅐𓅓𓅟𓅮𓅰𓆀');
-    const SHARE=0.05, HOLD=7000;
-    const ts=[...document.querySelectorAll('.glyphs text')];if(!ts.length)return;
-    // perceived brightness; the cut sits just above the accent orange (156) and below
-    // the cream-orange midpoint (196) and the green of the holes (172), so only the
-    // darkest tone of the ramp takes white ink.
-    const light=c=>{const n=parseInt(c.slice(1),16);return !isNaN(n)&&((n>>16&255)*299+(n>>8&255)*587+(n&255)*114)/1000>165;};
-    const key=t=>t.dataset.c+','+t.dataset.r;
-    const rects=new Map([...document.querySelectorAll('.seg .cells rect')].map(r=>[r.dataset.c+','+r.dataset.r,r]));
-    const idx=new Map(ts.map((t,i)=>[key(t),i])), active=new Set(), TARGET=Math.round(ts.length*SHARE);
+    const SHARE=0.05, HOLD=7000, TICK=250, NS='http://www.w3.org/2000/svg';
+    const base=document.querySelector('.spine.base'),
+          host=document.querySelector('.spine.anim .glyphs');
+    if(!base||!host)return;
+    // One read of the drawing, and it is never read or written again.
+    const glyphs=[...base.querySelectorAll('.glyphs text')];if(!glyphs.length)return;
+    const rects=new Map([...base.querySelectorAll('.cells rect')]
+      .map(r=>[r.dataset.c+','+r.dataset.r,r]));
+    const cell=glyphs.map(t=>{const r=rects.get(t.dataset.c+','+t.dataset.r);
+      return {c:+t.dataset.c, r:+t.dataset.r, col:(t.getAttribute('fill')||'').toUpperCase(),
+              x:+r.getAttribute('x'), y:+r.getAttribute('y'),
+              w:+r.getAttribute('width'), h:+r.getAttribute('height')};});
+    // perceived brightness; the cut sits just above the accent orange (156) and
+    // below the cream-orange midpoint (196) and the green of the holes (172), so
+    // only the darkest tone of the ramp takes white ink.
+    const light=c=>{const n=parseInt(c.slice(1),16);
+      return !isNaN(n)&&((n>>16&255)*299+(n>>8&255)*587+(n&255)*114)/1000>165;};
+    const idx=new Map(cell.map((d,i)=>[d.c+','+d.r,i]));
+    const TARGET=Math.round(cell.length*SHARE);
+    // the pool: one block and one animal each, made once, moved and recoloured
+    const pool=[];
+    for(let k=0;k<TARGET;k++){
+      const g=document.createElementNS(NS,'g');
+      const b=document.createElementNS(NS,'rect'), t=document.createElementNS(NS,'text');
+      t.setAttribute('class','h');g.append(b,t);g.style.display='none';
+      host.appendChild(g);pool.push({g,b,t});}
+    const spare=pool.slice(), slot=new Map(), active=new Set(), due=new Map();
     const rnd=n=>Math.floor(Math.random()*n);
-    const free=i=>{const c=+ts[i].dataset.c,r=+ts[i].dataset.r;return !active.has(i)&&
-      ![[1,0],[-1,0],[0,1],[0,-1]].some(([dc,dr])=>{const j=idx.get((c+dc)+','+(r+dr));return j!==undefined&&active.has(j);});};
-    // every swap costs a layout+paint of the whole spine, and the lens blends against
-    // that, so all the swaps that fall due in one TICK are done in a single batch:
-    // ~4 paints a second instead of ~70, for the same glyphs at the same hold.
-    const TICK=250, due=new Map();
-    function on(i,first){const t=ts[i],rect=rects.get(key(t)),col=(t.getAttribute('fill')||'').toUpperCase();
-      t.dataset.orig=t.textContent;t.textContent=SYMS[rnd(SYMS.length)];t.classList.add('h');
-      t.parentNode.appendChild(t);   // paint above the neighbouring cells it overhangs
-      t.style.fill=light(col)?'#000':'#fff';if(rect)rect.style.fill=col;active.add(i);
-      due.set(i,performance.now()+(first?Math.random()*HOLD:HOLD));}
-    function off(i){const t=ts[i],rect=rects.get(key(t));t.textContent=t.dataset.orig;t.classList.remove('h');
-      t.parentNode.insertBefore(t,t.parentNode.firstChild);   // drop back below the active animals
-      t.style.fill='';if(rect)rect.style.fill='';active.delete(i);due.delete(i);}
-    function spawn(first){for(let k=0;k<80;k++){const i=rnd(ts.length);if(free(i)){on(i,first);return true;}}return false;}
+    const free=i=>{const d=cell[i];return !active.has(i)&&
+      ![[1,0],[-1,0],[0,1],[0,-1]].some(([dc,dr])=>{
+        const j=idx.get((d.c+dc)+','+(d.r+dr));return j!==undefined&&active.has(j);});};
+    function on(i,first){
+      const p=spare.pop();if(!p)return false;
+      const d=cell[i];
+      p.b.setAttribute('x',d.x);p.b.setAttribute('y',d.y);
+      p.b.setAttribute('width',d.w);p.b.setAttribute('height',d.h);
+      p.b.setAttribute('fill',d.col);
+      p.t.setAttribute('x',d.x+d.w/2);p.t.setAttribute('y',d.y+d.h/2);
+      p.t.setAttribute('fill',light(d.col)?'#000':'#fff');
+      p.t.textContent=SYMS[rnd(SYMS.length)];
+      p.g.style.display='';
+      slot.set(i,p);active.add(i);
+      due.set(i,performance.now()+(first?Math.random()*HOLD:HOLD));
+      return true;}
+    function off(i){const p=slot.get(i);if(p){p.g.style.display='none';spare.push(p);}
+      slot.delete(i);active.delete(i);due.delete(i);}
+    function spawn(first){for(let k=0;k<80;k++){const i=rnd(cell.length);
+      if(free(i)&&on(i,first))return true;}return false;}
     for(let n=0;n<TARGET*3&&active.size<TARGET;n++)spawn(true);
+    // Everything that falls due in one TICK is done together: the layer is
+    // small, but a write to it is still a write, and four a second is enough.
     setInterval(()=>{
-      if(document.hidden)return;              // nothing to paint, so don't
+      if(document.hidden)return;
       const now=performance.now(),expired=[];
       due.forEach((at,i)=>{if(at<=now)expired.push(i);});
       expired.forEach(off);

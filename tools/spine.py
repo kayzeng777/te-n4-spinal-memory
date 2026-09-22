@@ -164,10 +164,16 @@ _a = sum(w * h for _, _, w, h in all_cells)
 SPINE_CX = sum((x + w / 2) * w * h for x, _, w, h in all_cells) / _a
 head = head.replace('<svg', f'<svg data-cx="{SPINE_CX:.3f}"', 1)
 
-out = [head]
+# Three drawings stacked, not one. The base never changes after it is written,
+# which is the whole point: 9,300 elements that the browser can rasterise once
+# and paste from then on. The animals and the photos are the only things that
+# move, so they live above it in their own layers and cost what they weigh.
+#
+# The order is base, animals, photos -- the same order the one drawing had, so
+# a photo still covers the animals under it when a segment opens.
+base, pics = [head.replace('class="spine"', 'class="spine base"')], []
 for i, s in enumerate(segs):
     sx0, sy0, sx1, sy1 = bbox(s['rects'])
-    rect_str = ''.join(el for el, _ in s['rects'])
     # Where the segment LOOKS like it is, which is not the middle of its box:
     # the top and bottom rows of a vertebra are a few cells wide and carry
     # almost no photo, so the centre of mass of the lit cells is what the eye
@@ -177,18 +183,23 @@ for i, s in enumerate(segs):
     area = sum(w * h for _, _, w, h in cells)
     cx = sum((x + w / 2) * w * h for x, _, w, h in cells) / area
     cy = sum((y + h / 2) * w * h for _, y, w, h in cells) / area
-    out.append(
+    base.append(
         f'<g class="seg" data-seg="{i}" data-y0="{sy0:g}" data-y1="{sy1:g}" '
         f'data-x0="{sx0:g}" data-x1="{sx1:g}" data-cx="{cx:.3f}" data-cy="{cy:.3f}">'
         f'<clipPath id="segclip-{i}">{clip_path(s["rects"])}</clipPath>'
-        f'<g class="cells">{rect_str}</g>'
+        f'<g class="cells">{"".join(el for el, _ in s["rects"])}</g>'
         f'<g class="glyphs">{"".join(s["glyphs"])}</g>'
-        f'<g class="pic" clip-path="url(#segclip-{i})">'
+        f'</g>')
+    pics.append(
+        f'<g class="pic" data-seg="{i}" clip-path="url(#segclip-{i})">'
         f'<rect x="{sx0:g}" y="{sy0:g}" width="{sx1-sx0:g}" height="{sy1-sy0:g}" fill="{PLACEHOLDER_FILL[i]}"/>'
         f'<image href="{IMAGES[i]}" x="{sx0:g}" y="{sy0:g}" width="{sx1-sx0:g}" height="{sy1-sy0:g}" '
         f'preserveAspectRatio="xMidYMid slice"/>'
-        f'</g></g>')
+        f'</g>')
     print(f'seg {i}: y {sy0:g}-{sy1:g}, {len(s["rects"])} cells, {len(s["glyphs"])} glyphs')
-out.append('</svg>')
-open(OUT, 'w').write('\n'.join(out))
+base.append('</svg>')
+# the animals' layer is written empty; the page fills it from a pool
+anim = head.replace('class="spine"', 'class="spine anim"') + '<g class="glyphs"></g></svg>'
+pic_svg = head.replace('class="spine"', 'class="spine pics"') + ''.join(pics) + '</svg>'
+open(OUT, 'w').write('\n'.join(base) + '\n' + anim + '\n' + pic_svg + '\n')
 print('cuts at rows', CUTS)
