@@ -408,6 +408,12 @@
   // region 3.4x the box in each direction, which is 11x the area to rasterise.
   if(q.has('nofilter')||q.has('plain'))
     document.querySelectorAll('.t .slab').forEach(e=>e.remove());
+  // ?nostroke: every cell draws its own dashed outline, and a dashed stroke is
+  // walked dash by dash at raster time -- 4766 cells x ~22 dashes is ~100k
+  // segments per repaint of the spine, at whatever the device pixel ratio is.
+  if(q.has('nostroke')||q.has('plain')){
+    const st=document.createElement('style');
+    st.textContent='.cells rect{stroke:none}';document.head.appendChild(st);}
   // a high-polling-rate mouse fires far more than once a frame, and the lens blends
   // against the whole page, so each write is expensive: coalesce onto one frame.
   let lx=0,ly=0,lqueued=false;
