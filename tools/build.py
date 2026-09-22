@@ -479,7 +479,12 @@ LEC_CSS = '''/* The lecture blocks. One per segment of the spine, parked at the 
     top:calc(var(--y) * 100%);
     width:max(18ch, min(38ch, calc(var(--side) - var(--lec-gap) - var(--pad))));
     opacity:0;transform:translateY(calc(-50% + var(--lec-rise)));
-    transition:opacity var(--lec-off), transform var(--lec-off)}
+    transition:opacity var(--lec-off), transform var(--lec-off);
+    /* Seven of these eight are always invisible, and opacity:0 does not stop
+       a thing being rendered -- it is rasterised in full and then composited
+       at zero. Which meant the page drew every word of all eight blurbs,
+       five times over, three of those blurred, to show one of them. */
+    content-visibility:hidden}
   /* The detail is the click's half of the bargain. It is laid out either way,
      so opening one does not reflow the block around it -- only its height and
      its ink change, and the block stays centred on its own segment throughout. */
@@ -528,7 +533,7 @@ LEC_CSS = '''/* The lecture blocks. One per segment of the spine, parked at the 
   .t-lecno.on{opacity:1;transition:opacity var(--lec-in) ease}
   .lec .t{max-width:100%}
   .lec .t>*{max-width:100%}
-  .lec.on{opacity:1;transform:translateY(-50%);
+  .lec.on{content-visibility:visible;opacity:1;transform:translateY(-50%);
     transition-duration:var(--lec-in),var(--lec-in)}
   /* Not enough room beside the spine any more: the block lies over it, from the
      left edge of the spine, where the segment\'s photo is its ground. */
@@ -642,8 +647,8 @@ __LECS__
       addEventListener(e,()=>{tween=null;held=false;},{passive:true}));
     segs.forEach((g,i)=>{
       g.addEventListener('click',e=>{open=(open===i?-1:i);hot=i;
+        sync();                        // renders the block; only then is it measurable
         if(open===i)note(mores[i]);
-        sync();
         if(open===i){px=e.clientX;py=e.clientY;held=glide(g);}
         e.stopPropagation();});
     });
