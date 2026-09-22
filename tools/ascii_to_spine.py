@@ -21,10 +21,19 @@ ASPECT = 1.6       # cell height / cell width, i.e. a monospace character box
 # tints of the accent #F28532, mixed with white at 75 / 55 / 30 / 0 percent.
 # Only the shade levels the drawing actually uses are spread across this ramp,
 # so a three-level drawing still reaches the accent at its darkest.
-RAMP = ['#FCE0CC', '#F9C8A3', '#F6AA70', '#F28532']
+# the shade levels a drawing uses are spread evenly along this ramp,
+# lightest character to darkest
+RAMP_FROM = '#D6D782'   # lightest
+RAMP_TO = '#F28532'     # darkest
 DENSITY = '░▒▓█'
+
+
+def lerp(a, b, t):
+    ca = [int(a[i:i + 2], 16) for i in (1, 3, 5)]
+    cb = [int(b[i:i + 2], 16) for i in (1, 3, 5)]
+    return '#%02X%02X%02X' % tuple(round(x + (y - x) * t) for x, y in zip(ca, cb))
 GLYPH = '▓'
-FALLBACK = '#F6AA70'
+FALLBACK = RAMP_TO
 CELL = '#ffffff'
 HOLE = '#86C689'   # blank cells enclosed by the drawing get a ▓ in this green
 
@@ -99,7 +108,7 @@ def interior_blanks():
 HOLES = interior_blanks()
 
 levels = sorted({ch for ch in cells.values() if ch in DENSITY}, key=DENSITY.index)
-TONE = {ch: RAMP[round(i * (len(RAMP) - 1) / max(1, len(levels) - 1))]
+TONE = {ch: lerp(RAMP_FROM, RAMP_TO, i / max(1, len(levels) - 1))
         for i, ch in enumerate(levels)}
 for ch in set(cells.values()) - set(TONE):
     TONE[ch] = FALLBACK
