@@ -2,3 +2,4 @@ artifact.html
 .DS_Store
 images/*
 !images/web/
+tools/__pycache__/
