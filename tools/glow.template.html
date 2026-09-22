@@ -78,7 +78,7 @@
     </div>
     <div class="col">
       <h2>新方案 · 羽化 + 外光</h2>
-      <p class="note">字形本身做一次模糊，就是羽化；把字形撑大再模糊、填上光色，垫在后面就是外光。颗粒是盖在整张画面上的独立一层，和字无关。</p>
+      <p class="note">羽化只糊字形的 alpha，内部保持满色，边缘往外衰减；关掉开关就变成整体模糊，颜色也一起糊。外光是把字形撑大再模糊、填上光色垫在后面。颗粒是盖在整张画面上的独立一层，和字无关。</p>
       <div class="rows" data-ver="vb"></div>
       <p class="cost">1 个 DOM 节点 · 每字号 1 个 filter · 1 套参数</p>
     </div>
@@ -107,7 +107,7 @@
     w:{serif:121, sans:500},
     lh:{serif:.95, sans:1.05},
     ls:{serif:0, sans:0},
-    e:{morph:0, stroke:0, feather:.03, dilate:.060, halo:.210,
+    e:{morph:0, stroke:0, feather:.03, trueFeather:1, dilate:.060, halo:.210,
        fill:'#F28331', glow:'#FDF48E'},
     grain:{op:.18, freq:.85, mode:'overlay'},
   };
@@ -146,8 +146,17 @@
         svg('feGaussianBlur',{in:'fat',stdDeviation:(fs*e.halo).toFixed(2),result:'halo'}),
         svg('feFlood',{'flood-color':e.glow,result:'gcol'}),
         svg('feComposite',{in:'gcol',in2:'halo',operator:'in',result:'glow'}),
-        // the letterform itself, simply blurred: this is the feather
-        svg('feGaussianBlur',{in:'SourceGraphic',stdDeviation:(fs*e.feather).toFixed(2),result:'core'}),
+        // Two ways to soften the letterform:
+        //   blur    - blurs colour and alpha together, so a stroke smears into the fill
+        //   feather - blurs only the alpha and fills it with a flat colour, so the inside
+        //             stays fully saturated and only the edge falls off
+        ...(e.trueFeather ? [
+          svg('feGaussianBlur',{in:'SourceAlpha',stdDeviation:(fs*e.feather).toFixed(2),result:'softA'}),
+          svg('feFlood',{'flood-color':e.fill,result:'fcol'}),
+          svg('feComposite',{in:'fcol',in2:'softA',operator:'in',result:'core'}),
+        ] : [
+          svg('feGaussianBlur',{in:'SourceGraphic',stdDeviation:(fs*e.feather).toFixed(2),result:'core'}),
+        ]),
         svg('feMerge',{},[svg('feMergeNode',{in:'glow'}),svg('feMergeNode',{in:'glow'}),
           svg('feMergeNode',{in:'core'})]),
       ]));
@@ -203,6 +212,7 @@
 
   const eB=$('eBox');
   field(eB,'羽化 ×fs',S.e,'feather',0,.12,.002);
+  toggle(eB,'只羽化边缘（否则整体模糊）',S.e,'trueFeather');
   field(eB,'胖瘦 ×fs',S.e,'morph',-.04,.04,.002);
   field(eB,'描边 em',S.e,'stroke',0,.06,.002);
   field(eB,'外光撑大 ×fs',S.e,'dilate',0,.2,.005);
