@@ -77,8 +77,8 @@
       <p class="cost">12 个 DOM 节点 · 6 个合成层 · 13 组参数</p>
     </div>
     <div class="col">
-      <h2>新方案 · 羽化 + 外光</h2>
-      <p class="note">字身只糊 alpha，内部保持满色。羽化是紧贴边缘的一圈柔化，弥散是同色往外拖的长尾，边缘于是化在空气里而不是齐刷刷切断。外光是另一层，把字形撑大再模糊填上光色。颗粒盖在整张画面上，和字无关。</p>
+      <h2>新方案 · 弥散 + 噪点 + 外光</h2>
+      <p class="note">字身从笔画中心的满色，一路淡到边缘消失，弥散控制这段渐变有多长。噪点乘在这个渐变上，所以颗粒只活在字里，边缘淡到哪就消失到哪。外光是另一层。全局颗粒是第三层，盖在整张画面上。</p>
       <div class="rows" data-ver="vb"></div>
       <p class="cost">1 个 DOM 节点 · 每字号 1 个 filter · 1 套参数</p>
     </div>
@@ -107,7 +107,7 @@
     w:{serif:121, sans:500},
     lh:{serif:.95, sans:1.05},
     ls:{serif:0, sans:0},
-    e:{morph:0, stroke:0, feather:.02, spread:.09, spreadAmt:.55, dilate:.060, halo:.210,
+    e:{morph:0, stroke:0, feather:.05, grain:.45, grainSize:.02, dilate:.060, halo:.210,
        fill:'#F28331', glow:'#FDF48E'},
     grain:{op:.18, freq:.85, mode:'overlay'},
   };
@@ -146,16 +146,18 @@
         svg('feGaussianBlur',{in:'fat',stdDeviation:(fs*e.halo).toFixed(2),result:'halo'}),
         svg('feFlood',{'flood-color':e.glow,result:'gcol'}),
         svg('feComposite',{in:'gcol',in2:'halo',operator:'in',result:'glow'}),
-        // The letterform: a short soft edge, plus a long faint tail of the same colour
-        // spreading outwards. The tail is what reads as the edge dissolving into the air;
-        // a single wide blur would just make the whole letter mushy instead.
-        svg('feGaussianBlur',{in:'SourceAlpha',stdDeviation:(fs*e.feather).toFixed(2),result:'edgeA'}),
-        svg('feGaussianBlur',{in:'SourceAlpha',stdDeviation:(fs*e.spread).toFixed(2),result:'tailA0'}),
-        svg('feComponentTransfer',{in:'tailA0',result:'tailA'},[
-          svg('feFuncA',{type:'linear',slope:e.spreadAmt,intercept:'0'})]),
-        svg('feComposite',{in:'edgeA',in2:'tailA',operator:'over',result:'coreA'}),
+        // The letterform fades from solid in the middle of a stroke to nothing at its
+        // edge: blurring the alpha gives exactly that field. Noise then modulates it
+        // multiplicatively, so the grain lives inside the fade and dies where the alpha does.
+        svg('feGaussianBlur',{in:'SourceAlpha',stdDeviation:(fs*e.feather).toFixed(2),result:'fade'}),
+        svg('feTurbulence',{type:'fractalNoise',numOctaves:'2',seed:'7',result:'turb',
+          baseFrequency:(1/(fs*e.grainSize)).toFixed(3)}),
+        svg('feColorMatrix',{in:'turb',type:'matrix',result:'noise',
+          values:'0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  .33 .33 .33 0 0'}),
+        svg('feComposite',{in:'fade',in2:'noise',operator:'arithmetic',result:'grainy',
+          k1:(2*e.grain).toFixed(3),k2:(1-e.grain).toFixed(3),k3:'0',k4:'0'}),
         svg('feFlood',{'flood-color':e.fill,result:'fcol'}),
-        svg('feComposite',{in:'fcol',in2:'coreA',operator:'in',result:'core'}),
+        svg('feComposite',{in:'fcol',in2:'grainy',operator:'in',result:'core'}),
         svg('feMerge',{},[svg('feMergeNode',{in:'glow'}),svg('feMergeNode',{in:'glow'}),
           svg('feMergeNode',{in:'core'})]),
       ]));
@@ -210,9 +212,9 @@
   field(wB,'无衬线 字距 em',S.ls,'sans',-.08,.4,.005);
 
   const eB=$('eBox');
-  field(eB,'羽化 ×fs',S.e,'feather',0,.08,.002);
-  field(eB,'弥散范围 ×fs',S.e,'spread',0,.3,.005);
-  field(eB,'弥散强度',S.e,'spreadAmt',0,1,.05);
+  field(eB,'弥散 ×fs',S.e,'feather',0,.2,.005);
+  field(eB,'噪点强度',S.e,'grain',0,1,.05);
+  field(eB,'噪点粗细 ÷fs',S.e,'grainSize',.004,.1,.002);
   field(eB,'胖瘦 ×fs',S.e,'morph',-.04,.04,.002);
   field(eB,'描边 em',S.e,'stroke',0,.06,.002);
   field(eB,'外光撑大 ×fs',S.e,'dilate',0,.2,.005);
