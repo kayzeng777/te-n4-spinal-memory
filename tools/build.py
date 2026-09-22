@@ -64,7 +64,7 @@ ROLES = dict(
     tag=dict(at='head-r', step='s', set='a', gap=14, width=34,
              weight=500, ls=-.03, lh=.9),
     info=dict(at='foot-r', step='l', set='a', weight=500, ls=-.04, lh=.9),
-    desc=dict(at='foot', step='s', set='a', width=26, weight=500, ls=-.03, lh=.9),
+    desc=dict(at='foot', step='s', set='a', width=19, weight=500, ls=-.03, lh=.9),
 )
 
 
