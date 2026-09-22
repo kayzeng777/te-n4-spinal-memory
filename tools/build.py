@@ -642,6 +642,12 @@ __LECS__
   if(q.get('feather'))lens.style.setProperty('--feather',q.get('feather')+'px');
   if(q.get('lenscolor'))lens.style.background='#'+q.get('lenscolor').replace('#','');
   if(q.get('cell'))document.documentElement.style.setProperty('--cell',q.get('cell')+'px');
+  // Two switches for judging what the blending costs, on the machine it is being
+  // judged on. Both of these are full-viewport composites and they are stacked:
+  // the lens blends with everything under it and moves with the pointer, and the
+  // grain blends over everything including the lens. ?nolens / ?nograin / ?flat.
+  if(q.has('nolens')||q.has('flat'))lens.remove();
+  if(q.has('nograin')||q.has('flat')){const g=document.querySelector('.grain');if(g)g.remove();}
   // a high-polling-rate mouse fires far more than once a frame, and the lens blends
   // against the whole page, so each write is expensive: coalesce onto one frame.
   let lx=0,ly=0,lqueued=false;
@@ -685,12 +691,10 @@ __LECS__
     const TICK=250, due=new Map();
     function on(i,first){const t=ts[i],rect=rects.get(key(t)),col=(t.getAttribute('fill')||'').toUpperCase();
       t.dataset.orig=t.textContent;t.textContent=SYMS[rnd(SYMS.length)];t.classList.add('h');
-      t.removeAttribute('textLength');t.removeAttribute('lengthAdjust');
       t.parentNode.appendChild(t);   // paint above the neighbouring cells it overhangs
       t.style.fill=light(col)?'#000':'#fff';if(rect)rect.style.fill=col;active.add(i);
       due.set(i,performance.now()+(first?Math.random()*HOLD:HOLD));}
     function off(i){const t=ts[i],rect=rects.get(key(t));t.textContent=t.dataset.orig;t.classList.remove('h');
-      t.setAttribute('textLength','1');t.setAttribute('lengthAdjust','spacingAndGlyphs');
       t.parentNode.insertBefore(t,t.parentNode.firstChild);   // drop back below the active animals
       t.style.fill='';if(rect)rect.style.fill='';active.delete(i);due.delete(i);}
     function spawn(first){for(let k=0;k<80;k++){const i=rnd(ts.length);if(free(i)){on(i,first);return true;}}return false;}

@@ -124,8 +124,12 @@ for (x, y), tone in sorted(PAINT.items(), key=lambda kv: (kv[0][1], kv[0][0])):
     glyph = GLYPH
     rects.append(f'<rect x="{cx}" y="{cy:g}" width="1" height="{ASPECT:g}" '
                  f'data-c="{cx}" data-r="{r}" fill="{CELL}"/>')
+    # no textLength: the page measures the block glyph itself and sets --gfs from
+    # it, so the two together were doing one job twice -- and getBBox comes out
+    # identical with them and without. They cost two attribute writes on every
+    # glyph the hieroglyph loop touches, to undo and redo.
     glyphs.append(f'<text x="{cx + 0.5:g}" y="{cy + ASPECT / 2:g}" data-c="{cx}" data-r="{r}" '
-                  f'textLength="1" lengthAdjust="spacingAndGlyphs" fill="{tone}">{glyph}</text>')
+                  f'fill="{tone}">{glyph}</text>')
 
 out = (f'<svg class="spine" viewBox="0 0 {COLS:.3f} {ROWS * ASPECT:g}" '
        f'xmlns="http://www.w3.org/2000/svg" aria-label="spine">\n'
