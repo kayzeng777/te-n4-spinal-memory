@@ -58,7 +58,11 @@
   /* The photo left the segment for a layer of its own, so it is lit by its
      own class now rather than by the segment's. Fading it there no longer
      touches the drawing underneath it. */
-  .pic{opacity:0;transition:opacity var(--lec-out,.26s) ease}
+  /* Fading a clipped photograph re-rasterises it on every frame of the fade
+     unless it has a layer to fade ON. With one, opacity is the compositor's
+     job and the picture is drawn once. The layer is one segment's box, not
+     the page. */
+  .pic{opacity:0;transition:opacity var(--lec-out,.26s) ease;will-change:opacity}
   /* `on` is hover-or-open as the script sees it. Not the same as :hover —
      after a click glides the spine under a still cursor, nothing is hovered
      until the reader moves, and :hover cannot be told that. */
@@ -159,6 +163,7 @@
     width:max(18ch, min(38ch, calc(var(--side) - var(--lec-gap) - var(--pad))));
     opacity:0;transform:translateY(calc(-50% + var(--lec-rise)));
     transition:opacity var(--lec-off), transform var(--lec-off);
+    will-change:opacity,transform;
     /* Seven of these eight are always invisible, and opacity:0 does not stop
        a thing being rendered -- it is rasterised in full and then composited
        at zero. Which meant the page drew every word of all eight blurbs,
@@ -462,6 +467,7 @@
     if(q.has('no'+n))document.querySelectorAll('.t .'+n).forEach(e=>e.remove());});
   if(q.has('nocache'))
     document.querySelectorAll('.poster>*').forEach(e=>e.style.willChange='auto');
+  if(q.has('nobase')){const b=document.querySelector('.spine.base');if(b)b.style.willChange='auto';}
   // ?nostroke: every cell draws its own dashed outline, and a dashed stroke is
   // walked dash by dash at raster time -- 4766 cells x ~22 dashes is ~100k
   // segments per repaint of the spine, at whatever the device pixel ratio is.
