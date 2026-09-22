@@ -215,7 +215,15 @@
   /* --tools is the width the side panel takes when it is open, so the stage
      gives way and the right-hand corners stay visible. */
   .poster{position:fixed;inset:0 var(--tools,0) 0 0;z-index:3;pointer-events:none;padding:var(--pad)}
-  .poster>*{position:absolute;pointer-events:auto;width:max-content;margin:0}
+  /* Nothing in the corners changes after load, but a filtered element gets
+     re-rasterised whenever anything forces it to, and two things force it
+     every frame: the lens blending against what is under it, and the grain
+     blending over that. A blended element has to be composited against its
+     backdrop, and a backdrop that is not a layer of its own is redrawn to
+     provide one. Giving each corner its own layer means the filter runs once
+     and what it produced is pasted from then on. ?nocache takes it back off. */
+  .poster>*{position:absolute;pointer-events:auto;width:max-content;margin:0;
+    will-change:transform}
   .poster h1,.poster p{margin:0}
   /* Four corners. Everything on the poster is pinned to one of them, so a new
      block is a class, not a new rule. The right-hand pair is set right-aligned:
@@ -437,6 +445,8 @@
   //   ink    the text blurred slightly, under the crisp copy
   ['bloom','tight','ink'].forEach(n=>{
     if(q.has('no'+n))document.querySelectorAll('.t .'+n).forEach(e=>e.remove());});
+  if(q.has('nocache'))
+    document.querySelectorAll('.poster>*').forEach(e=>e.style.willChange='auto');
   // ?nostroke: every cell draws its own dashed outline, and a dashed stroke is
   // walked dash by dash at raster time -- 4766 cells x ~22 dashes is ~100k
   // segments per repaint of the spine, at whatever the device pixel ratio is.
