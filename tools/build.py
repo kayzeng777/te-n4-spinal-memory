@@ -691,6 +691,14 @@ __LECS__
       f.setAttribute('width','180%');f.setAttribute('height','280%');});
   if(q.has('onelayer'))
     document.querySelectorAll('.t .slab,.t .bloom,.t .tight,.t .ink').forEach(e=>e.remove());
+  // ?onelayer said the cost is the copies, not the primitives. One switch per
+  // copy, then, so what each one is worth can be weighed against what it costs:
+  //   slab   the backlight silhouette (?nofilter)
+  //   bloom  the text blurred wide, in the bloom colour
+  //   tight  transparent text carrying two text-shadows
+  //   ink    the text blurred slightly, under the crisp copy
+  ['bloom','tight','ink'].forEach(n=>{
+    if(q.has('no'+n))document.querySelectorAll('.t .'+n).forEach(e=>e.remove());});
   // ?nostroke: every cell draws its own dashed outline, and a dashed stroke is
   // walked dash by dash at raster time -- 4766 cells x ~22 dashes is ~100k
   // segments per repaint of the spine, at whatever the device pixel ratio is.
