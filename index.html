@@ -35,13 +35,12 @@
     background:linear-gradient(180deg,#66BF8C 0%,#92CA87 70%,#68C08D 100%)}
   /* Over everything, including the spine and the type — it is the medium, not a
      property of any one layer. Constant cell size, so it never tracks a font. */
-  /* ?scrollgrain: the grain laid over the document instead of over the screen.
-     Fixed, it is a blend whose backdrop changes on every frame of a scroll, so
-     the whole viewport is re-blended each time and none of it can be kept.
-     Travelling with the page instead, the grain and what is under it never move
-     relative to each other: the blend is computed once and the scroll is a
-     translate. It does mean the grain is in the picture rather than on the
-     screen -- which of those it should be is not a performance question. */
+  /* ?scrollgrain lays the grain over the document instead of over the screen.
+     The reasoning was that a fixed blend has its backdrop change on every frame
+     of a scroll, while one travelling with the page does not -- but it measured
+     WORSE, and the reason is the area: over the document the blended region is
+     the whole 2200px of it rather than one viewport. Kept as a record of a road
+     that does not go anywhere. The grain stays fixed. */
   body{position:relative}
   .grain.scroll{position:absolute;top:0;left:0;right:var(--tools,0);bottom:auto;
     height:100%}
