@@ -156,12 +156,30 @@ def bbox(els):
         xs += [x, x + w]; ys += [y, y + h]
     return min(xs), min(ys), max(xs), max(ys)
 
+# One x for all eight numbers: the centre of mass of the whole drawing. Each
+# segment has its own, but they differ by under a cell, and a column of numbers
+# that wanders by a cell reads as a mistake rather than as the shape breathing.
+all_cells = [tuple(map(float, re.search(RECT, el).groups())) for el, _ in rects]
+_a = sum(w * h for _, _, w, h in all_cells)
+SPINE_CX = sum((x + w / 2) * w * h for x, _, w, h in all_cells) / _a
+head = head.replace('<svg', f'<svg data-cx="{SPINE_CX:.3f}"', 1)
+
 out = [head]
 for i, s in enumerate(segs):
     sx0, sy0, sx1, sy1 = bbox(s['rects'])
     rect_str = ''.join(el for el, _ in s['rects'])
+    # Where the segment LOOKS like it is, which is not the middle of its box:
+    # the top and bottom rows of a vertebra are a few cells wide and carry
+    # almost no photo, so the centre of mass of the lit cells is what the eye
+    # reads as the middle of the shape. The number rides this, and so does the
+    # block of type beside it.
+    cells = [tuple(map(float, re.search(RECT, el).groups())) for el, _ in s['rects']]
+    area = sum(w * h for _, _, w, h in cells)
+    cx = sum((x + w / 2) * w * h for x, _, w, h in cells) / area
+    cy = sum((y + h / 2) * w * h for _, y, w, h in cells) / area
     out.append(
-        f'<g class="seg" data-seg="{i}" data-y0="{sy0:g}" data-y1="{sy1:g}">'
+        f'<g class="seg" data-seg="{i}" data-y0="{sy0:g}" data-y1="{sy1:g}" '
+        f'data-x0="{sx0:g}" data-x1="{sx1:g}" data-cx="{cx:.3f}" data-cy="{cy:.3f}">'
         f'<clipPath id="segclip-{i}">{clip_path(s["rects"])}</clipPath>'
         f'<g class="cells">{rect_str}</g>'
         f'<g class="glyphs">{"".join(s["glyphs"])}</g>'
