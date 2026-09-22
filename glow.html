@@ -139,7 +139,8 @@
     w:{serif:121, sans:500},
     lh:{serif:.95, sans:1.05},
     ls:{serif:0, sans:0},
-    e:{morph:0, stroke:0, feather:.05, grain:.45, grainSize:.02, dilate:.060, halo:.210,
+    e:{morph:0, stroke:0, feather:.05, grain:.45, grainSize:.02, particles:1, hard:8,
+       dilate:.060, halo:.210,
        fill:'#F28331', glow:'#FDF48E'},
     grain:{op:.18, freq:.85, mode:'overlay'},
   };
@@ -186,8 +187,20 @@
           baseFrequency:(1/(fs*e.grainSize)).toFixed(3)}),
         svg('feColorMatrix',{in:'turb',type:'matrix',result:'noise',
           values:'0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  .33 .33 .33 0 0'}),
-        svg('feComposite',{in:'fade',in2:'noise',operator:'arithmetic',result:'grainy',
-          k1:(2*e.grain).toFixed(3),k2:(1-e.grain).toFixed(3),k3:'0',k4:'0'}),
+        // Two readings of "dispersion".
+        //   gradient - noise multiplies the fade, so the edge is an even translucent ramp
+        //   particles - the fade is compared against the noise and wins or loses, so every
+        //               surviving pixel keeps full colour and only their density falls off.
+        //               That is dispersion in the physical sense, and it breaks into grain.
+        ...(e.particles ? [
+          svg('feComposite',{in:'fade',in2:'noise',operator:'arithmetic',result:'diff',
+            k1:'0',k2:'1',k3:(-e.grain).toFixed(3),k4:(0.5*e.grain).toFixed(3)}),
+          svg('feComponentTransfer',{in:'diff',result:'grainy'},[
+            svg('feFuncA',{type:'linear',slope:e.hard,intercept:(0.5-e.hard*0.5).toFixed(3)})]),
+        ] : [
+          svg('feComposite',{in:'fade',in2:'noise',operator:'arithmetic',result:'grainy',
+            k1:(2*e.grain).toFixed(3),k2:(1-e.grain).toFixed(3),k3:'0',k4:'0'}),
+        ]),
         svg('feFlood',{'flood-color':e.fill,result:'fcol'}),
         svg('feComposite',{in:'fcol',in2:'grainy',operator:'in',result:'core'}),
         svg('feMerge',{},[svg('feMergeNode',{in:'glow'}),svg('feMergeNode',{in:'glow'}),
@@ -247,6 +260,8 @@
   field(eB,'弥散 ×fs',S.e,'feather',0,.2,.005);
   field(eB,'噪点强度',S.e,'grain',0,1,.05);
   field(eB,'噪点粗细 ÷fs',S.e,'grainSize',.004,.1,.002);
+  toggle(eB,'颗粒化（否则半透明渐变）',S.e,'particles');
+  field(eB,'颗粒硬度',S.e,'hard',1,30,.5);
   field(eB,'胖瘦 ×fs',S.e,'morph',-.04,.04,.002);
   field(eB,'描边 em',S.e,'stroke',0,.06,.002);
   field(eB,'外光撑大 ×fs',S.e,'dilate',0,.2,.005);
