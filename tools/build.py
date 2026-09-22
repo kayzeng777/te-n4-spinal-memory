@@ -38,21 +38,41 @@ COLOUR_SETS = dict(
     b=dict(ink='#277c3c', glow='#fdf48e', bloom='#fdf48e'),
 )
 
-# The poster's roles, and the whole of what it takes to add one. size is (poster,
-# under the 760px breakpoint). width caps the measure in ch, so it holds when the
-# size changes. The logo is the odd one out: it is a drawn mark, so its size is
-# the drawing's height and it has no text properties.
-ROLES = dict(
-    logo=dict(set='a', size=(110, 66), soft=1.6, glow=.095, bloom=9,  bloomA=1),
-    title=dict(set='a', size=(40, 30), soft=1.4, glow=.3,   bloom=14, bloomA=1,
-               weight=500, ls=-.055, lh=.8),
-    tag=dict(set='a', size=(20, 16),   soft=1,   glow=.805, bloom=16, bloomA=1,
-             weight=500, ls=-.03, lh=.9, width=34),
-    info=dict(set='a', size=(24, 18),  soft=1.2, glow=.805, bloom=20, bloomA=1,
-              weight=500, ls=-.04, lh=.9),
-    desc=dict(set='a', size=(20, 16),  soft=1,   glow=.805, bloom=16, bloomA=1,
-              weight=500, ls=-.03, lh=.9, width=42),
+# The type scale. Each step carries the sizes AND the light, because the two were
+# tuned together by eye and the light does not follow from the size on its own:
+# soft and bloom are absolute px, glow is em. size is (poster, under the 760px
+# breakpoint). Picking a different step for a role is one word.
+STEPS = dict(
+    mark=dict(size=(110, 66), soft=1.6,  glow=.095, bloom=9),
+    xl  =dict(size=(40, 30),  soft=1.4,  glow=.3,   bloom=14),
+    l   =dict(size=(24, 18),  soft=1.2,  glow=.805, bloom=20),
+    m   =dict(size=(20, 16),  soft=1,    glow=.805, bloom=16),
+    s   =dict(size=(16, 14),  soft=.94,  glow=1.06, bloom=17.3),
+    xs  =dict(size=(14, 12),  soft=.86,  glow=1.15, bloom=16),
 )
+
+# Where everything sits, and the whole of what it takes to move it. `at` is one of
+# the four corners; a corner stacks its roles in this order and aligns them to the
+# edge it is pinned to, so the right-hand corners are right-aligned without being
+# told. `gap` is the space above a role when it follows a sibling in the same
+# corner. `step` names a row of STEPS, `set` a row of COLOUR_SETS. width caps the
+# measure in ch so it survives a size change.
+CORNERS = ('head', 'head-r', 'foot', 'foot-r')
+ROLES = dict(
+    logo=dict(at='head',   step='mark', set='a'),
+    title=dict(at='head-r', step='xl',  set='a', weight=500, ls=-.055, lh=.8),
+    tag=dict(at='head-r',  step='m',    set='a', weight=500, ls=-.03,  lh=.9,
+             width=34, gap=14),
+    info=dict(at='foot',   step='l',    set='a', weight=500, ls=-.04,  lh=.9),
+    desc=dict(at='foot-r', step='m',    set='a', weight=500, ls=-.03,  lh=.9,
+              width=42),
+)
+
+
+def at_corner(corner):
+    """The roles pinned to one corner, in the order they are declared."""
+    return [r for r in ROLES if ROLES[r]['at'] == corner]
+
 
 LAYERS = ('bloom', 'tight', 'ink')
 
@@ -85,14 +105,16 @@ def type_css():
     the three shared layer rules read."""
     out = []
     for role, r in ROLES.items():
-        c = COLOUR_SETS[r['set']]
+        c, st = COLOUR_SETS[r['set']], STEPS[r['step']]
         v = [f"--ink:{c['ink']}", f"--glow:{c['glow']}", f"--bloom:{c['bloom']}",
-             f"--fs:{r['size'][0]}px", f"--soft:{r['soft']}px",
-             f"--glowR:{r['glow']}em", f"--bloomR:{r['bloom']}px", f"--bloomA:{r['bloomA']}"]
+             f"--fs:{st['size'][0]}px", f"--soft:{st['soft']}px",
+             f"--glowR:{st['glow']}em", f"--bloomR:{st['bloom']}px"]
         if 'weight' in r:
             v += [f"--w:{r['weight']}", f"--ls:{r['ls']}em", f"--lh:{r['lh']}"]
         if 'width' in r:
             v += [f"--maxw:{r['width']}ch"]
+        if r.get('gap'):
+            v += [f"--gap:{r['gap']}px"]
         out.append(f".t-{role}{{{';'.join(v)}}}")
     return '\n  '.join(out)
 
@@ -100,8 +122,9 @@ def type_css():
 def type_css_small():
     """The breakpoint only moves font sizes. Every radius is absolute except the
     tight glow, which is in em and follows on its own."""
-    return ''.join(f".t-{role}{{--fs:{r['size'][1]}px}}"
-                   for role, r in ROLES.items() if r['size'][0] != r['size'][1])
+    return ''.join(f".t-{role}{{--fs:{STEPS[r['step']]['size'][1]}px}}"
+                   for role, r in ROLES.items()
+                   if STEPS[r['step']]['size'][0] != STEPS[r['step']]['size'][1])
 
 
 # The measure is capped against the viewport as well as in ch: the poster's
@@ -116,7 +139,7 @@ TYPE_CSS = '''.t{--fit:calc(100vw - 2 * var(--pad));
   /* Only the first layer is in flow; the other two are laid over it, so the box
      is the size of the text and the light spills outside it. */
   .t>*+*{position:absolute;inset:0}
-  .t .bloom{color:var(--bloom);filter:blur(var(--bloomR));opacity:var(--bloomA)}
+  .t .bloom{color:var(--bloom);filter:blur(var(--bloomR));opacity:1}
   .t .tight{color:transparent;
     text-shadow:0 0 calc(var(--glowR) * .35) var(--glow), 0 0 var(--glowR) var(--glow)}
   .t .ink{filter:blur(var(--soft))}
@@ -124,7 +147,7 @@ TYPE_CSS = '''.t{--fit:calc(100vw - 2 * var(--pad));
      drop-shadows, and the layer needs a fill for them to have any alpha to cast. */
   .t-logo{line-height:0}
   .t-logo svg{height:var(--fs);width:auto;display:block;overflow:visible}
-  .t-logo .bloom svg{fill:var(--bloom);filter:blur(var(--bloomR));opacity:var(--bloomA)}
+  .t-logo .bloom svg{fill:var(--bloom);filter:blur(var(--bloomR));opacity:1}
   .t-logo .tight svg{fill:var(--glow);
     filter:drop-shadow(0 0 calc(var(--glowR) * .35) var(--glow)) drop-shadow(0 0 var(--glowR) var(--glow))}
   .t-logo .ink svg{fill:var(--ink);filter:blur(var(--soft))}'''
@@ -200,23 +223,27 @@ HEAD = '''<title>te online lecture</title>
   .seg{cursor:pointer}
   __TYPEBASE__
   __TYPECSS__
-  :root{--pad:24px;--tag-gap:14px}
+  :root{--pad:24px}
   .poster{position:fixed;inset:0;z-index:3;pointer-events:none;padding:var(--pad)}
   .poster>*{position:absolute;pointer-events:auto;width:max-content;margin:0}
   .poster h1,.poster p{margin:0}
   /* Four corners. Everything on the poster is pinned to one of them, so a new
      block is a class, not a new rule. The right-hand pair is set right-aligned:
      they grow inward, away from their edge. */
-  .head{left:var(--pad);top:var(--pad)}
-  .head-r{right:var(--pad);top:var(--pad);text-align:right;
-    display:flex;flex-direction:column;align-items:flex-end;gap:var(--tag-gap)}
-  .foot{left:var(--pad);bottom:var(--pad)}
-  .foot-r{right:var(--pad);bottom:var(--pad)}
+  .poster>*{display:flex;flex-direction:column}
+  .head,.foot{left:var(--pad);align-items:flex-start;text-align:left}
+  .head-r,.foot-r{right:var(--pad);align-items:flex-end;text-align:right}
+  .head,.head-r{top:var(--pad)}
+  .foot,.foot-r{bottom:var(--pad)}
+  /* A role that follows a sibling in the same corner sets its own space above. */
+  .poster>*>*+*{margin-top:var(--gap,0)}
   @media (max-width:760px){
     :root{--pad:16px}
     /* Too narrow to keep the two bottom corners apart: the right-hand one
        stacks above the left, on the left edge. */
-    .foot-r{right:auto;left:var(--pad);bottom:calc(var(--pad) + 6.2em)}
+    /* It moves to the left edge, so it aligns to that edge instead. */
+    .foot-r{right:auto;left:var(--pad);bottom:calc(var(--pad) + 6.2em);
+      align-items:flex-start;text-align:left}
     __TYPECSS_SMALL__
   }
   .lens{position:fixed;left:0;top:0;width:var(--lens,100px);height:var(--lens,100px);border-radius:50%;background:#8A8A8A;filter:blur(var(--feather,8px));
@@ -230,10 +257,7 @@ BODY = '''
 <div class="grid"></div>
 <div class="lens" id="lens"></div>
 <div class="poster">
-  <div class="head">__T_LOGO__</div>
-  <div class="head-r">__T_TITLE____T_TAG__</div>
-  <div class="foot">__T_INFO__</div>
-  <div class="foot-r">__T_DESC__</div>
+__CORNERS__
 </div>
 <div class="grain"></div>
 <main id="content">
@@ -328,6 +352,25 @@ COPY = dict(
 )
 
 
+# tag -> the element each role's copy is wrapped in. The logo is a drawing, the
+# description is two paragraphs, so neither is a single text element.
+ROLE_TAG = dict(logo='div', title='h1', tag='p', info='p', desc='div')
+
+
+def corners():
+    """One div per corner that has anything in it, holding its roles in order."""
+    out = []
+    for corner in CORNERS:
+        roles = at_corner(corner)
+        if not roles:
+            continue
+        inner = ''.join(
+            layers(ROLE_TAG[r], r, LOGO, **{'aria-label': 'te'}) if r == 'logo'
+            else layers(ROLE_TAG[r], r, COPY[r]) for r in roles)
+        out.append(f'  <div class="{corner}">{inner}</div>')
+    return '\n'.join(out)
+
+
 def page(inline, spine=None, cols=None, rows=None):
     spine = SPINE if spine is None else spine
     cols = SPINE_COLS if cols is None else cols
@@ -339,12 +382,7 @@ def page(inline, spine=None, cols=None, rows=None):
                 .replace('__GRAINURL__', grain).replace('__GRAINA__', str(GRAIN['opacity']))
                 .replace('__GRAINSIZE__', f"{GRAIN['cell'] * 40:g}px")
                 .replace('__COLS__', f'{cols:g}').replace('__ROWS__', str(rows))
-            + BODY.replace('__SPINE__', spine)
-                  .replace('__T_LOGO__', layers('div', 'logo', LOGO, **{'aria-label': 'te'}))
-                  .replace('__T_TITLE__', layers('h1', 'title', COPY['title']))
-                  .replace('__T_TAG__', layers('p', 'tag', COPY['tag']))
-                  .replace('__T_INFO__', layers('p', 'info', COPY['info']))
-                  .replace('__T_DESC__', layers('div', 'desc', COPY['desc'])))
+            + BODY.replace('__SPINE__', spine).replace('__CORNERS__', corners()))
 
 
 repo_doc = ('<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8">\n'
