@@ -59,13 +59,12 @@ STEPS = dict(
 # measure in ch so it survives a size change.
 CORNERS = ('head', 'head-r', 'foot', 'foot-r')
 ROLES = dict(
-    logo=dict(at='head',   step='mark', set='a'),
-    title=dict(at='head-r', step='xl',  set='a', weight=500, ls=-.055, lh=.8),
-    tag=dict(at='head-r',  step='m',    set='a', weight=500, ls=-.03,  lh=.9,
-             width=34, gap=14),
-    info=dict(at='foot',   step='l',    set='a', weight=500, ls=-.04,  lh=.9),
-    desc=dict(at='foot-r', step='m',    set='a', weight=500, ls=-.03,  lh=.9,
-              width=42),
+    logo=dict(at='head', step='mark', set='a'),
+    title=dict(at='head-r', step='xl', set='a', weight=500, ls=-.055, lh=.8),
+    tag=dict(at='head-r', step='s', set='a', gap=14, width=34,
+             weight=500, ls=-.03, lh=.9),
+    info=dict(at='foot-r', step='l', set='a', weight=500, ls=-.04, lh=.9),
+    desc=dict(at='foot', step='s', set='a', width=26, weight=500, ls=-.03, lh=.9),
 )
 
 
@@ -243,11 +242,11 @@ HEAD = '''<title>te online lecture</title>
   .poster>*>*+*{margin-top:var(--gap,0)}
   @media (max-width:760px){
     :root{--pad:16px}
-    /* Too narrow to keep the two bottom corners apart: the right-hand one
-       stacks above the left, on the left edge. */
-    /* It moves to the left edge, so it aligns to that edge instead. */
-    .foot-r{right:auto;left:var(--pad);bottom:calc(var(--pad) + 6.2em);
-      align-items:flex-start;text-align:left}
+    /* Too narrow for four corners. They become one column in reading order and
+       all align left. Lifting one corner above another by a fixed offset does not
+       survive a role moving between them, because the height is the content's. */
+    .poster{display:flex;flex-direction:column;justify-content:space-between;gap:var(--pad)}
+    .poster>*{position:static;align-items:flex-start;text-align:left}
     __TYPECSS_SMALL__
   }
   .lens{position:fixed;left:0;top:0;width:var(--lens,100px);height:var(--lens,100px);border-radius:50%;background:#8A8A8A;filter:blur(var(--feather,8px));
@@ -346,8 +345,8 @@ __SPINE__
 # export pastes straight in here.
 COPY = dict(
     title='Spinal\nMemory',
-    tag='Research and Practice on\nNon-Human Animals',
-    info='Online Lectures\n5 weeks\nOct 10 ~ Nov 7, 2026\n9am EDT / 9PM CST',
+    tag='research and practice\non non-human animals',
+    info='online lectures\n5 weeks\noct 10 ~ nov 7, 2026\n9am edt / 9PM cst',
     desc='Spinal Memory, the fourth issue of te magazine, grew out of a reflection on '
          'the imagining of non-human animals. As an extension of this issue\u2019s theme, te '
          'editions is launching its first online lecture series, inviting nine speakers '
