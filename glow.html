@@ -110,7 +110,7 @@
     </div>
     <div class="col">
       <h2>新方案 · 羽化 + 外光</h2>
-      <p class="note">羽化只糊字形的 alpha，内部保持满色，边缘往外衰减；关掉开关就变成整体模糊，颜色也一起糊。外光是把字形撑大再模糊、填上光色垫在后面。颗粒是盖在整张画面上的独立一层，和字无关。</p>
+      <p class="note">字身只糊 alpha，内部保持满色。羽化是紧贴边缘的一圈柔化，弥散是同色往外拖的长尾，边缘于是化在空气里而不是齐刷刷切断。外光是另一层，把字形撑大再模糊填上光色。颗粒盖在整张画面上，和字无关。</p>
       <div class="rows" data-ver="vb"></div>
       <p class="cost">1 个 DOM 节点 · 每字号 1 个 filter · 1 套参数</p>
     </div>
@@ -139,7 +139,7 @@
     w:{serif:121, sans:500},
     lh:{serif:.95, sans:1.05},
     ls:{serif:0, sans:0},
-    e:{morph:0, stroke:0, feather:.03, trueFeather:1, dilate:.060, halo:.210,
+    e:{morph:0, stroke:0, feather:.02, spread:.09, spreadAmt:.55, dilate:.060, halo:.210,
        fill:'#F28331', glow:'#FDF48E'},
     grain:{op:.18, freq:.85, mode:'overlay'},
   };
@@ -178,17 +178,16 @@
         svg('feGaussianBlur',{in:'fat',stdDeviation:(fs*e.halo).toFixed(2),result:'halo'}),
         svg('feFlood',{'flood-color':e.glow,result:'gcol'}),
         svg('feComposite',{in:'gcol',in2:'halo',operator:'in',result:'glow'}),
-        // Two ways to soften the letterform:
-        //   blur    - blurs colour and alpha together, so a stroke smears into the fill
-        //   feather - blurs only the alpha and fills it with a flat colour, so the inside
-        //             stays fully saturated and only the edge falls off
-        ...(e.trueFeather ? [
-          svg('feGaussianBlur',{in:'SourceAlpha',stdDeviation:(fs*e.feather).toFixed(2),result:'softA'}),
-          svg('feFlood',{'flood-color':e.fill,result:'fcol'}),
-          svg('feComposite',{in:'fcol',in2:'softA',operator:'in',result:'core'}),
-        ] : [
-          svg('feGaussianBlur',{in:'SourceGraphic',stdDeviation:(fs*e.feather).toFixed(2),result:'core'}),
-        ]),
+        // The letterform: a short soft edge, plus a long faint tail of the same colour
+        // spreading outwards. The tail is what reads as the edge dissolving into the air;
+        // a single wide blur would just make the whole letter mushy instead.
+        svg('feGaussianBlur',{in:'SourceAlpha',stdDeviation:(fs*e.feather).toFixed(2),result:'edgeA'}),
+        svg('feGaussianBlur',{in:'SourceAlpha',stdDeviation:(fs*e.spread).toFixed(2),result:'tailA0'}),
+        svg('feComponentTransfer',{in:'tailA0',result:'tailA'},[
+          svg('feFuncA',{type:'linear',slope:e.spreadAmt,intercept:'0'})]),
+        svg('feComposite',{in:'edgeA',in2:'tailA',operator:'over',result:'coreA'}),
+        svg('feFlood',{'flood-color':e.fill,result:'fcol'}),
+        svg('feComposite',{in:'fcol',in2:'coreA',operator:'in',result:'core'}),
         svg('feMerge',{},[svg('feMergeNode',{in:'glow'}),svg('feMergeNode',{in:'glow'}),
           svg('feMergeNode',{in:'core'})]),
       ]));
@@ -243,8 +242,9 @@
   field(wB,'无衬线 字距 em',S.ls,'sans',-.08,.4,.005);
 
   const eB=$('eBox');
-  field(eB,'羽化 ×fs',S.e,'feather',0,.12,.002);
-  toggle(eB,'只羽化边缘（否则整体模糊）',S.e,'trueFeather');
+  field(eB,'羽化 ×fs',S.e,'feather',0,.08,.002);
+  field(eB,'弥散范围 ×fs',S.e,'spread',0,.3,.005);
+  field(eB,'弥散强度',S.e,'spreadAmt',0,1,.05);
   field(eB,'胖瘦 ×fs',S.e,'morph',-.04,.04,.002);
   field(eB,'描边 em',S.e,'stroke',0,.06,.002);
   field(eB,'外光撑大 ×fs',S.e,'dilate',0,.2,.005);
