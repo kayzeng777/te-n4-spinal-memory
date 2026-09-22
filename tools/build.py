@@ -403,12 +403,18 @@ HEAD = '''<title>te online lecture</title>
     background-position:calc(50% + var(--cell) / 2) 8vh;}
   main{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;
     padding:8vh 0 12vh;margin-right:var(--tools,0)}
-  /* Three drawings in one place. The base is the 9,300 elements that never
-     change, so it gets a layer of its own and is rasterised once; the two
-     above hold the only things that move. Neither takes the pointer, so a
-     hit test still lands on the cells in the base. */
+  /* Three drawings in one place: the 9,300 elements that never change, then a
+     layer for the animals and a layer for the photographs, which are the only
+     things that do. Neither takes the pointer, so a hit test still lands on
+     the cells in the base.
+
+     The base is NOT given a layer of its own. It was, on the reasoning that a
+     still drawing should be rasterised once -- but a texture the size of the
+     whole spine, about 900x4400 device pixels, costs more to keep and to
+     composite than redrawing it saves. Measured slower, so it is off. ?base
+     puts it back. What the split was worth is that a photograph fading in no
+     longer drags the drawing underneath it into the repaint. */
   .spine{width:calc(__COLS__ * var(--cell));height:auto;overflow:visible;display:block}
-  .spine.base{will-change:transform}
   .spine.anim,.spine.pics{position:absolute;left:0;top:0;pointer-events:none}
   .cells rect{stroke:#cccccc;stroke-width:.05;stroke-dasharray:.14 .1;shape-rendering:crispEdges}
   .glyphs{--gfs:1.57px;--gdy:0.41px}
@@ -726,7 +732,7 @@ __LECS__
     if(q.has('no'+n))document.querySelectorAll('.t .'+n).forEach(e=>e.remove());});
   if(q.has('nocache'))
     document.querySelectorAll('.poster>*').forEach(e=>e.style.willChange='auto');
-  if(q.has('nobase')){const b=document.querySelector('.spine.base');if(b)b.style.willChange='auto';}
+  if(q.has('base')){const b=document.querySelector('.spine.base');if(b)b.style.willChange='transform';}
   // ?nostroke: every cell draws its own dashed outline, and a dashed stroke is
   // walked dash by dash at raster time -- 4766 cells x ~22 dashes is ~100k
   // segments per repaint of the spine, at whatever the device pixel ratio is.
