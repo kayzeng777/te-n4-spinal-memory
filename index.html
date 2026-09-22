@@ -384,6 +384,13 @@
       const from=scrollY,d=to-from;
       if(Math.abs(d)<DEAD)return false;   // nothing moved, so nothing to hold
       if(still.matches){scrollTo(0,to);return true;}
+      // The tween below is a main-thread scroll: every frame the whole paint
+      // pipeline has to finish inside that frame, and it is moving about 32px
+      // a frame across 9,300 elements. The browser's own smooth scroll runs on
+      // the compositor, which can move tiles it has already rasterised -- at
+      // the price of the duration and the curve, which it does not let you set.
+      if(/[?&]nativeglide/.test(location.search)){
+        scrollTo({top:to,behavior:'smooth'});return true;}
       const t0=performance.now(),id={};tween=id;
       (function step(now){
         if(tween!==id)return;               // the reader took the scroll back
