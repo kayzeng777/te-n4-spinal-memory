@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Build index.html (repo, file fonts) and artifact.html (inline fonts) from parts."""
-import base64, os, re
+import base64, json, os, re
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
@@ -130,7 +130,7 @@ def type_css_small():
 # The measure is capped against the viewport as well as in ch: the poster's
 # blocks are max-content and pinned to a corner, so on a narrow screen a measure
 # set in ch would simply run off the edge.
-TYPE_CSS = '''.t{--fit:calc(100vw - 2 * var(--pad));
+TYPE_CSS = '''.t{--fit:calc(100vw - 2 * var(--pad) - var(--tools,0px));
     position:relative;margin:0;color:var(--ink);font-size:var(--fs);
     max-width:min(var(--maxw,var(--fit)),var(--fit))}
   .t>*{margin:0;font-family:var(--font-sans);font-weight:var(--w);font-size:var(--fs);
@@ -205,14 +205,15 @@ HEAD = '''<title>te online lecture</title>
     background:linear-gradient(180deg,#66BF8C 0%,#92CA87 70%,#68C08D 100%)}
   /* Over everything, including the spine and the type — it is the medium, not a
      property of any one layer. Constant cell size, so it never tracks a font. */
-  .grain{position:fixed;inset:0;z-index:4;pointer-events:none;
+  .grain{position:fixed;inset:0 var(--tools,0) 0 0;z-index:4;pointer-events:none;
     mix-blend-mode:overlay;opacity:__GRAINA__;
     background-size:__GRAINSIZE__ __GRAINSIZE__;background-image:__GRAINURL__}
   .grid{position:absolute;inset:0;pointer-events:none;z-index:0;
     background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'><path d='M0 0H1M0 0V1' fill='none' stroke='%23cccccc' stroke-width='.05' stroke-dasharray='.14 .1'/></svg>");
     background-size:var(--cell) var(--cell);
     background-position:calc(50% + var(--cell) / 2) 8vh;}
-  main{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;padding:8vh 0 12vh}
+  main{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;
+    padding:8vh 0 12vh;margin-right:var(--tools,0)}
   .spine{width:calc(__COLS__ * var(--cell));height:auto;overflow:visible;display:block}
   .cells rect{stroke:#cccccc;stroke-width:.05;stroke-dasharray:.14 .1;shape-rendering:crispEdges}
   .glyphs{--gfs:1.57px;--gdy:0.41px}
@@ -222,9 +223,12 @@ HEAD = '''<title>te online lecture</title>
   .seg:hover .pic,.seg.active .pic{opacity:1}
   .seg{cursor:pointer}
   __TYPEBASE__
+  __TOOLSCSS__
   __TYPECSS__
   :root{--pad:24px}
-  .poster{position:fixed;inset:0;z-index:3;pointer-events:none;padding:var(--pad)}
+  /* --tools is the width the side panel takes when it is open, so the stage
+     gives way and the right-hand corners stay visible. */
+  .poster{position:fixed;inset:0 var(--tools,0) 0 0;z-index:3;pointer-events:none;padding:var(--pad)}
   .poster>*{position:absolute;pointer-events:auto;width:max-content;margin:0}
   .poster h1,.poster p{margin:0}
   /* Four corners. Everything on the poster is pinned to one of them, so a new
@@ -371,23 +375,41 @@ def corners():
     return '\n'.join(out)
 
 
-def page(inline, spine=None, cols=None, rows=None):
+TOOLS_CSS = '.tools{position:fixed;right:0;top:0;bottom:0;z-index:200;width:272px;overflow:auto;\n    background:#141614;color:#ECEEE9;font:11px/1.4 var(--font-sans);letter-spacing:.04em;\n    padding-bottom:18px;display:none}\n  .tools.on{display:block}\n  html.has-tools{--tools:272px}\n  .tools h3{margin:0;padding:8px 12px;font-size:10px;font-weight:600;letter-spacing:.14em;\n    text-transform:uppercase;background:#1D201D;color:#9BA39A;position:sticky;top:0}\n  .tools section{padding:7px 12px;border-bottom:1px solid #2A2E2A;display:grid;gap:5px}\n  .tools .f{display:grid;grid-template-columns:1fr 4.4em;gap:7px;align-items:center}\n  .tools label{color:#C8D4C2}\n  .tools input,.tools select{background:#0D0F0D;border:1px solid #2A2E2A;color:#ECEEE9;\n    font:inherit;padding:3px 4px;border-radius:3px;width:100%}\n  .tools input[type=number]{text-align:right}\n  .tools input[type=range]{grid-column:1/-1;accent-color:#C8D4C2;padding:0;border:0}\n  .tools textarea{width:100%;height:220px;background:#0D0F0D;color:#C8D4C2;\n    border:1px solid #2A2E2A;border-radius:3px;font:10px/1.45 ui-monospace,Menlo,monospace;\n    padding:6px;resize:vertical}\n  .tools .hint{color:#6E766C;font-size:9.5px;line-height:1.35}'
+
+
+PANEL_JS = '(function(){\n  if(!/[?&]tools/.test(location.search)) return;\n  const D = __DATA__;\n  D.order = Object.keys(D.roles);\n  const panel = document.getElementById(\'tools\');\n  panel.classList.add(\'on\');\n  document.documentElement.classList.add(\'has-tools\');\n\n  const $ = (t, a = {}, kids = []) => {\n    const el = document.createElement(t);\n    for (const k in a) k === \'text\' ? el.textContent = a[k] : el.setAttribute(k, a[k]);\n    kids.forEach(c => el.appendChild(c));\n    return el;\n  };\n  const field = (box, label, input) => {\n    box.appendChild($(\'div\', {class: \'f\'}, [$(\'label\', {text: label}), input]));\n    return input;\n  };\n  const num = (v, min, max, step) => $(\'input\', {type: \'number\', value: v, min, max, step});\n  const slider = (box, v, min, max, step) => {\n    const r = $(\'input\', {type: \'range\', min, max, step, value: v});\n    box.appendChild(r); return r;\n  };\n  const pick = (v, opts) => {\n    const sel = $(\'select\');\n    opts.forEach(o => {\n      const opt = $(\'option\', {value: o});\n      opt.textContent = o;\n      if (o === v) opt.selected = true;\n      sel.appendChild(opt);\n    });\n    return sel;\n  };\n\n  // The one place a role\'s numbers reach the page. Corners are re-filled in the\n  // declared order so moving one role never reshuffles the others.\n  function apply() {\n    D.order.forEach(role => {\n      const r = D.roles[role], st = D.steps[r.step], c = D.sets[r.set];\n      const el = document.querySelector(\'.t-\' + role);\n      if (!el) return;\n      const s = el.style;\n      s.setProperty(\'--fs\', st.size[0] + \'px\');\n      s.setProperty(\'--soft\', st.soft + \'px\');\n      s.setProperty(\'--glowR\', st.glow + \'em\');\n      s.setProperty(\'--bloomR\', st.bloom + \'px\');\n      s.setProperty(\'--ink\', c.ink);\n      s.setProperty(\'--glow\', c.glow);\n      s.setProperty(\'--bloom\', c.bloom);\n      s.setProperty(\'--gap\', (r.gap || 0) + \'px\');\n      s.setProperty(\'--maxw\', r.width ? r.width + \'ch\' : \'var(--fit)\');\n    });\n    D.corners.forEach(corner => {\n      const box = document.querySelector(\'.\' + corner);\n      if (!box) return;\n      D.order.filter(role => D.roles[role].at === corner)\n             .forEach(role => box.appendChild(document.querySelector(\'.t-\' + role)));\n    });\n  }\n\n  Object.entries(D.roles).forEach(([role, r]) => {\n    panel.appendChild($(\'h3\', {text: role}));\n    const box = $(\'section\');\n    panel.appendChild(box);\n\n    field(box, \'字号档\', pick(r.step, Object.keys(D.steps)))\n      .onchange = e => { r.step = e.target.value; apply(); dump(); };\n    field(box, \'位置\', pick(r.at, D.corners))\n      .onchange = e => { r.at = e.target.value; apply(); dump(); };\n    field(box, \'配色\', pick(r.set, Object.keys(D.sets)))\n      .onchange = e => { r.set = e.target.value; apply(); dump(); };\n\n    const g = field(box, \'上方间距 px\', num(r.gap || 0, 0, 160, 2));\n    const gr = slider(box, r.gap || 0, 0, 160, 2);\n    const setGap = v => { r.gap = +v; g.value = v; gr.value = v; apply(); dump(); };\n    g.oninput = e => setGap(e.target.value);\n    gr.oninput = e => setGap(e.target.value);\n\n    const w = field(box, \'宽度 ch · 0=不限\', num(r.width || 0, 0, 90, 1));\n    const wr = slider(box, r.width || 0, 0, 90, 1);\n    const setW = v => { r.width = +v; w.value = v; wr.value = v; apply(); dump(); };\n    w.oninput = e => setW(e.target.value);\n    wr.oninput = e => setW(e.target.value);\n  });\n\n  panel.appendChild($(\'h3\', {text: \'页边距\'}));\n  {\n    const box = $(\'section\');\n    panel.appendChild(box);\n    const cur = parseInt(getComputedStyle(document.documentElement).getPropertyValue(\'--pad\'));\n    const p = field(box, \'--pad px\', num(cur, 8, 96, 2));\n    const pr = slider(box, cur, 8, 96, 2);\n    const setPad = v => {\n      document.documentElement.style.setProperty(\'--pad\', v + \'px\');\n      p.value = v; pr.value = v; dump();\n    };\n    p.oninput = e => setPad(e.target.value);\n    pr.oninput = e => setPad(e.target.value);\n  }\n\n  panel.appendChild($(\'h3\', {text: \'导出 · 贴回 build.py\'}));\n  const out = $(\'textarea\', {readonly: \'\', spellcheck: \'false\'});\n  {\n    const box = $(\'section\');\n    panel.appendChild(box);\n    box.appendChild(out);\n    box.appendChild($(\'div\', {class: \'hint\', text:\n      \'面板只改这一页，刷新就回到 build.py 里的值。\' +\n      \'把上面这段贴回 ROLES 才算定下来。\'}));\n  }\n\n  function dump() {\n    const q = s => "\'" + s + "\'";\n    const lines = D.order.map(role => {\n      const r = D.roles[role];\n      const bits = [\'at=\' + q(r.at), \'step=\' + q(r.step), \'set=\' + q(r.set)];\n      if (r.gap) bits.push(\'gap=\' + r.gap);\n      if (r.width) bits.push(\'width=\' + r.width);\n      [\'weight\', \'ls\', \'lh\'].forEach(k => { if (k in r) bits.push(k + \'=\' + r[k]); });\n      return \'    \' + role + \'=dict(\' + bits.join(\', \') + \'),\';\n    });\n    out.value = \'ROLES = dict(\\n\' + lines.join(\'\\n\') + \'\\n)\\n\\n--pad: \'\n      + getComputedStyle(document.documentElement).getPropertyValue(\'--pad\').trim();\n  }\n\n  apply(); dump();\n})();\n'
+
+
+def tools_panel():
+    """A side panel for placing and sizing the roles. It appears on ?tools only —
+    the poster itself should not ship a dev panel. It edits the same three tables
+    the build reads, and prints ROLES back as Python to paste into this file."""
+    data = json.dumps(dict(steps=STEPS, roles=ROLES, sets=COLOUR_SETS,
+                           corners=list(CORNERS)), ensure_ascii=False)
+    return ('<aside class="tools" id="tools"></aside>\n<script>'
+            + PANEL_JS.replace('__DATA__', data) + '</script>')
+
+
+def page(inline, spine=None, cols=None, rows=None, tools=False):
     spine = SPINE if spine is None else spine
     cols = SPINE_COLS if cols is None else cols
     rows = SPINE_ROWS if rows is None else rows
     grain = grain_url()
     return (HEAD.replace('__FONTS__', font_faces(inline))
-                .replace('__TYPEBASE__', TYPE_CSS).replace('__TYPECSS__', type_css())
+                .replace('__TYPEBASE__', TYPE_CSS)
+                .replace('__TOOLSCSS__', TOOLS_CSS if tools else '').replace('__TYPECSS__', type_css())
                 .replace('__TYPECSS_SMALL__', type_css_small())
                 .replace('__GRAINURL__', grain).replace('__GRAINA__', str(GRAIN['opacity']))
                 .replace('__GRAINSIZE__', f"{GRAIN['cell'] * 40:g}px")
                 .replace('__COLS__', f'{cols:g}').replace('__ROWS__', str(rows))
-            + BODY.replace('__SPINE__', spine).replace('__CORNERS__', corners()))
+            + BODY.replace('__SPINE__', spine).replace('__CORNERS__', corners())
+            + (tools_panel() if tools else ''))
 
 
 repo_doc = ('<!doctype html>\n<html lang="zh-CN">\n<head>\n<meta charset="utf-8">\n'
             '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
-            + page(False).replace('</style>', '</style>\n</head>\n<body>', 1) + '</body>\n</html>\n')
+            + page(False, tools=True).replace('</style>', '</style>\n</head>\n<body>', 1) + '</body>\n</html>\n')
 open(os.path.join(REPO, 'index.html'), 'w').write(repo_doc)
 # the artifact is the poster itself, fonts inlined
 art = page(True)
