@@ -14,17 +14,23 @@ SRC = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, 'ascii-art.txt')
 OUT = sys.argv[2] if len(sys.argv) > 2 else os.path.join(HERE, 'spine.svg.part')
 PAD = 2            # blank cells kept around the drawing
 ASPECT = 1.6       # cell height / cell width, i.e. a monospace character box
-# one solid colour per shade level, lightest to darkest. #FDF48E / #F38530 / #822D00
-# are the palette; #F8BC5F is their cream-orange midpoint, filling the fourth step.
-# Every cell draws the same character; the four source levels are told apart by
-# colour alone. Cells are white and the colour is on the character.
-# tints of the accent #F28532, mixed with white at 75 / 55 / 30 / 0 percent.
-# Only the shade levels the drawing actually uses are spread across this ramp,
-# so a three-level drawing still reaches the accent at its darkest.
-RAMP = ['#FCE0CC', '#F9C8A3', '#F6AA70', '#F28532']
+# one solid colour per shade level. Every cell draws the same character, so the
+# source levels are told apart by colour alone: cells are white and the colour is
+# on the character. The shade levels a drawing actually uses are spread evenly
+# along the ramp below, lightest character to darkest, so a three-level drawing
+# still reaches both ends. The pale yellow sits on the sparsest characters and
+# the accent orange on the densest, so the drawing's own shading reads as depth.
+RAMP_FROM = '#FDF48E'   # lightest character
+RAMP_TO = '#F28532'     # darkest character
 DENSITY = '░▒▓█'
 GLYPH = '▓'
-FALLBACK = '#F6AA70'
+FALLBACK = RAMP_FROM
+
+
+def lerp(a, b, t):
+    ca = [int(a[i:i + 2], 16) for i in (1, 3, 5)]
+    cb = [int(b[i:i + 2], 16) for i in (1, 3, 5)]
+    return '#%02X%02X%02X' % tuple(round(x + (y - x) * t) for x, y in zip(ca, cb))
 CELL = '#ffffff'
 HOLE = '#86C689'   # blank cells enclosed by the drawing get a ▓ in this green
 
@@ -99,7 +105,7 @@ def interior_blanks():
 HOLES = interior_blanks()
 
 levels = sorted({ch for ch in cells.values() if ch in DENSITY}, key=DENSITY.index)
-TONE = {ch: RAMP[round(i * (len(RAMP) - 1) / max(1, len(levels) - 1))]
+TONE = {ch: lerp(RAMP_FROM, RAMP_TO, i / max(1, len(levels) - 1))
         for i, ch in enumerate(levels)}
 for ch in set(cells.values()) - set(TONE):
     TONE[ch] = FALLBACK

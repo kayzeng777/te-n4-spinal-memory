@@ -196,7 +196,10 @@ __SPINE__
     const SYMS=Array.from('𓃠𓃰𓃱𓃯𓃸𓃵𓃗𓃙𓃟𓄀𓄁𓄂𓄃𓃚𓃛𓃜𓃞𓃓𓃔𓃕𓃖𓃦𓃬𓃷𓃹𓃻𓃾𓄅𓄇𓆈𓆉𓆌𓆏𓆗𓆙𓆐𓆓𓆊𓆣𓆤𓆦𓆧𓆨𓆝𓆡𓅂𓅐𓅓𓅟𓅮𓅰𓆀');
     const SHARE=0.05, HOLD=7000;
     const ts=[...document.querySelectorAll('.glyphs text')];if(!ts.length)return;
-    const LIGHT=new Set(['#FCE0CC','#F9C8A3','#F6AA70','#86C689']);
+    // perceived brightness; the cut sits just above the accent orange (156) and below
+    // the cream-orange midpoint (196) and the green of the holes (172), so only the
+    // darkest tone of the ramp takes white ink.
+    const light=c=>{const n=parseInt(c.slice(1),16);return !isNaN(n)&&((n>>16&255)*299+(n>>8&255)*587+(n&255)*114)/1000>165;};
     const key=t=>t.dataset.c+','+t.dataset.r;
     const rects=new Map([...document.querySelectorAll('.seg .cells rect')].map(r=>[r.dataset.c+','+r.dataset.r,r]));
     const idx=new Map(ts.map((t,i)=>[key(t),i])), active=new Set(), TARGET=Math.round(ts.length*SHARE);
@@ -207,7 +210,7 @@ __SPINE__
       t.dataset.orig=t.textContent;t.textContent=SYMS[rnd(SYMS.length)];t.classList.add('h');
       t.removeAttribute('textLength');t.removeAttribute('lengthAdjust');
       t.parentNode.appendChild(t);   // paint above the neighbouring cells it overhangs
-      t.style.fill=LIGHT.has(col)?'#000':'#fff';if(rect)rect.style.fill=col;active.add(i);
+      t.style.fill=light(col)?'#000':'#fff';if(rect)rect.style.fill=col;active.add(i);
       setTimeout(()=>off(i),first?Math.random()*HOLD:HOLD);}
     function off(i){const t=ts[i],rect=rects.get(key(t));t.textContent=t.dataset.orig;t.classList.remove('h');
       t.setAttribute('textLength','1');t.setAttribute('lengthAdjust','spacingAndGlyphs');
