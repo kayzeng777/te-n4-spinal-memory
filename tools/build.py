@@ -68,6 +68,40 @@ ROLES = dict(
 )
 
 
+# Type that is not pinned to a corner: the lecture blocks along the spine. Same
+# three-layer machinery, same steps and colour sets as the poster roles — the
+# only difference is that nothing places them, the spine does.
+TEXT = dict(
+    lecn=dict(step='xs', set='a', weight=500, ls=-.03, lh=1),
+    lect=dict(step='m',  set='a', weight=500, ls=-.04, lh=.9),
+    lecb=dict(step='xs', set='a', weight=500, ls=-.03, lh=1.2, width=34),
+)
+
+# One row per segment of the spine, top to bottom: segment 0 is the top vertebra.
+# `when` and `who` are one line each; `what` is the title; `about` is prose, and
+# a blank line in it starts a paragraph, exactly as in COPY.
+# TODO: placeholder copy — the dates are spaced across oct 10 ~ nov 7 but not
+# confirmed, and every speaker, title and blurb is still to be filled in.
+LECTURES = [
+    dict(when='oct 10, 2026', who='speaker one',   what='lecture one',
+         about='One or two sentences on what this lecture is about.'),
+    dict(when='oct 11, 2026', who='speaker two',   what='lecture two',
+         about='One or two sentences on what this lecture is about.'),
+    dict(when='oct 17, 2026', who='speaker three', what='lecture three',
+         about='One or two sentences on what this lecture is about.'),
+    dict(when='oct 18, 2026', who='speaker four',  what='lecture four',
+         about='One or two sentences on what this lecture is about.'),
+    dict(when='oct 24, 2026', who='speaker five',  what='lecture five',
+         about='One or two sentences on what this lecture is about.'),
+    dict(when='oct 25, 2026', who='speaker six',   what='lecture six',
+         about='One or two sentences on what this lecture is about.'),
+    dict(when='oct 31, 2026', who='speaker seven', what='lecture seven',
+         about='One or two sentences on what this lecture is about.'),
+    dict(when='nov 7, 2026',  who='speaker eight', what='lecture eight',
+         about='One or two sentences on what this lecture is about.'),
+]
+
+
 def at_corner(corner):
     """The roles pinned to one corner, in the order they are declared."""
     return [r for r in ROLES if ROLES[r]['at'] == corner]
@@ -103,7 +137,7 @@ def type_css():
     """One block per role: its own colours and radii as custom properties, which
     the three shared layer rules read."""
     out = []
-    for role, r in ROLES.items():
+    for role, r in {**ROLES, **TEXT}.items():
         c, st = COLOUR_SETS[r['set']], STEPS[r['step']]
         v = [f"--ink:{c['ink']}", f"--glow:{c['glow']}", f"--bloom:{c['bloom']}",
              f"--fs:{st['size'][0]}px", f"--soft:{st['soft']}px",
@@ -122,7 +156,7 @@ def type_css_small():
     """The breakpoint only moves font sizes. Every radius is absolute except the
     tight glow, which is in em and follows on its own."""
     return ''.join(f".t-{role}{{--fs:{STEPS[r['step']]['size'][1]}px}}"
-                   for role, r in ROLES.items()
+                   for role, r in {**ROLES, **TEXT}.items()
                    if STEPS[r['step']]['size'][0] != STEPS[r['step']]['size'][1])
 
 
@@ -218,12 +252,16 @@ HEAD = '''<title>te online lecture</title>
   .glyphs{--gfs:1.57px;--gdy:0.41px}
   .glyphs text{font-family:Menlo,Consolas,"DejaVu Sans Mono",monospace;font-size:var(--gfs);text-anchor:middle;dominant-baseline:auto;transform:translateY(var(--gdy));pointer-events:none}
   .glyphs text.h{font-family:"Noto Sans Egyptian Hieroglyphs",sans-serif;font-size:1.5px;dominant-baseline:central;transform:none}
-  .seg .pic{opacity:0;transition:opacity .25s ease}
-  .seg:hover .pic,.seg.active .pic{opacity:1}
+  .seg .pic{opacity:0;transition:opacity var(--lec-out,.26s) ease}
+  /* `hot` is hover as the script sees it. Not the same as :hover — after a
+     click glides the spine under a still cursor, nothing is hovered until
+     the reader moves, and :hover cannot be told that. */
+  .seg.hot .pic,.seg.active .pic{opacity:1}
   .seg{cursor:pointer}
   __TYPEBASE__
   __TOOLSCSS__
   __TYPECSS__
+  __LECCSS__
   :root{--pad:24px}
   /* --tools is the width the side panel takes when it is open, so the stage
      gives way and the right-hand corners stay visible. */
@@ -240,13 +278,12 @@ HEAD = '''<title>te online lecture</title>
   .foot,.foot-r{bottom:var(--pad)}
   /* A role that follows a sibling in the same corner sets its own space above. */
   .poster>*>*+*{margin-top:var(--gap,0)}
+  /* The breakpoint changes sizes and the padding, nothing else: a block stays in
+     the corner it was placed in, so the arrangement reads the same on a phone as
+     on a screen. The measures are in ch and capped against --fit, which is what
+     keeps the two bottom corners from meeting. */
   @media (max-width:760px){
     :root{--pad:16px}
-    /* Too narrow for four corners. They become one column in reading order and
-       all align left. Lifting one corner above another by a fixed offset does not
-       survive a role moving between them, because the height is the content's. */
-    .poster{display:flex;flex-direction:column;justify-content:space-between;gap:var(--pad)}
-    .poster>*{position:static;align-items:flex-start;text-align:left}
     __TYPECSS_SMALL__
   }
   .lens{position:fixed;left:0;top:0;width:var(--lens,100px);height:var(--lens,100px);border-radius:50%;background:#8A8A8A;filter:blur(var(--feather,8px));
@@ -254,6 +291,40 @@ HEAD = '''<title>te online lecture</title>
   @media (hover:hover) and (pointer:fine){.lens{display:block}}
 
 </style>'''
+
+LEC_CSS = '''/* The lecture blocks. One per segment of the spine, parked at the middle of
+     its own segment and laid alongside it. Nothing about them is in the spine:
+     the block is placed by a fraction of the spine\'s height, so it follows the
+     spine through every size it takes.
+
+     WHEN THEY ARE SEEN IS ALL IN ONE PLACE — the `.lec.on` rule. A block is
+     `on` while its segment is hovered or open, and nothing else turns it on:
+     a state the reader cannot see the cause of is a state they cannot dismiss. */
+  .stage{position:relative;width:calc(__COLS__ * var(--cell))}
+  :root{--lec-in:.42s; --lec-out:.26s}
+  .lecs{position:absolute;inset:0;pointer-events:none;
+    /* room the spine leaves on one side, which is what a block has to live in */
+    --side:calc((100vw - var(--tools,0px) - __COLS__ * var(--cell)) / 2);
+    --lec-gap:2.2vw;      /* between the spine and the block */
+    --lec-rise:10px;      /* how far a block travels as it arrives */
+    --lec-lead:7px}
+  .lec{position:absolute;left:100%;margin-left:var(--lec-gap);
+    top:calc(var(--y) * 100%);
+    width:max(18ch, min(34ch, calc(var(--side) - var(--lec-gap) - var(--pad))));
+    opacity:0;transform:translateY(calc(-50% + var(--lec-rise)));
+    transition:opacity var(--lec-out) ease, transform var(--lec-out) ease}
+  .lec>*+*{margin-top:var(--lec-lead)}
+  .lec .t{max-width:100%}
+  .lec .t>*{max-width:100%}
+  .lec.on{opacity:1;transform:translateY(-50%);
+    transition-duration:var(--lec-in),var(--lec-in)}
+  /* Not enough room beside the spine any more: the block lies over it, from the
+     left edge of the spine, where the segment\'s photo is its ground. */
+  @media (max-width:1100px){
+    .lecs{--lec-gap:0px}
+    .lec{left:0;margin-left:0;width:min(34ch,100%)}
+  }'''
+
 
 BODY = '''
 <div class="bg"></div>
@@ -264,12 +335,84 @@ __CORNERS__
 </div>
 <div class="grain"></div>
 <main id="content">
+<div class="stage">
 __SPINE__
+<div class="lecs">
+__LECS__
+</div>
+</div>
 <script>
-  document.querySelectorAll('.seg').forEach(g=>g.addEventListener('click',e=>{
-    const on=g.classList.contains('active');document.querySelectorAll('.seg.active').forEach(x=>x.classList.remove('active'));
-    if(!on)g.classList.add('active');e.stopPropagation();}));
-  document.addEventListener('click',()=>document.querySelectorAll('.seg.active').forEach(x=>x.classList.remove('active')));
+  // A segment has two states and its lecture block reads both: hovered, and
+  // open (clicked, and it stays open until something else is). The script only
+  // ever sets the classes; when a class is worth seeing is CSS.
+  (function(){
+    const segs=[...document.querySelectorAll('.seg')];
+    const lecs=segs.map((g,i)=>document.querySelector('.lec[data-lec="'+i+'"]'));
+    let hot=-1, open=-1;
+    function sync(){segs.forEach((g,i)=>{
+      g.classList.toggle('active',i===open);
+      g.classList.toggle('hot',i===hot);
+      const l=lecs[i];if(!l)return;
+      l.classList.toggle('on',i===hot||i===open);});}
+    // Opening a segment brings it to the middle of the screen. Only a click does
+    // this — a hover that moved the page would move itself out from under the
+    // cursor. The scroll is its own tween because scrollIntoView's smooth scroll
+    // has neither a duration nor a curve to set, and the point here is slowness.
+    const GLIDE=900, DEAD=24;   // ms end to end; px already near enough to leave alone
+    // Starts slow, arrives slow. For a pure ease-in, swap in t=>t*t*t.
+    const EASE=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+    const still=matchMedia('(prefers-reduced-motion: reduce)');
+    let tween=null;
+    function glide(g){
+      const b=g.getBoundingClientRect();
+      const to=Math.max(0,Math.min(scrollY+(b.top+b.bottom)/2-innerHeight/2,
+                                   document.documentElement.scrollHeight-innerHeight));
+      const from=scrollY,d=to-from;
+      if(Math.abs(d)<DEAD)return false;   // nothing moved, so nothing to hold
+      if(still.matches){scrollTo(0,to);return true;}
+      const t0=performance.now(),id={};tween=id;
+      (function step(now){
+        if(tween!==id)return;               // the reader took the scroll back
+        const k=Math.min(1,(now-t0)/GLIDE);
+        scrollTo(0,from+d*EASE(k));
+        k<1?requestAnimationFrame(step):tween=null;})(t0);
+      return true;
+    }
+    // Hover is read from where the pointer actually is — not from enter/leave on
+    // the segments. While the page glides, the spine slides under a cursor that
+    // is standing still; the browser queues the boundary events that causes and
+    // delivers them on the next real move, interleaved with it, so a late enter
+    // could light a segment the cursor had already left and no leave ever came
+    // to undo it. One hit test at the last real pointer position cannot go stale.
+    //
+    // And from the click until the reader moves for real the choice is HELD: the
+    // page went there, the reader did not, so nothing under the cursor counts.
+    let held=false,px=-1,py=-1,queued=false;
+    const at=(x,y)=>{const e=document.elementFromPoint(x,y),g=e&&e.closest&&e.closest('.seg');
+      return g?segs.indexOf(g):-1;};
+    // a hit test per pointermove is a hit test per mouse report; once a frame is
+    // as often as it can be seen.
+    function look(){queued=false;const i=at(px,py);if(i!==hot){hot=i;sync();}}
+    addEventListener('pointermove',e=>{
+      if(held&&Math.hypot(e.clientX-px,e.clientY-py)<=3)return;   // the glide's own
+      held=false;px=e.clientX;py=e.clientY;
+      if(!queued){queued=true;requestAnimationFrame(look);}},{passive:true});
+    addEventListener('pointerleave',()=>{held=false;px=py=-1;
+      if(hot!==-1){hot=-1;sync();}});
+    ['wheel','touchstart','keydown'].forEach(e=>
+      addEventListener(e,()=>{tween=null;held=false;},{passive:true}));
+    segs.forEach((g,i)=>{
+      g.addEventListener('click',e=>{open=(open===i?-1:i);hot=i;sync();
+        if(open===i){px=e.clientX;py=e.clientY;held=glide(g);}
+        e.stopPropagation();});
+    });
+    // A click outside closes everything, and it says where the pointer is:
+    // a click does not have to be preceded by a move, so its own coordinates
+    // are the only ones that are certainly current.
+    document.addEventListener('click',e=>{open=-1;held=false;
+      px=e.clientX;py=e.clientY;look();sync();});
+    sync();
+  })();
   const lens=document.getElementById('lens'), q=new URLSearchParams(location.search);
   if(q.get('lens'))lens.style.setProperty('--lens',q.get('lens')+'px');
   if(q.get('feather'))lens.style.setProperty('--feather',q.get('feather')+'px');
@@ -360,7 +503,8 @@ COPY = dict(
 
 # tag -> the element each role's copy is wrapped in. The logo is a drawing, the
 # description is two paragraphs, so neither is a single text element.
-ROLE_TAG = dict(logo='div', title='h1', tag='p', info='p', desc='div')
+ROLE_TAG = dict(logo='div', title='h1', tag='p', info='p', desc='div',
+                lecn='p', lect='p', lecb='div')
 
 
 def copy_html(role, text):
@@ -384,6 +528,30 @@ def corners():
             layers(ROLE_TAG[r], r, LOGO, **{'aria-label': 'te'}) if r == 'logo'
             else layers(ROLE_TAG[r], r, copy_html(r, COPY[r])) for r in roles)
         out.append(f'  <div class="{corner}">{inner}</div>')
+    return '\n'.join(out)
+
+
+def lectures_html():
+    """One block per segment, parked at the middle of its own segment's band.
+
+    spine.py records each segment's extent in viewBox units, so the block is
+    placed as a fraction of the spine's height and follows it through every
+    size the spine takes. Nothing here says when a block is seen — that is the
+    .lec rules and the script, so the copy and the choreography stay apart."""
+    height = float(re.search(r'viewBox="0 0 [\d.]+ ([\d.]+)"', SPINE).group(1))
+    bands = [(float(a), float(b)) for a, b in
+             re.findall(r'<g class="seg"[^>]*data-y0="(-?[\d.]+)" data-y1="(-?[\d.]+)"', SPINE)]
+    out = []
+    for i, lec in enumerate(LECTURES[:len(bands)]):
+        y0, y1 = bands[i]
+        mid = (y0 + y1) / 2 / height
+        head = f"{i + 1:02d} \u00b7 {lec['when']}\n{lec['who']}"
+        out.append(
+            f'<div class="lec" data-lec="{i}" style="--y:{mid:.4f}">'
+            + layers('p', 'lecn', copy_html('lecn', head))
+            + layers('p', 'lect', copy_html('lect', lec['what']))
+            + layers('div', 'lecb', copy_html('lecb', lec['about']))
+            + '</div>')
     return '\n'.join(out)
 
 
@@ -413,10 +581,11 @@ def page(inline, spine=None, cols=None, rows=None, tools=False):
                 .replace('__TYPEBASE__', TYPE_CSS)
                 .replace('__TOOLSCSS__', TOOLS_CSS if tools else '').replace('__TYPECSS__', type_css())
                 .replace('__TYPECSS_SMALL__', type_css_small())
+                .replace('__LECCSS__', LEC_CSS)
                 .replace('__GRAINURL__', grain).replace('__GRAINA__', str(GRAIN['opacity']))
                 .replace('__GRAINSIZE__', f"{GRAIN['cell'] * 40:g}px")
                 .replace('__COLS__', f'{cols:g}').replace('__ROWS__', str(rows))
-            + BODY.replace('__SPINE__', spine).replace('__CORNERS__', corners())
+            + BODY.replace('__SPINE__', spine).replace('__LECS__', lectures_html()).replace('__CORNERS__', corners())
             + (tools_panel() if tools else ''))
 
 
