@@ -56,47 +56,6 @@ def preset_css():
             css.append(f"{sel} .l{i} .n{{display:{'block' if l['noise'] else 'none'}}}")
     return '\n  '.join(css)
 
-
-# Type effect, ported from the glow tuner. One SVG filter per text size used on the
-# poster; every radius is a fraction of that size, so the look is identical at any size.
-TYPE_FX = dict(feather=.05, scatter=.05, grain=.45, grainSize=.02, hard=8,
-            dilate=.060, halo=.210, fill='#F28331', glow='#FDF48E')
-TYPE_SIZES = [120, 48, 20]
-GRAIN = dict(op=.18, freq=.85, mode='overlay')
-
-
-def glow_filters():
-    g, out = TYPE_FX, []
-    for fs in TYPE_SIZES:
-        out.append(f"""  <filter id="g{fs}" x="-70%" y="-70%" width="240%" height="240%">
-    <feMorphology in="SourceAlpha" operator="dilate" radius="{fs*g['dilate']:.2f}" result="fat"/>
-    <feGaussianBlur in="fat" stdDeviation="{fs*g['halo']:.2f}" result="halo"/>
-    <feFlood flood-color="{g['glow']}" result="gcol"/>
-    <feComposite in="gcol" in2="halo" operator="in" result="glow"/>
-    <feGaussianBlur in="SourceAlpha" stdDeviation="{fs*g['feather']:.2f}" result="smooth"/>
-    <feGaussianBlur in="SourceAlpha" stdDeviation="{fs*g['scatter']:.2f}" result="density"/>
-    <feTurbulence type="fractalNoise" numOctaves="2" seed="7" result="turb"
-      baseFrequency="{1/(fs*g['grainSize']):.3f}"/>
-    <feColorMatrix in="turb" type="matrix" result="noise"
-      values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  .33 .33 .33 0 0"/>
-    <feComposite in="density" in2="noise" operator="arithmetic" result="diff"
-      k1="0" k2="1" k3="{-g['grain']:.3f}" k4="{0.5*g['grain']:.3f}"/>
-    <feComponentTransfer in="diff" result="mask">
-      <feFuncA type="linear" slope="{g['hard']}" intercept="{0.5-g['hard']*0.5:.3f}"/>
-    </feComponentTransfer>
-    <feComposite in="smooth" in2="mask" operator="arithmetic" result="grainy" k1="1" k2="0" k3="0" k4="0"/>
-    <feFlood flood-color="{g['fill']}" result="fcol"/>
-    <feComposite in="fcol" in2="grainy" operator="in" result="core"/>
-    <feMerge><feMergeNode in="glow"/><feMergeNode in="glow"/><feMergeNode in="core"/></feMerge>
-  </filter>""")
-    return ('<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>\n'
-            + '\n'.join(out) + '\n</defs></svg>')
-
-
-def glow_css():
-    return '\n  '.join(f'.g{fs}{{filter:url(#g{fs})}}' for fs in TYPE_SIZES)
-
-
 FX_BASE_CSS = '''.fx{position:relative;display:inline-block;white-space:nowrap;margin:0}
   .fx .l{position:absolute;inset:0}
   .fx .l:first-child{position:relative}
@@ -169,17 +128,8 @@ HEAD = '''<title>te online lecture</title>
   .seg .pic{opacity:0;transition:opacity .25s ease}
   .seg:hover .pic,.seg.active .pic{opacity:1}
   .seg{cursor:pointer}
-  __GLOWCSS__
-  .fx-logo{line-height:0}
-  .fx-logo svg{height:120px;width:auto;display:block;overflow:visible;fill:#F28331}
-  .t-no,.t-title{font-family:var(--font-display);font-weight:121;font-size:48px;
-    line-height:.95;letter-spacing:0;color:#F28331;margin:0}
-  .t-no{white-space:pre}
-  .t-info{font-family:var(--font-sans);font-weight:500;font-size:20px;line-height:1.05;
-    letter-spacing:0;color:#F28331;margin:0}
-  .grain{position:fixed;inset:0;z-index:40;pointer-events:none;
-    opacity:__GRAINOP__;mix-blend-mode:__GRAINMODE__;background-size:220px 220px;
-    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='__GRAINFREQ__' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+  __FXBASE__
+  __FXPRESETS__
   :root{--pad:24px}
   .poster{position:fixed;inset:0;z-index:3;pointer-events:none;padding:var(--pad)}
   .poster>*{position:absolute;pointer-events:auto;width:max-content;margin:0}
@@ -202,16 +152,15 @@ BODY = '''
 <div class="bg"></div>
 <div class="grid"></div>
 <div class="lens" id="lens"></div>
-__GLOWDEFS__
-<div class="grain" id="grain"></div>
+__NOISEDEFS__
 <div class="poster">
   <div class="head">
-    <div class="fx-logo g120" aria-label="te">__LOGO__</div>
-    <div class="t-no g48">N°<br>  4</div>
+    <div class="fx fx-apoc-m fx-logo" data-fx aria-label="te">__LOGO__</div>
+    <div class="fx fx-apoc-m fx-no" data-fx>N°<br>  4</div>
   </div>
-  <h1 class="t-title title g48">Spinal<br>Memory</h1>
+  <h1 class="fx fx-apoc-m fx-title title" data-fx>Spinal<br>Memory</h1>
   <div class="foot">
-    <p class="t-info g20">Online Lecture<br>5 weeks<br>Oct 10 ~ Nov 7, 2026<br>9am EDT / 9pm CST</p>
+    <p class="fx fx-pp-s" data-fx>Online Lecture<br>5 weeks<br>Oct 10 ~ Nov 7, 2026<br>9am EDT / 9pm CST</p>
   </div>
 </div>
 <main id="content">
@@ -276,13 +225,11 @@ def page(inline, spine=None, cols=None, rows=None):
     spine = SPINE if spine is None else spine
     cols = SPINE_COLS if cols is None else cols
     rows = SPINE_ROWS if rows is None else rows
-    return (HEAD.replace('__FONTS__', font_faces(inline)).replace('__GLOWCSS__', glow_css())
-                .replace('__GRAINOP__', str(GRAIN['op'])).replace('__GRAINMODE__', GRAIN['mode'])
-                .replace('__GRAINFREQ__', str(GRAIN['freq']))
-                .replace('__COLS__', f'{cols:g}')
+    return (HEAD.replace('__FONTS__', font_faces(inline)).replace('__FXBASE__', FX_BASE_CSS)
+                .replace('__FXPRESETS__', preset_css()).replace('__COLS__', f'{cols:g}')
                 .replace('__ROWS__', str(rows))
-            + BODY.replace('__SPINE__', spine).replace('__FXJS__', '')
-                  .replace('__LOGO__', LOGO).replace('__GLOWDEFS__', glow_filters()))
+            + BODY.replace('__SPINE__', spine).replace('__FXJS__', FX_JS)
+                  .replace('__LOGO__', LOGO).replace('__NOISEDEFS__', noise_defs()))
 
 
 def document(body_html):
