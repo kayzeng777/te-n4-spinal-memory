@@ -482,17 +482,18 @@ HEAD = '''<title>te online lecture</title>
   .lens{position:fixed;left:0;top:0;width:var(--lens,100px);height:var(--lens,100px);border-radius:50%;--lens-rgb:138 138 138;background:rgb(var(--lens-rgb));filter:blur(var(--feather,8px));
     mix-blend-mode:difference;pointer-events:none;z-index:100;transform:translate(-1000px,-1000px);will-change:transform;display:none}
   @media (hover:hover) and (pointer:fine){.lens{display:block}}
-  /* A blend cannot be cached -- it is recomputed against whatever is behind it
-     -- and the blur widens the patch of backdrop it has to read. While the page
-     glides a segment to the middle, that is the whole viewport, every frame,
-     and the cursor has not moved: the lens is showing nothing anyone asked for.
-     So it stands down for the length of the glide. */
-  html.gliding .lens{visibility:hidden}
-  /* ?gradlens: the same blob with the blur baked into gradient stops instead of
-     run as a filter every frame. A circle of radius R blurred by sigma has the
-     profile .5*erfc((r-R)/(sigma*root2)); these are that curve, sampled. The box
-     grows to hold what the blur used to spill outside it. */
-  .lens.grad{filter:none;border-radius:0;
+  /* The blur is the same blur, drawn into an image once, instead of run on
+     every frame the lens moves or the page scrolls beneath it. A blend cannot
+     be cached -- it is recomputed against whatever is behind it -- and the
+     filter widened the patch of backdrop it had to read; this leaves the blend
+     and nothing else. ?blurlens goes back to the live filter, to compare. */
+  .lens{filter:none;border-radius:0;background:none no-repeat center/100% 100%;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='148' height='148'><filter id='f' x='-50%25' y='-50%25' width='200%25' height='200%25'><feGaussianBlur stdDeviation='8'/></filter><circle cx='74' cy='74' r='50' fill='rgb(138,138,138)' filter='url(%23f)'/></svg>");
+    width:calc(var(--lens,100px) + 6 * var(--feather,8px));
+    height:calc(var(--lens,100px) + 6 * var(--feather,8px))}
+  .lens.blurred{filter:blur(var(--feather,8px));border-radius:50%;background-image:none;
+    background-color:rgb(var(--lens-rgb));
+    width:var(--lens,100px);height:var(--lens,100px)}
     width:calc(var(--lens,100px) + 6 * var(--feather,8px));
     height:calc(var(--lens,100px) + 6 * var(--feather,8px));
     background:radial-gradient(circle closest-side,rgb(var(--lens-rgb) / 1.000) 0%,rgb(var(--lens-rgb) / 1.000) 10%,rgb(var(--lens-rgb) / 1.000) 20%,rgb(var(--lens-rgb) / 1.000) 30%,rgb(var(--lens-rgb) / 0.995) 40%,rgb(var(--lens-rgb) / 0.948) 50%,rgb(var(--lens-rgb) / 0.758) 60%,rgb(var(--lens-rgb) / 0.411) 70%,rgb(var(--lens-rgb) / 0.125) 80%,rgb(var(--lens-rgb) / 0.019) 90%,rgb(var(--lens-rgb) / 0.001) 100%)}
@@ -675,13 +676,11 @@ __LECS__
       if(/[?&]nativeglide/.test(location.search)){
         scrollTo({top:to,behavior:'smooth'});return true;}
       const t0=performance.now(),id={};tween=id;
-      const root=document.documentElement;root.classList.add('gliding');
       (function step(now){
-        if(tween!==id){root.classList.remove('gliding');return;}   // reader took it back
+        if(tween!==id)return;               // the reader took the scroll back
         const k=Math.min(1,(now-t0)/GLIDE);
         scrollTo(0,from+d*EASE(k));
-        if(k<1)requestAnimationFrame(step);
-        else{tween=null;root.classList.remove('gliding');}})(t0);
+        k<1?requestAnimationFrame(step):tween=null;})(t0);
       return true;
     }
     // Hover is read from where the pointer actually is — not from enter/leave on
@@ -708,8 +707,7 @@ __LECS__
       if(PINNED&&open!==-1)return;
       if(hot!==-1){hot=-1;sync();}});
     ['wheel','touchstart','keydown'].forEach(e=>
-      addEventListener(e,()=>{tween=null;held=false;
-        document.documentElement.classList.remove('gliding');},{passive:true}));
+      addEventListener(e,()=>{tween=null;held=false;},{passive:true}));
     segs.forEach((g,i)=>{
       g.addEventListener('click',e=>{open=(open===i?-1:i);hot=i;
         sync();                        // renders the block; only then is it measurable
@@ -731,7 +729,7 @@ __LECS__
   if(q.get('lenscolor')){const h=q.get('lenscolor').replace('#','');
     lens.style.setProperty('--lens-rgb',
       [0,2,4].map(i=>parseInt(h.substr(i,2),16)).join(' '));}
-  if(q.has('gradlens'))lens.classList.add('grad');
+  if(q.has('blurlens'))lens.classList.add('blurred');
   if(q.has('scrollgrain')){const g=document.querySelector('.grain');if(g)g.classList.add('scroll');}
   if(q.get('cell'))document.documentElement.style.setProperty('--cell',q.get('cell')+'px');
   // Two switches for judging what the blending costs, on the machine it is being
