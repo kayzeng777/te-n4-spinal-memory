@@ -706,7 +706,7 @@ HEAD = '''<title>te online lecture</title>
     .poster{position:fixed;top:0;left:0;right:0;pointer-events:none;padding-bottom:0}
     .poster>*,.poster .info{pointer-events:auto}
     .poster>.head{grid-row:1 / span 2}
-    .t-logo{--fs:44px}
+    .t-logo{--fs:56px}
     .poster>.foot{display:contents}
     .head-r,.foot-r{display:none}
     /* A line scrolled up fades over --info-fade; the first line sits
@@ -724,6 +724,9 @@ HEAD = '''<title>te online lecture</title>
     .poster .info::-webkit-scrollbar{display:none}
     .poster .info>:first-child{margin-top:0}
     .poster .info>.t,.poster .role-link>.t{--maxw:100%}
+    /* tighter on a phone: te editions to the title, the subtitle to Intro */
+    .poster .t-title{--gap:4px}
+    .poster .t-desc{--gap:20px}
     body:has(.lec.open) .poster .info{visibility:hidden}
     /* The page itself does not scroll on a phone: the spine scrolls in main,
        which covers the screen, and the panel scrolls on its own beside it.
@@ -734,9 +737,9 @@ HEAD = '''<title>te online lecture</title>
        side leave nothing to decide: a finger scrolls what it is on.
 
        The grid goes with the spine, so it is drawn on main and scrolls with
-       its content (background-attachment:local). The spine starts just under
-       the title. */
-    :root{--main-top:4px}
+       its content (background-attachment:local). The spine starts level with
+       the middle of the logo, beside it. */
+    :root{--main-top:-32px}
     /* Nothing left over to scroll, either. body's min-height is 100vh, and
        on iOS 100vh is the screen with the bars away -- taller than the page
        with them showing, so the page could still be dragged up by the
