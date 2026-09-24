@@ -683,10 +683,10 @@ HEAD = '''<title>te online lecture</title>
        is lifted over them inside main). */
     /* Two heights: the information's panel, and an open lecture's. --panel
        is whichever is up, so the ground behind it follows. An open lecture's
-       is 440px on a phone as tall as the ones it was tuned on (about 812),
-       and the same share of the screen on a shorter one, so the spine keeps
+       is 404px on a phone as tall as the ones it was tuned on (about 812),
+       and a like share of the screen on a shorter one, so the spine keeps
        its room above it. */
-    :root{--info-panel:200px;--lec-panel:min(440px, 54svh);--panel:var(--info-panel);
+    :root{--info-panel:200px;--lec-panel:calc(min(440px, 54svh) - 36px);--panel:var(--info-panel);
       --halo:26px;--panel-fade:26px}
     body:has(.lec.open){--panel:var(--lec-panel)}
     main{padding-bottom:calc(var(--info-panel) + 24px + var(--post, 0px))}
