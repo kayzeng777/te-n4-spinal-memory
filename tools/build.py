@@ -1030,6 +1030,12 @@ LEC_CSS = '''.peek-flood{flood-color:var(--peek-green,#80C58A)}
 
 
 BODY = '''
+<script>
+  // A reload starts the poster from its top, spine and all, rather than the
+  // browser putting the page back where it was scrolled to.
+  if('scrollRestoration' in history)history.scrollRestoration='manual';
+  scrollTo(0,0);
+</script>
 __BACKLIGHT__
 <div class="bg"></div>
 <div class="grid"></div>
