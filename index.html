@@ -718,17 +718,32 @@
     // change. Nothing here is true of the poster — it is ?tools and nothing else.
     const PINNED=/[?&]tools/.test(location.search);
     let hot=-1, open=-1;
-    function sync(){segs.forEach((g,i)=>{
+    // Without the three columns a hover still lights its segment -- the
+    // photograph and the number -- but brings up no block: the only place for
+    // one is the panel, and a panel that came and went under a passing mouse
+    // would be noise. There, only a click opens.
+    const single=matchMedia('(max-width:760px)');
+    // Whatever panel comes up comes up at its top: a lecture's body as it
+    // opens (on a phone, or its scrolling part beside the spine), and the information again when the lecture closes --
+    // not wherever it was last left scrolled to.
+    const info=document.querySelector('.poster .info');
+    let shown=-1;
+    function sync(){const lit=single.matches?-1:hot;
+      if(open!==shown){shown=open;
+        const l=lecs[open];
+        if(l)[l.__body,l.querySelector('.scroll')].forEach(e=>{if(e)e.scrollTop=0;});
+        if(open===-1&&info)info.scrollTop=0;}
+      segs.forEach((g,i)=>{
       g.classList.toggle('active',i===open);
       g.classList.toggle('hot',i===hot);
       if(pics[i])pics[i].classList.toggle('on',i===hot||i===open);
       const l=lecs[i];if(!l)return;
-      l.classList.toggle('on',i===hot||i===open);
+      l.classList.toggle('on',i===lit||i===open);
       l.classList.toggle('open',i===open);});
       nos.forEach((n,i)=>n&&n.classList.toggle('on',i===hot||i===open));
       // another segment hovered while one is open: its head is laid over the
       // open block on a ground of its own (html.peek)
-      const pk=open!==-1&&hot!==-1&&hot!==open;
+      const pk=open!==-1&&lit!==-1&&lit!==open;
       document.documentElement.classList.toggle('peek',pk);
       if(pk)ground(lecs[hot]);}
     // The green under a peeking head is the page's own at that height: .bg's
