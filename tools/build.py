@@ -733,10 +733,16 @@ LEC_CSS = '''/* The lecture blocks. One per segment of the spine, parked at the 
     /* room the spine leaves on one side, which is what a block has to live in */
     --side:calc(100vw - var(--tools,0px) - __COLS__ * var(--cell)
       - var(--spine-x, calc((100vw - var(--tools,0px) - __COLS__ * var(--cell)) / 2)));
-    --lec-gap:48px;       /* between the spine and the block, at most */
+    --lec-gap:48px}       /* between the spine and the block, at most */
+  /* A block's own measures, wherever it is housed (see .sheet). */
+  .lecs,.sheet{
     --lec-rise:10px;      /* how far a block travels as it arrives */
     --lec-lead:8px;
     --lec-halo:26px}   /* how far the type's glow reaches past its box */
+  /* On a phone the blocks leave the spine for here: an open one is a panel
+     that scrolls, and inside main it would be a scroller inside the spine's,
+     so a swipe on it was taken as the spine's. Side by side, it is not. */
+  .sheet{position:relative;z-index:3}
   /* Every block starts on the same vertical line. That line is the widest the
      spine ever gets, not the width of this segment, so a narrow vertebra does
      not pull its block inboard of the others and the eight left edges stack. */
@@ -894,6 +900,7 @@ __BACKLIGHT__
 __CORNERS__
 </div>
 <div class="grain"></div>
+<div class="sheet"></div>
 <main id="content">
 <div class="stage">
 __SPINE__
@@ -985,6 +992,12 @@ __LECS__
     const endY=()=>inMain()?main.scrollHeight:scrollY+main.getBoundingClientRect().bottom;
     const maxY=()=>inMain()?main.scrollHeight-main.clientHeight
                            :document.documentElement.scrollHeight-innerHeight;
+    // Where the blocks live: beside the spine in .lecs, or on a phone in
+    // .sheet, out of main (see .sheet).
+    const home=document.querySelector('.lecs'),sheet=document.querySelector('.sheet');
+    function house(){const box=narrow.matches?sheet:home;
+      lecs.forEach(l=>{if(l&&l.parentNode!==box)box.appendChild(l);});}
+    house();narrow.addEventListener('change',house);
     // `at` is where on the screen the segment's centre is to land.
     function lend(g,at){
       const b=g.getBoundingClientRect();
