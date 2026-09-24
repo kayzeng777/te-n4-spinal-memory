@@ -60,7 +60,7 @@ TRACK = .0091   # em of letter-spacing given back per px of size over the base
 LEAD = .0164    # of line-height, likewise
 WALK_STOP = 26  # px past which tracking and leading stop tightening
 # poster size -> the size at NARROW, the ramp's own .857
-TEXT_SIZES = dict(t20=(20, 17.1), t18=(18, 15.4), t16=(16, 13.7),
+TEXT_SIZES = dict(t24=(24, 20.6), t20=(20, 17.1), t18=(18, 15.4), t16=(16, 13.7),
                   t14=(14, 12), t12=(12, 10.3),
                   no=(16, 14),   # the segment numbers: 14 on a phone, not the ramp's 13.7
                   su=(18, 14))   # Sign up: 18 beside the spine, 14 on a phone
@@ -226,12 +226,18 @@ PEEK_GROUND = (
 # wrapped together in a div of that class inside their corner, so the corner
 # can place them as one: on a phone, `info` is the panel at the foot.
 CORNERS = ('head', 'head-r', 'foot', 'foot-r')
+ISSUE_URL = 'https://te-editions.com/issue-4'
 ROLES = dict(
     logo=dict(at='head', step='mark', set='a'),
-    # The title and subtitle are off the page while where they go is decided;
-    # their copy is still in COPY.
-    # no width: the column's measure is --col, the same as the lectures' side
-    desc=dict(at='foot', step='t14', set='a', box='info'),
+    # The te editions chip, the title and the subtitle head the written
+    # column, over the Intro, and are one link to the issue: roles that name
+    # the same `href` are wrapped in one <a>. No widths: the column's measure
+    # is --col, the same as the lectures' side, and nothing is broken by hand.
+    edition=dict(at='foot', step='t14', set='a', box='info', href=ISSUE_URL),
+    title=dict(at='foot', step='t24', set='a', gap=10, ls=-.035, lh=.88, box='info',
+               href=ISSUE_URL),
+    tag=dict(at='foot', step='t12', set='a', gap=6, box='info', href=ISSUE_URL),
+    desc=dict(at='foot', step='t14', set='a', gap=32, box='info'),
     facts=dict(at='foot', step='t14', set='a', gap=21, box='info'),
 )
 
@@ -640,7 +646,13 @@ HEAD = '''<title>te online lecture</title>
      has no gap to give. */
   .poster>*>*+*{margin-top:var(--gap,0)}
   .poster .info{display:flex;flex-direction:column;align-items:flex-start}
-  .poster .info>*{margin-top:var(--gap,0)}
+  .poster .info>*,.poster .role-link>*{margin-top:var(--gap,0)}
+  /* several roles as one link (see `href` in ROLES): laid out as they would
+     be without it */
+  .poster .role-link{display:flex;flex-direction:column;align-items:flex-start;
+    color:inherit;text-decoration:none}
+  .poster .role-link>:first-child{margin-top:0}
+  .poster .role-link:focus-visible{outline:2px solid #f28030;outline-offset:6px}
   /* A block stays in the corner it was placed in at every width. The measures
      are in ch and capped against --fit, which is what keeps the two bottom
      corners from meeting. */
@@ -711,7 +723,7 @@ HEAD = '''<title>te online lecture</title>
       mask-image:linear-gradient(to bottom,transparent,#000 var(--info-fade))}
     .poster .info::-webkit-scrollbar{display:none}
     .poster .info>:first-child{margin-top:0}
-    .poster .info>.t{--maxw:100%}
+    .poster .info>.t,.poster .role-link>.t{--maxw:100%}
     body:has(.lec.open) .poster .info{visibility:hidden}
     /* The page itself does not scroll on a phone: the spine scrolls in main,
        which covers the screen, and the panel scrolls on its own beside it.
@@ -1448,8 +1460,9 @@ __LECS__
 # line break — one rule, so the tools panel can hand the same text back and the
 # export pastes straight in here.
 COPY = dict(
-    title='Spinal Memory',                             # not on the page for now
-    tag='[Research & Practice on\nNon-Human Animals]',  # likewise; a chip
+    edition='[te editions\u2009\u2197]',
+    title='Spinal Memory',
+    tag='Research and Practice on Non-Human Animals',
     desc='[Intro]\n'
          'Spinal Memory, the 4th issue of te magazine, grew out of a reflection on '
          'the imagining of non-human animals\u2014examining how humans control, domesticate, '
@@ -1493,7 +1506,7 @@ LINKS = {'Digital Reading Room': '#',
          'Institute of Critical Zoologists': 'https://www.criticalzoologists.org/main.html',
          'Interspecies Library': 'https://interspecieslibrary.com/'}
 
-ROLE_TAG = dict(logo='div', title='h1', tag='div', info='p', desc='div', facts='div',
+ROLE_TAG = dict(logo='div', edition='div', title='h1', tag='p', info='p', desc='div', facts='div',
                 lecd='p', lecw='p', lect='p', lecl='div', lecb='div', lecbio='div',
                 lecno='p', lecs='p', lecx='span')
 
@@ -1531,15 +1544,20 @@ def corners():
         roles = at_corner(corner)
         if not roles:
             continue
-        inner, box = '', None
+        inner, box, href = '', None, None
         for r in roles:
-            b = ROLES[r].get('box')
+            b, h = ROLES[r].get('box'), ROLES[r].get('href')
+            if h != href and href:
+                inner += '</a>'
             if b != box:
                 inner += ('</div>' if box else '') + (f'<div class="{b}">' if b else '')
                 box = b
+            if h != href and h:
+                inner += f'<a class="role-link" href="{h}" target="_blank" rel="noopener">'
+            href = h
             inner += (layers(ROLE_TAG[r], r, LOGO, **{'aria-label': 'te'}) if r == 'logo'
                       else layers(ROLE_TAG[r], r, copy_html(r, COPY[r])))
-        inner += '</div>' if box else ''
+        inner += ('</a>' if href else '') + ('</div>' if box else '')
         out.append(f'  <div class="{corner}">{inner}</div>')
     return '\n'.join(out)
 
