@@ -589,26 +589,24 @@ HEAD = '''<title>te online lecture</title>
     /* The panel at the foot of the screen: the information, or an open
        lecture in its place. Its ground is the page's own gradient where the
        panel sits, fading in at the top so the spine goes under it softly. */
-    :root{--panel:360px;--halo:26px;--panel-bg:linear-gradient(#8bc888,#68c08d)}
+    :root{--panel:240px;--halo:26px;--panel-bg:linear-gradient(#8bc888,#68c08d)}
     main{padding-bottom:calc(var(--panel) + 24px + var(--post, 0px))}
     /* The top: the logo on the left, as tall as the title block is on the
        right. The foot corner dissolves (display:contents) so its title and
        subtitle take the grid's right column and its info box leaves for the
        panel. */
     .poster{display:grid;grid-template-columns:auto 1fr;column-gap:16px;align-items:start}
-    /* It stays at the top while the spine scrolls under it, on a ground of
-       the page's own colour there that fades out below it. A mask would do
-       the fade more simply, but it would mask the info panel with it: that
-       is a child of the poster, fixed or not. */
-    .poster{position:sticky;top:0}
-    .poster::before{content:"";position:absolute;inset:0 0 calc(-1 * var(--halo));
-      z-index:-1;pointer-events:none;
-      background:linear-gradient(#66bf8c calc(100% - var(--halo)),rgb(102 191 140 / 0))}
+    /* It stays at the top while the spine scrolls under it, with no ground of
+       its own: the spine runs on up to the top of the screen, through the
+       gap between the logo and the title. Only the pieces take the pointer,
+       so a tap in the gap still lands on the spine. */
+    .poster{position:sticky;top:0;pointer-events:none}
+    .poster>*,.poster .info{pointer-events:auto}
     /* Smaller here than in the column: this block sets the logo's height. The
        backlight is a filter per step, so each borrows the filter of the step
        nearest its size. */
-    .foot>.t-title{--fs:19px;--slabF:url(#bl-t20-s)}
-    .foot>.t-tag{--fs:10.3px;--slabF:url(#bl-t12-s)}
+    .foot>.t-title{--fs:16px;--slabF:url(#bl-t16-s)}
+    .foot>.t-tag{--fs:8.7px;--slabF:url(#bl-t12-s)}
     .poster>.head{grid-row:1 / span 2;align-self:stretch;align-items:stretch}
     .t-logo,.t-logo>*,.t-logo svg{height:100%}
     .poster>.foot{display:contents}
@@ -1189,21 +1187,16 @@ COPY = dict(
     title='Spinal\nMemory',
     tag='Research and Practice\non Non-Human Animals',
     desc='[Intro]\n'
-         'Spinal Memory, the fourth issue of te magazine, grew out of a reflection on '
+         'Spinal Memory, the 4th issue of te magazine, grew out of a reflection on '
          'the imagining of non-human animals\u2014examining how humans control, domesticate, '
          'and make use of animal bodies, while also trying to sketch out a new, open-ended '
          'relationship not yet fixed in form, one that reaches toward the future. As an '
-         'extension of this issue\u2019s theme, te editions is launching its first online '
-         'lecture series, inviting nine speakers (including several contributors to this '
-         'issue) to give eight online lectures.'
+         'extension of this issue, we are launching our first online lecture series, '
+         'inviting 9 speakers to give 8 online lectures.'
          '\n\n'
          'Each speaker approaches this theme in a completely different way: years of '
          'companionship and careful field observation, or history, design, writing, '
-         'moving image, archives, and data. Consider a Tyvan pastoralist who has spent a '
-         'lifetime living alongside horses, or an artist who has shared over a decade with '
-         'a parrot. Or how zoos shape our encounters with animals, the sounds birds make, '
-         'the secondary forests of Singapore, interspecies publishing and archives, animals '
-         'kept as specimens, or a dairy cow\u2019s body flattened into data. How should we '
+         'moving image, archives, and data. How should we '
          'approach, investigate, or simply imagine what it might mean to live alongside '
          'non-human animals? And from there, how do we turn that into practice and research? '
          'Weaving together text and practice, each speaker unfolds their own way of working, '
@@ -1224,8 +1217,7 @@ COPY = dict(
          'The conversation between creators, scholars, and audiences won\u2019t end with a '
          'single talk. It will keep opening up through ongoing reading, response, and '
          'addition, and through thinking together about our sympoiesis with all living '
-         'things. Whether you\u2019re a creator, a researcher, or simply curious about '
-         'interspecies, you\u2019re welcome to join!',
+         'things.',
 )
 
 
