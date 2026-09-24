@@ -1819,10 +1819,20 @@ print(f'index.html {len(repo_doc)//1024} KB ({SPINE_COLS:g}x{SPINE_ROWS}) · '
 # canvas at canvas-width / 1080, which is where they sat in the drawing.
 # Everything the site sets in type is left out.
 ROLES.clear()
-LETTERING = dict(tr=('top-right.svg', 793), bl=('bottom-left.svg', 643))
+# LETTERING_SCALE sets them smaller than drawn, and they shrink toward their
+# own words, not their corner: the margins between the ink and the frame's
+# edges (in 1080 units, measured off the drawings) stay as drawn.
+LETTERING_SCALE = .8
+LETTERING = dict(
+    tr=('top-right.svg', 793, dict(top=48, right=60)),
+    bl=('bottom-left.svg', 643, dict(bottom=28, left=47.5)),
+)
 LETTERING_HTML = ''.join(
-    f'<img class="lettering {k}" src="social-media-poster/{f}" alt="" '
-    f'style="width:calc({w} / 1080 * 100vw)">' for k, (f, w) in LETTERING.items())
+    f'<img class="lettering {k}" src="social-media-poster/{f}" alt="" style="'
+    f'width:calc({w * LETTERING_SCALE:g} / 1080 * 100vw);'
+    + ''.join(f'{side}:calc({m * (1 - LETTERING_SCALE):g} / 1080 * 100vw);'
+              for side, m in margins.items())
+    + '">' for k, (f, w, margins) in LETTERING.items())
 GRAIN_PX = 50   # the tile, in screen px; the site draws its own at 76
 SOCIAL_CSS = '''
   @media (max-width:__NARROW__px){
@@ -1860,14 +1870,19 @@ social = social.replace('</style>', '</style>\n<style>' + SOCIAL_CSS + '</style>
 # step is the frame before it, so the loop has no seam. The animals are copied
 # across as they change, or the step would swap one set for another. A touch,
 # a wheel or an open lecture stops it; it picks up again SOCIAL_IDLE ms after.
-# One round takes 12s; ?loop= sets the seconds, ?speed= px a second instead,
-# and ?speed=0 leaves it still.
+# One round takes 12s, and it runs one round and stops where it started;
+# ?rounds= runs that many (0 for ever), ?loop= sets the seconds, ?speed= px a
+# second instead, and ?speed=0 leaves it still.
 SOCIAL_JS = """<script>(function(){
   const main=document.getElementById('content'),stage=main&&main.querySelector('.stage');
   if(!stage)return;
   // one round of the spine in LOOP seconds, whatever size it is drawn at
   const q=/[?&]speed=([\\d.]+)/.exec(location.search), l=/[?&]loop=([\\d.]+)/.exec(location.search),
-        LOOP=l?+l[1]:12, IDLE=2500, GAP=4;
+        LOOP=l?+l[1]:12, IDLE=2500, GAP=4,
+        n=/[?&]rounds=(\\d+)/.exec(location.search), ROUNDS=n?+n[1]:1;
+  // what is left to run: set by start(), and 0 until then, so nothing moves
+  // before the first frame is placed
+  let left=0;
   const copy=document.createElement('div');
   copy.className='loop-copy';copy.setAttribute('aria-hidden','true');
   const c=stage.cloneNode(true);
@@ -1890,36 +1905,41 @@ SOCIAL_JS = """<script>(function(){
   ['pointerup','pointercancel','touchend'].forEach(e=>addEventListener(e,()=>{down=false;hold();},{passive:true}));
   main.addEventListener('scroll',()=>{const P=period();
     if(P>0&&main.scrollTop>=P){main.scrollTop-=P;y-=P;}},{passive:true});
-  // the lens lights whichever number is at its middle, in the drawing or its copy
+  // The lens lights whichever number is at its middle -- and lights it in the
+  // drawing and its copy both, so the step back at the end of a round, which
+  // swaps one for the other under the lens, changes nothing on screen.
   const sets=[stage,c].map(root=>{
     const pics=[...root.querySelectorAll('.pic')];
     return [...root.querySelectorAll('.t-lecno')].map(n=>
       ({n,p:pics.find(g=>g.dataset.seg===n.dataset.lec)}));});
-  const all=sets.flat();let lit=null;
+  const all=sets.flat();let lit;
   function light(){
     if(document.querySelector('.lec.open'))return;
     const cy=innerHeight/2,R=innerWidth*.25/2*.8;let best=null,bd=R;
     all.forEach(o=>{const r=o.n.getBoundingClientRect(),d=Math.abs(r.top+r.height/2-cy);
       if(d<bd){bd=d;best=o;}});
-    if(best===lit)return;
-    [lit,best].forEach(o=>{if(o){o.n.classList.toggle('on',o===best);
-      if(o.p)o.p.classList.toggle('on',o===best);}});
-    lit=best;}
+    const i=best?best.n.dataset.lec:null;if(i===lit)return;lit=i;
+    all.forEach(o=>{const on=o.n.dataset.lec===i;o.n.classList.toggle('on',on);
+      if(o.p)o.p.classList.toggle('on',on);});}
   // It starts with the whole of 01 just under the lens, on its way up into
   // it. The copy's 01 is the one used: the real one is already in the lens
   // at the top of the page, and a scroll cannot go further up than that.
   function start(){
     const g=c.querySelector('.seg');if(!g)return;
     const want=innerHeight/2+innerWidth*.25/2+8;
-    main.scrollTop+=g.getBoundingClientRect().top-want;y=main.scrollTop;}
+    main.scrollTop+=g.getBoundingClientRect().top-want;y=main.scrollTop;
+    left=ROUNDS>0?ROUNDS*period():Infinity;}
   if(document.readyState==='complete')setTimeout(start,0);
   else addEventListener('load',()=>setTimeout(start,0));
   (function tick(now){light();
     const dt=Math.min(now-last,100);last=now;
     const busy=down||document.querySelector('.lec.open')||now-held<IDLE;
     const P=period(),SPEED=q?+q[1]:P/LOOP;
-    if(!busy&&SPEED>0){
-      y+=SPEED*dt/1000;if(P>0&&y>=P)y-=P;main.scrollTop=y;}
+    if(!busy&&SPEED>0&&left>0){
+      // the last step lands exactly a whole number of rounds on: the frame
+      // it stops on is the frame it started on
+      const d=Math.min(SPEED*dt/1000,left);left-=d;
+      y+=d;if(P>0&&y>=P)y-=P;main.scrollTop=y;}
     else y=main.scrollTop;
     requestAnimationFrame(tick);})(last);
 })();</script>
