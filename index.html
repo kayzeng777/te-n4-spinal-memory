@@ -200,7 +200,9 @@
   /* On a phone the blocks leave the spine for here: an open one is a panel
      that scrolls, and inside main it would be a scroller inside the spine's,
      so a swipe on it was taken as the spine's. Side by side, it is not. */
-  .sheet{position:relative;z-index:3}
+  .sheet{position:relative;z-index:3;
+    /* as in .lecs: the unseen blocks take nothing; .lec.open takes it back */
+    pointer-events:none}
   /* Every block starts on the same vertical line. That line is the widest the
      spine ever gets, not the width of this segment, so a narrow vertebra does
      not pull its block inboard of the others and the eight left edges stack. */
