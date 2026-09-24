@@ -3,3 +3,6 @@ artifact.html
 images/*
 !images/web/
 tools/__pycache__/
+!images/lectures/
+images/lectures/*
+!images/lectures/web/

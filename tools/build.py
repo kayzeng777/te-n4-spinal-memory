@@ -60,7 +60,7 @@ TRACK = .0091   # em of letter-spacing given back per px of size over the base
 LEAD = .0164    # of line-height, likewise
 WALK_STOP = 26  # px past which tracking and leading stop tightening
 # poster size -> the size at NARROW, the ramp's own .857
-TEXT_SIZES = dict(t32=(32, 27.4), t26=(26, 22.3), t20=(20, 17.1), t18=(18, 15.4), t16=(16, 13.7),
+TEXT_SIZES = dict(t20=(20, 17.1), t18=(18, 15.4), t16=(16, 13.7),
                   t14=(14, 12), t12=(12, 10.3),
                   no=(16, 14),   # the segment numbers: 14 on a phone, not the ramp's 13.7
                   su=(18, 14))   # Sign up: 18 beside the spine, 14 on a phone
@@ -194,8 +194,26 @@ def backlight_defs():
         out.append(bl_filter(f'bl-{step}', step, big))
         if small != big:
             out.append(bl_filter(f'bl-{step}-s', step, small))
+    out.append(PEEK_GROUND)
     return ('<svg width="0" height="0" aria-hidden="true" '
             'style="position:absolute"><defs>' + ''.join(out) + '</defs></svg>')
+
+
+# The ground a peeking head sits on (see html.peek): the page's green, drawn to
+# the outline of the type -- its alpha, glow included, cut hard so the faint
+# edge of the bloom does not count, grown out, then softened. The colour is a
+# custom property the script sets from where on the screen the head is.
+PEEK_GROUND = (
+    '<filter id="peek-ground" x="-15%" y="-80%" width="130%" height="260%" '
+    'color-interpolation-filters="sRGB">'
+    '<feComponentTransfer in="SourceAlpha"><feFuncA type="linear" slope="3" intercept="-.3"/>'
+    '</feComponentTransfer>'
+    '<feMorphology operator="dilate" radius="16"/>'
+    '<feGaussianBlur stdDeviation="8" result="shape"/>'
+    '<feFlood class="peek-flood"/>'
+    '<feComposite in2="shape" operator="in" result="ground"/>'
+    '<feMerge><feMergeNode in="ground"/><feMergeNode in="SourceGraphic"/></feMerge>'
+    '</filter>')
 
 
 # Where everything sits, and the whole of what it takes to move it. `at` is one of
@@ -210,10 +228,11 @@ def backlight_defs():
 CORNERS = ('head', 'head-r', 'foot', 'foot-r')
 ROLES = dict(
     logo=dict(at='head', step='mark', set='a'),
-    title=dict(at='foot', step='t32', set='a', ls=-.035, lh=.88),
-    tag=dict(at='foot', step='t14', set='a', gap=6, width=32),
-    desc=dict(at='foot', step='t14', set='a', gap=32, width=46, box='info'),
-    facts=dict(at='foot', step='t14', set='a', gap=21, width=46, box='info'),
+    # The title and subtitle are off the page while where they go is decided;
+    # their copy is still in COPY.
+    # no width: the column's measure is --col, the same as the lectures' side
+    desc=dict(at='foot', step='t14', set='a', box='info'),
+    facts=dict(at='foot', step='t14', set='a', gap=21, box='info'),
 )
 
 
@@ -222,12 +241,14 @@ ROLES = dict(
 # only difference is that nothing places them, the spine does.
 TEXT = dict(
     lecd=dict(step='t14', set='a'),              # the date and time
-    lecw=dict(step='t16', set='a', gap=2),       # who: over the date, under the title
-    lect=dict(step='t20', set='a'),
+    lecw=dict(step='t16', set='a', gap=10),      # who: under the date, over the title
+    lect=dict(step='t20', set='a', gap=-4, lh=1),  # close under who: the two are one thing
     lecno=dict(step='no', set='a'),
-    lecl=dict(step='t12', set='a', gap=12),
-    lecb=dict(step='t14', set='a', gap=6, width=38),
-    lecs=dict(step='su', set='a', gap=14),
+    lecl=dict(step='t14', set='a', gap=4),   # a chip, the size of the Intro's
+    lecb=dict(step='t14', set='a', gap=6),
+    lecbio=dict(step='t14', set='a'),           # a speaker's bio, beside their portrait
+    lecs=dict(step='t16', set='a', gap=30),
+    lecx=dict(step='t20', set='a'),              # the close; its size is set in LEC_CSS      # Sign up, the size of the speaker's name
 )
 
 # Where each lecture's Sign Up button goes. One link for the series unless a
@@ -242,39 +263,70 @@ TIME = '9am EDT / 9pm CST'
 # a blank line in it starts a paragraph, exactly as in COPY.
 # `lang` is the line under the speaker, and belongs with the detail rather than
 # the head: it is what you need once you have decided to come.
+# `pics` (2-3 images from the lecture) and `speakers` are optional; both sit in
+# the detail under `about`. Paths are under images/lectures/, where the
+# originals are kept as they came: 'lecture images/' and 'speakers portrait/'. A lecture with two
+# speakers lists two: speakers=[dict(face='06-hsu.jpg', bio='...'), dict(...)].
+# `bio` is prose like `about`.
 LECTURES = [
     dict(when='Oct 10', who='Victoria Soyan Peemot',
          what='Horses and Songs: Multispecies Rhythm and Voice in Inner Asia',
          lang='English',
-         about='When Tyva people say that the horse is everything in life, this is not a metaphor—it comes from the lived experience of the people who have been mobile pastoralists for millennia, whose lives and identities have been continuously shaped by horses. Drawing on her personal experience and research among mobile pastoralists between the Altai and Sayan mountain ranges in the transnational region of Inner Asia, Dr. Victoria Soyan Peemot explores how Tyvan understandings of voice, sound, and music are rooted in multispecies relationships, with a particular focus on human-equine belonging. Her research brings together horses and their rich sound world with the people and land to which they co-belong. The lecture discusses how the rhythms and lyrics of Tyvan songs and Tyvan ways of understanding the human voice itself emerge from belonging to the land and cohabiting it with other beings.'),
+         signup='https://luma.com/nm7vu01t',
+         about='When Tyva people say that the horse is everything in life, this is not a metaphor—it comes from the lived experience of the people who have been mobile pastoralists for millennia, whose lives and identities have been continuously shaped by horses. Drawing on her personal experience and research among mobile pastoralists between the Altai and Sayan mountain ranges in the transnational region of Inner Asia, Dr. Victoria Soyan Peemot explores how Tyvan understandings of voice, sound, and music are rooted in multispecies relationships, with a particular focus on human-equine belonging.\n\nHer research brings together horses and their rich sound world with the people and land to which they co-belong. The lecture discusses how the rhythms and lyrics of Tyvan songs and Tyvan ways of understanding the human voice itself emerge from belonging to the land and cohabiting it with other beings.',
+         pics=['lecture images/1-1.JPG', 'lecture images/1-2.jpg'],
+         speakers=[dict(face='speakers portrait/01 Victoria.jpeg', bio='Victoria Soyan Peemot is a senior researcher, community advocate, and member of the Soyan kinship group from the Tyva Republic, raised at the Tyvan-Mongolian borderland in a livestock herding family. Her research weaves together Tyva transnational kinship, multispecies relations, and the continuity of pastoralist lifeways and is guided by aaldaar, the Tyvan customary practice of relational reciprocity that extends to land and other-than-human beings.\n\nShe holds a PhD in History and Cultural Heritage Studies from the University of Helsinki (2021). Her book *The Horse In My Blood* (2024) explores human-horse-homeland relationships and histories of state violence. Her second book *Songs of Tyva: A Guide to Tyvan Culture and Language* (2026) draws on emplaced storytelling through folk songs and photographs of the featured homelands. Her broader work engages ethnographic museum collections across Europe, decolonizing archives, and the return of ancestral stories to the communities they belong to.')]),
     dict(when='Oct 11', who='Wantanee Siripattananuntakul',
          what='If There’s No Reply, Is That Silence Still Love?',
          lang='English',
-         about='Wantanee Siripattananuntakul has lived with Beuys, an African grey parrot, since 2013. After more than a decade together, she has come to know Beuys’ voices, movements, routines, fears, and desires. She has also kept Beuys’ feathers, images, objects, and documents, and turned to science to learn how parrots see, hear, and navigate the world. Yet the more she knows about Beuys, the more aware she becomes of what she cannot know: what the world is like for Beuys. That distance extends beyond her relationship with Beuys into her wider artistic practice: when she reconstructs what is no longer there from what remains, traces histories she was never there to witness, or measures a distance exactly and still finds that the number cannot tell her what that distance means. Wantanee keeps looking anyway. She is no longer only asking what she can know, but what makes her think she has received an answer. What makes something an answer, and who decides? And if there is no reply, how does she know that what she calls silence is silence at all?'),
+         signup='https://luma.com/3zuyg46f',
+         about='Wantanee Siripattananuntakul has lived with Beuys, an African grey parrot, since 2013. After more than a decade together, she has come to know Beuys’ voices, movements, routines, fears, and desires. She has also kept Beuys’ feathers, images, objects, and documents, and turned to science to learn how parrots see, hear, and navigate the world. Yet the more she knows about Beuys, the more aware she becomes of what she cannot know: what the world is like for Beuys.\n\nThat distance extends beyond her relationship with Beuys into her wider artistic practice: when she reconstructs what is no longer there from what remains, traces histories she was never there to witness, or measures a distance exactly and still finds that the number cannot tell her what that distance means. Wantanee keeps looking anyway. She is no longer only asking what she can know, but what makes her think she has received an answer. What makes something an answer, and who decides? And if there is no reply, how does she know that what she calls silence is silence at all?',
+         pics=['lecture images/2-1.jpg'],
+         speakers=[dict(face='speakers portrait/02 Wantanee.jpg', bio='Wantanee Siripattananuntakul is a Thai contemporary artist working across video, installation, sculpture, sound, and text. Her practice moves between inquiries into economic and political structures and questions of perception that extend beyond human experience. These concerns coexist within her practice, intersecting or remaining distinct depending on the conditions of each project. Her long-standing engagement with inequality, systems of value, and ideological structures often begins with particular political or economic conditions.\n\nAlongside this, her shared life with Beuys, an African grey parrot she has lived with since 2013, has gradually altered the way she approaches questions of perception and position, leading to broader investigations of how other species perceive and orient themselves within worlds that humans can never fully access.')]),
     dict(when='Oct 17', who='Terezie Štindlová',
          what='Do We Need Zoos?',
          lang='English',
-         about='Do we need zoos? Why do we enjoy looking at animals? What lies behind the simple human desire to feel connected to animals? These are the questions Terezie Štindlová set out to ask through her platform ZOO Index, an open archive of visual and textual zoo related material questioning its relevance in contemporary society. In this lecture, Terezie traces the development of ZOO Index from her initial interests in Zoo design and architecture toward broader questions about human ways of relating to animals, following this thinking as it takes shape through the publication process, the collaborations behind it, and the project’s possible futures.\n\nBefore the talk, the session opens with a short excerpt from a sound piece by artist Qihang Li, an immersive soundscape originally composed for ZOO Index’s book launch in Amsterdam.'),
+         signup='https://luma.com/clizyb3n',
+         about='Do we need zoos? Why do we enjoy looking at animals? What lies behind the simple human desire to feel connected to animals? These are the questions Terezie Štindlová set out to ask through her platform [[ZOO Index]], an open archive of visual and textual zoo related material questioning its relevance in contemporary society. In this lecture, Terezie traces the development of [[ZOO Index]] from her initial interests in Zoo design and architecture toward broader questions about human ways of relating to animals, following this thinking as it takes shape through the publication process, the collaborations behind it, and the project’s possible futures.\n\nBefore the talk, the session opens with a short excerpt from a sound piece by artist Qihang Li, an immersive soundscape originally composed for ZOO Index’s book launch in Amsterdam.',
+         pics=['lecture images/3-1.jpeg', 'lecture images/3-2.png'],
+         speakers=[dict(face='speakers portrait/03 Terezie.jpg', bio='Terezie Štindlová is a designer and one half of a non-workaholic studio Day Shift Office. She’s an author of the online platform and a publication *[[ZOO Index]]*, which examine the (un)relevance of zoos in contemporary society, how they shape our gaze towards nonhuman animals and by extension, ourselves and one another. In her research she’s also looking for links between zoos and current office culture; shedding light on the power dynamics of labour and control exerted through (human) design. She graduated from Werkplaats Typografie in 2023 and is currently based in Amsterdam.')]),
     dict(when='Oct 24', who='Boria Sax (Guest Moderator: Ruoyi Shi)',
          what='Stories, Poetry, and Birdsong',
          lang='English',
-         about='Boria Sax has long studied how animals have moved through human culture, stories, and mythology. This lecture argues that birdsong is similar to the poetry of Dylan Thomas or John Ashbery, where there is almost no literal meaning but a great deal of suggestiveness. Human beings organize experience primarily through storytelling, which serves, among other things, to construct identities, build communities, teach lessons, and set goals. Animals from wolves to fireflies are also constantly exchanging messages. This is especially apparent in birds, for whom songs and calls are used for courtship, proclaiming territory, issuing warnings, and affirming bonds, all of which are also central motifs in the tales told by human beings. These vocalizations also resemble human stories in that they modulate their tempo for purposes such as the building or release of dramatic tension. They differ from human stories, and even more from products of artificial intelligence, in that they are profoundly embedded in the world to a point where the question of “truth” or “falsity” can become irrelevant.\n\nThe lecture will be joined by artist Ruoyi Shi as guest moderator.'),
+         signup='https://luma.com/r415f2wl',
+         about='Boria Sax has long studied how animals have moved through human culture, stories, and mythology. This lecture argues that birdsong is similar to the poetry of Dylan Thomas or John Ashbery, where there is almost no literal meaning but a great deal of suggestiveness. Human beings organize experience primarily through storytelling, which serves, among other things, to construct identities, build communities, teach lessons, and set goals. Animals from wolves to fireflies are also constantly exchanging messages. This is especially apparent in birds, for whom songs and calls are used for courtship, proclaiming territory, issuing warnings, and affirming bonds, all of which are also central motifs in the tales told by human beings.\n\nThese vocalizations also resemble human stories in that they modulate their tempo for purposes such as the building or release of dramatic tension. They differ from human stories, and even more from products of artificial intelligence, in that they are profoundly embedded in the world to a point where the question of “truth” or “falsity” can become irrelevant.\n\nThe lecture will be joined by artist Ruoyi Shi as guest moderator.',
+         pics=['lecture images/4-1.jpg', 'lecture images/4-2.JPG'],
+         speakers=[dict(face='speakers portrait/04 Boria Sax.jpg', bio='Boria Sax is the author of 20 books, mostly on animals in human culture, including *Avian Illuminations: A Cultural History of Birds*, *City of Ravens*, and *The Mythical Zoo: Animals in Myth, Legend, and Literature*. His books have been widely translated including eight into either simplified or traditional Chinese. He teaches at Sing Sing prison and in the graduate English program of Mercy University.'),
+                   dict(face='speakers portrait/04 Ruoyi Shi.png', bio='Ruoyi Shi is an interdisciplinary artist based in Los Angeles. Inspired by ancient tales and rituals intertwined with language, habits, and societal norms, she combines humor and fiction to construct her poetic narratives. Her work explores the interface between nature and artificial existences, as well as the notion of truth and its fabrications. Studying the linguistic connection between translation and birds, or bird-like creatures, from both nature and mythology, she expands beyond concepts of language into questions of transformation, migration, and belief.')]),
     dict(when='Oct 25', who='Robert Zhao Renhui',
          what='Seeing Forest: Encounters, Evidence and Ways of Knowing',
          lang='English',
-         about='How do we come to know a forest through the encounters we have within it? Similar questions extend across Robert Zhao Renhui’s practice: what can we know from what we observe and document, and how much can such evidence really tell us? In this lecture, Robert shares the fieldwork and artistic processes behind his investigations into Singapore’s secondary forests. Moving between the Institute of Critical Zoologists which he founded in 2018 and his project *Seeing Forest*, he traces how repeated visits, camera observations and found objects become photographs, moving images, installations and publications. Through stories from the field, this lecture reflects on what images reveal, what remains uncertain, and how sustained attention can change our understanding of the lives and histories that make up a place.'),
+         signup='https://luma.com/o544mqdl',
+         about='How do we come to know a forest through the encounters we have within it? Similar questions extend across Robert Zhao Renhui’s practice: what can we know from what we observe and document, and how much can such evidence really tell us?\n\nIn this lecture, Robert shares the fieldwork and artistic processes behind his investigations into Singapore’s secondary forests. Moving between the [[Institute of Critical Zoologists]] which he founded in 2018 and his project *Seeing Forest*, he traces how repeated visits, camera observations and found objects become photographs, moving images, installations and publications. Through stories from the field, this lecture reflects on what images reveal, what remains uncertain, and how sustained attention can change our understanding of the lives and histories that make up a place.',
+         pics=['lecture images/5-1.jpg', 'lecture images/5-2.jpg'],
+         speakers=[dict(face='speakers portrait/05 robert zhao renhui.jpg', bio='Robert Zhao Renhui is a Singaporean artist whose work examines the complex relationships between humans and non-human life. Working across photography, video, installation, and research-based projects, he investigates secondary forests, invasive species, and landscapes shaped by disturbance. His long-term projects explore how animals adapt within environments altered by colonial histories, urban expansion, and industrial development. He is the founder of the Institute of Critical Zoologists and lives and works in Singapore.\n\nZhao represented Singapore at the 60th Venice Biennale (2024) with *Seeing Forest*, a multi-year study of a secondary forest in Singapore. Recent projects include *5 Albizias* (Singapore/Maluku), research on sloth bears in Hampi (India), water deer in the United Kingdom, and urban deer in Tokyo. Through sustained observation and fieldwork, he challenges distinctions between native and invasive, natural and artificial, proposing instead that disturbance itself becomes habitat.')]),
     dict(when='Oct 31', who='Oscar Salguero',
          what='The Rhizomatic Archive: Interspecies Library',
          lang='English',
-         about='Interspecies Library is an independent archive launched in a Brooklyn apartment in 2019, as an experiment in mapping a growing, species-wide fascination with more-than-human worlds. In this lecture, founder and curator Oscar Salguero traces the story of this living archive, from informal salon-style gatherings to large-scale gallery exhibitions, original book commissions and limited editions, and, more recently, collaborations to develop an itinerant version of the library that brings these works into new environments and cross-pollinating dialogues. Today, the archive stewards over 500 volumes by international artists and independent presses, documenting how the book, an ancient human technology, continues to serve as a portal to imagining and embodying shared fungal, bacterial, plant, animal, and viral futures.'),
+         signup='https://luma.com/ek6lzccj',
+         about='Interspecies Library is an independent archive launched in a Brooklyn apartment in 2019, as an experiment in mapping a growing, species-wide fascination with more-than-human worlds. In this lecture, founder and curator Oscar Salguero traces the story of this living archive, from informal salon-style gatherings to large-scale gallery exhibitions, original book commissions and limited editions, and, more recently, collaborations to develop an itinerant version of the library that brings these works into new environments and cross-pollinating dialogues.\n\nToday, the archive stewards over 500 volumes by international artists and independent presses, documenting how the book, an ancient human technology, continues to serve as a portal to imagining and embodying shared fungal, bacterial, plant, animal, and viral futures.',
+         pics=['lecture images/6-1.jpg', 'lecture images/6-2.jpg'],
+         speakers=[dict(face='speakers portrait/06 oscarsalguero.jpg', bio="Oscar Salguero is an independent curator and researcher based in Queens, NY. He is the founder of [[Interspecies Library]], the first archive of artists' books exploring alternative interspecies futures. Salguero curated Interspecies Futures [IF] at Center for Book Arts (2021), and NEO MINERALIA at Center for Craft (2023). His latest curatorial work is Journal of Therolinguistics, an exhibition exploring the poetic study of nonhuman languages, which was presented at Descanso Gardens in California from March 25 to July 5, 2026.")]),
     dict(when='Nov 7', who='许哲瑜 Hsu Che-Yu & 陈琬尹 Chen Wan-Yin',
          what='Specimen of Suffering',
-         lang='Chinese (with real-time Translated Captions via Zoom)',
-         about='This lecture moves from a mallard at Natural History Museum Rotterdam, killed after flying into a glass panel, to the Przewalski’s horses of Mongolia; from the Nazi-era attempt to breed back the extinct Tarpan, to the beasts executed at Taipei Yuan-Shan Zoo during wartime; and on to the pathological specimens held at Amsterdam’s Museum Vrolik—research the artist has pursued across moving image, writing, archival research, and near-forensic methodologies. Their works keep asking: how do specimens reconstruct memory? How do they conceal historical violence, or become monuments to their own suffering? This lecture invites us to reconsider how museums, science, and political ideology shape the stories behind these specimens. Beyond this, Hsu and Chen will also discuss the research behind their essay *Suffering and the Specimen*, and drawing on their own works, to trace how these histories move between fieldwork, archival material, and working method.'),
+         lang='Chinese (with Zoom translated captions)',
+         signup='https://luma.com/event/evt-I5aICYx7KZLnxSw',
+         about='This lecture moves from a mallard at Natural History Museum Rotterdam, killed after flying into a glass panel, to the Przewalski’s horses of Mongolia; from the Nazi-era attempt to breed back the extinct Tarpan, to the beasts executed at Taipei Yuan-Shan Zoo during wartime; and on to the pathological specimens held at Amsterdam’s Museum Vrolik—research the artist has pursued across moving image, writing, archival research, and near-forensic methodologies.\n\nTheir works keep asking: how do specimens reconstruct memory? How do they conceal historical violence, or become monuments to their own suffering? This lecture invites us to reconsider how museums, science, and political ideology shape the stories behind these specimens. Beyond this, Hsu and Chen will also discuss the research behind their essay *Suffering and the Specimen*, and drawing on their own works, to trace how these histories move between fieldwork, archival material, and working method.',
+         pics=['lecture images/7-1.jpg', 'lecture images/7-2.jpg'],
+         speakers=[dict(face='speakers portrait/07-Hsu Che-Yu.jpeg', bio='许哲瑜 Hsu Che-Yu is an artist who lives and works in Taipei and Amsterdam. He studied at the Graduate Institute of Plastic Arts at Tainan National University of the Arts, where he received his master’s degree in 2014. He participated in several international postgraduate programs: 2019-2020 at HISK (Higher Institute for Fine Arts) in Ghent; 2020-2022 at Le Fresnoy—Studio national des arts contemporains in Tourcoing; 2022-2024 at the Rijksakademie van Beeldende Kunsten in Amsterdam.\n\nHis practice includes video works, animations, VR works, and installations. A central theme is the intertwining of media, memory, and the body. Typical is his collaboration with forensic 3D scanning teams, whose technologies he transfers into artistic processes in order to renegotiate historical events, political traumas, or biographical narratives. He has been working closely with writer Chen Wan-Yin since 2014.'),
+                   dict(face='speakers portrait/07-Chen Wan-Yin.jpeg', bio='陈琬尹 Chen Wan-Yin is a writer whose practice investigates the technological and biopolitical production of memory. She is a key conceptual collaborator in Hsu Che-Yu’s practice and has been shaping its research-driven artistic methodology since 2014. Together they co-authored *aberrant archive 2015-2025* (dmp editions, Taipei), a publication documenting their decade-long artistic alliance examining post-martial law Taiwanese histories through moving images, text and technological reconstructions. She is currently a PhD candidate in Modern and Contemporary Art at Vrije Universiteit Amsterdam.')]),
     dict(when='Nov 8', who='沙爽 Sha Shuang',
          what='Writing a Cow: From Surveillance Data to Fiction',
-         lang='Chinese (with real-time Translated Captions via Zoom)',
-         about='Every cow on the farm has its own number. How much it eats, how far it walks, when it goes into heat, how much milk it gives—all of it is quietly logged by the machines. In 2021, Sha Shuang spent six months at an animal-monitoring data company in Xundian, Yunnan, working alongside a team of programmers. Months of fieldwork left her with a realization: the production system of a cattle farm and human social life aren’t so different after all—both made of bodies, labor, reproduction, care, and the daily experience of being logged and managed by one system or another. Her essay *Finding the Steppes* grew directly out of these field experiences. This lecture begins with that piece of semi-fiction, tracing why she moved from “monitoring cows” to “writing cows,” and how years of fieldwork among dairy cows, grasslands, milk, data, and ecological systems slowly found their way into her art practice.'),
+         lang='Chinese (with Zoom translated captions)',
+         signup='https://luma.com/event/evt-nM4qZM7TCLIBj6Z',
+         about='Every cow on the farm has its own number. How much it eats, how far it walks, when it goes into heat, how much milk it gives—all of it is quietly logged by the machines. In 2021, Sha Shuang spent six months at an animal-monitoring data company in Xundian, Yunnan, working alongside a team of programmers. Months of fieldwork left her with a realization: the production system of a cattle farm and human social life aren’t so different after all—both made of bodies, labor, reproduction, care, and the daily experience of being logged and managed by one system or another.\n\nHer essay *Finding the Steppes* grew directly out of these field experiences. This lecture begins with that piece of semi-fiction, tracing why she moved from “monitoring cows” to “writing cows,” and how years of fieldwork among dairy cows, grasslands, milk, data, and ecological systems slowly found their way into her art practice.',
+         pics=['lecture images/8-1.png', 'lecture images/8-2.JPG'],
+         speakers=[dict(face='speakers portrait/08 Sha Shuang.jpg', bio='沙爽 Sha Shuang is an artist based in Shanghai. Her practice focuses on public space, site-specific engagement, and the intricate relationships between humans, animals, the environment, and production systems. Spanning publishing, painting, moving image, installation, and social practice, her work often develops through fieldwork, interviews, workshops, and collaborative co-creation.\n\nGrounded in concrete lived experiences and local contexts, she addresses issues of standardization, fluidity, relationships, change, memory, and community. In recent years, starting from dairy cows, her research has expanded into dairy production, data monitoring, and ecosystems, translating her fieldwork into moving images, installations, publications, and public programs.')]),
 ]
 
 
@@ -641,17 +693,9 @@ HEAD = '''<title>te online lecture</title>
        so a tap in the gap still lands on the spine. */
     .poster{position:fixed;top:0;left:0;right:0;pointer-events:none;padding-bottom:0}
     .poster>*,.poster .info{pointer-events:auto}
-    /* Smaller here than in the column. The
-       backlight is a filter per step, so each borrows the filter of the step
-       nearest its size. */
-    .foot>.t-title{--fs:14px;--slabF:url(#bl-t16-s)}
-    .foot>.t-tag{--fs:8.7px;--slabF:url(#bl-t12-s)}
-    .foot>.t-title br,.foot>.t-tag br{display:none}   /* one line each here */
     .poster>.head{grid-row:1 / span 2}
     .t-logo{--fs:44px}
     .poster>.foot{display:contents}
-    .foot>.t-title,.foot>.t-tag{grid-column:2;justify-self:center;text-align:center;
-      --maxw:100vw;white-space:nowrap}
     .head-r,.foot-r{display:none}
     /* A line scrolled up fades over --info-fade; the first line sits
        --info-lead under the top of the solid ground. The fade is the longer,
@@ -678,9 +722,9 @@ HEAD = '''<title>te online lecture</title>
        side leave nothing to decide: a finger scrolls what it is on.
 
        The grid goes with the spine, so it is drawn on main and scrolls with
-       its content (background-attachment:local). The spine starts up in the
-       head, level with the logo, just under the subtitle. */
-    :root{--main-top:-8px}
+       its content (background-attachment:local). The spine starts just under
+       the title. */
+    :root{--main-top:4px}
     /* Nothing left over to scroll, either. body's min-height is 100vh, and
        on iOS 100vh is the screen with the bars away -- taller than the page
        with them showing, so the page could still be dragged up by the
@@ -722,7 +766,8 @@ HEAD = '''<title>te online lecture</title>
 
 </style>'''
 
-LEC_CSS = '''/* The lecture blocks. One per segment of the spine, parked at the middle of
+LEC_CSS = '''.peek-flood{flood-color:var(--peek-green,#80C58A)}
+  /* The lecture blocks. One per segment of the spine, parked at the middle of
      its own segment and laid alongside it. Nothing about them is in the spine:
      the block is placed by a fraction of the spine\'s height, so it follows the
      spine through every size it takes.
@@ -743,6 +788,8 @@ LEC_CSS = '''/* The lecture blocks. One per segment of the spine, parked at the 
   /* A block's own measures, wherever it is housed (see .sheet). */
   .lecs,.sheet{
     --lec-rise:10px;      /* how far a block travels as it arrives */
+    --lec-under:28px;     /* Sign Up to the description, in an open block */
+    --lec-top-open:36px;  /* the top of the screen to an open block's first line */
     --lec-lead:8px;
     --lec-halo:26px}   /* how far the type's glow reaches past its box */
   /* On a phone the blocks leave the spine for here: an open one is a panel
@@ -758,13 +805,13 @@ LEC_CSS = '''/* The lecture blocks. One per segment of the spine, parked at the 
      level with the middle of the shape they name. .more is taken out of the
      flow below it, which is what keeps the head still while the detail opens:
      the block's own height is the head's height and nothing else. */
-  /* The block takes the room right of the spine. When that room is short of
-     the full measure plus a --lec-gap either side, the gap to the spine gives
-     way too, and stays equal to the gap left at the page edge -- the block sits
-     in the middle of what there is, never closer than --pad to either side. */
+  /* Three columns: the written one, the spine, the lectures. The lectures'
+     column is the written one's mirror -- the same measure, --col, set in
+     from the right edge by the same --pad the written one is set in from the
+     left -- so the two sides of the spine are the same width. */
   .lec{position:absolute;left:100%;
-    --lec-w:min(38ch, calc(var(--side) - 2 * var(--pad)));
-    margin-left:min(var(--lec-gap), calc((var(--side) - var(--lec-w)) / 2));
+    --lec-w:var(--col, calc(var(--side) - 2 * var(--pad)));
+    margin-left:calc(var(--side) - var(--pad) - var(--lec-w));
     top:calc(var(--y) * 100%);
     width:var(--lec-w);
     opacity:0;transform:translateY(calc(-50% + var(--lec-rise)));
@@ -814,14 +861,18 @@ LEC_CSS = '''/* The lecture blocks. One per segment of the spine, parked at the 
      .more carries a clip-path, so it is its own stacking context and the two
      inside it order among themselves. */
   .lec>*,.lec .more-in>*,.lec .scroll>*{position:relative}
-  .lec .scroll>:nth-child(1){z-index:2}
-  .lec .scroll>:nth-child(2){z-index:1}
+  .lec .scroll>:nth-child(1){z-index:9}
+  .lec .scroll>:nth-child(2){z-index:8}
+  .lec .scroll>:nth-child(3){z-index:7}
+  .lec .scroll>:nth-child(4){z-index:6}
+  .lec .scroll>:nth-child(5){z-index:5}
   .lec>:nth-child(1){z-index:4}
   .lec>:nth-child(2){z-index:3}
   .lec>:nth-child(3){z-index:2}
   .lec>:nth-child(4){z-index:1}
-  .lec .more-in>:nth-child(1){z-index:2}
-  .lec .more-in>:nth-child(2){z-index:1}
+  .lec .more-in>:nth-child(1){z-index:3}
+  .lec .more-in>:nth-child(2){z-index:2}
+  .lec .more-in>:nth-child(3){z-index:1}
   .lec>*+*{margin-top:calc(var(--lec-lead) + var(--gap,0px))}
   /* The numbers sit on the spine itself, dead centre of each segment, so a
      number and the photo it belongs to arrive in the same place. They are
@@ -830,6 +881,13 @@ LEC_CSS = '''/* The lecture blocks. One per segment of the spine, parked at the 
     top:calc(var(--ny) * 100%);transform:translate(-50%, -50%);
     opacity:.8;transition:opacity var(--lec-off)}
   .t-lecno.on{opacity:1;transition:opacity var(--lec-in) ease}
+  /* The lecture's pictures: one above the other, each the full measure and
+     its own shape. */
+  .lec .lec-pics{display:grid;gap:8px;margin-top:calc(var(--lec-lead) + 14px)}
+  .lec .lec-pics img{width:100%;height:auto;display:block}
+  /* A speaker: the bio, then the portrait under it, uncropped. */
+  .lec .lec-sp{margin-top:calc(var(--lec-lead) + 14px)}
+  .lec .lec-sp .face{width:50%;height:auto;display:block;margin-top:12px}
   .lec .t{max-width:100%}
   .lec .t>*{max-width:100%}
   .lec.on{content-visibility:visible;opacity:1;transform:translateY(-50%);
@@ -851,6 +909,53 @@ LEC_CSS = '''/* The lecture blocks. One per segment of the spine, parked at the 
   @media not all and (max-width:__NARROW__px){
     .lec.open{z-index:1}
     .lec.on:not(.open){z-index:2}
+    /* An open block is pinned to the screen and takes its whole height: the
+       head, the language and Sign Up at the top, level with the logo, and
+       under them the rest, which scrolls on its own down to the foot of the
+       screen. A scroll that reaches its end stops there rather than carrying
+       on into the page, so the spine scrolls under a block that stays, and the
+       block scrolls without moving the spine. --lecs-r is where .lecs ends on
+       the screen, set by the script: fixed, the block no longer has .lecs to
+       hang off. */
+    .lec.open{position:fixed;left:var(--lecs-r,100%);top:0;height:100vh;
+      padding-top:var(--lec-top-open);box-sizing:border-box;transform:none;
+      display:flex;flex-direction:column;
+      /* No transitions: the move from the segment to here is the script's
+         (arrive()), which knows where the head was. */
+      transition:none}
+    .lec.open .more{transition:none}
+    .lec.open>*{flex-shrink:0}
+    /* The detail takes what is left of the screen, so nothing is measured
+       here: --more-h is the beside-the-spine reveal's number, not this one's. */
+    .lec.open .more{height:auto;flex:1 1 0;min-height:0;display:flex;flex-direction:column}
+    .lec.open .more-in{flex:1 1 0;min-height:0;display:flex;flex-direction:column}
+    .lec.open .more-in>:not(.scroll){flex-shrink:0}
+    /* While another segment is hovered, that one's head is laid over the open
+       block on a ground of the page's own green, drawn to the outline of the
+       type and its glow (#peek-ground). Leaving the segment takes it away with
+       the head. */
+    html.peek .lec.on:not(.open){filter:url(#peek-ground)}
+    /* The glow needs room at the scroller's sides, so the box reaches out by
+       the halo and the padding takes it back. At the top it cannot: that room
+       is Sign Up's, and text scrolled into it would run behind it. There the
+       edge fades instead, once there is something scrolled up past it (.up,
+       set by the script). The foot is the screen's own edge. */
+    .lec.open .scroll{flex:1 1 0;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+      scrollbar-width:none;--ft:0px;
+      margin-left:calc(-1 * var(--lec-halo));margin-right:calc(-1 * var(--lec-halo));
+      padding:var(--lec-halo) var(--lec-halo) var(--pad);
+      /* the first line's glow needs the halo above it too: the box starts
+         that much higher, in the space under Sign Up, and the padding puts the
+         words back --lec-under below it */
+      margin-top:calc(var(--lec-under) - var(--lec-halo));
+      -webkit-mask-image:linear-gradient(transparent,#000 var(--ft));
+      mask-image:linear-gradient(transparent,#000 var(--ft))}
+    .lec.open .scroll.up{--ft:var(--lec-halo)}
+    .lec.open .scroll::-webkit-scrollbar{display:none}
+    /* level with the date: its top is the block's first line's */
+    .lec.open .lec-close{display:block;position:absolute;top:calc(var(--lec-top-open) - 2px);right:0;z-index:5;
+      margin:0;padding:0 2px;border:0;background:none;cursor:pointer;line-height:0}
+    .lec-close .t-lecx{--fs:__CLOSEFS__;--lh:.5;--w:300}   /* narrows with the type */
   }
   /* The phone's close button; beside the spine a click elsewhere does it. */
   .lec-close{display:none}
@@ -875,7 +980,7 @@ LEC_CSS = '''/* The lecture blocks. One per segment of the spine, parked at the 
       -webkit-mask-image:linear-gradient(to bottom,transparent,#000 var(--halo));
       mask-image:linear-gradient(to bottom,transparent,#000 var(--halo));
       display:grid;grid-template-columns:1fr auto auto;
-      grid-template-rows:auto auto auto auto;align-content:start;column-gap:12px;align-items:start}
+      grid-template-rows:auto auto auto auto auto;align-content:start;column-gap:12px;align-items:start}
     /* The panel changes in one frame. It used to rise and fade in, but the
        one it replaced -- the information, or the last lecture -- went at once,
        so every tap left the panel's ground empty for a quarter of a second:
@@ -893,9 +998,10 @@ LEC_CSS = '''/* The lecture blocks. One per segment of the spine, parked at the 
        open the gap between the two */
     .lec .signup{grid-area:1/2/3/3;margin:0}
     .lec-close{grid-area:1/3/3/4;display:block;margin:0;padding:0 2px;border:0;
-      background:none;color:#f28030;font:300 26px/.8 var(--font-sans);cursor:pointer;
-      text-shadow:0 0 6px #fdf48a}
-    .lec .scroll{grid-area:4/1/5/-1;margin-top:var(--lec-lead)}
+      background:none;cursor:pointer}
+    .lec-close .t-lecx{--fs:26px;--lh:.8;--slabF:url(#bl-t20-s)}
+    .lec .t-lecl{grid-area:4/1/5/-1}
+    .lec .scroll{grid-area:5/1/6/-1;margin-top:var(--lec-lead)}
   }'''
 
 
@@ -955,7 +1061,21 @@ __LECS__
       const l=lecs[i];if(!l)return;
       l.classList.toggle('on',i===hot||i===open);
       l.classList.toggle('open',i===open);});
-      nos.forEach((n,i)=>n&&n.classList.toggle('on',i===hot||i===open));}
+      nos.forEach((n,i)=>n&&n.classList.toggle('on',i===hot||i===open));
+      // another segment hovered while one is open: its head is laid over the
+      // open block on a ground of its own (html.peek)
+      const pk=open!==-1&&hot!==-1&&hot!==open;
+      document.documentElement.classList.toggle('peek',pk);
+      if(pk)ground(lecs[hot]);}
+    // The green under a peeking head is the page's own at that height: .bg's
+    // gradient, which is fixed to the screen, read off at the head's middle.
+    const BG=[[0,[0x66,0xBF,0x8C]],[.7,[0x92,0xCA,0x87]],[1,[0x68,0xC0,0x8D]]];
+    function ground(l){if(!l)return;
+      const b=l.parentNode.getBoundingClientRect();
+      const t=Math.min(1,Math.max(0,(b.top+l.offsetTop)/innerHeight));
+      const k=t<=BG[1][0]?0:1,[t0,c0]=BG[k],[t1,c1]=BG[k+1],f=(t-t0)/(t1-t0);
+      document.documentElement.style.setProperty('--peek-green',
+        'rgb('+c0.map((v,i)=>Math.round(v+(c1[i]-v)*f)).join(' ')+')');}
     // Opening a segment brings it to the middle of the screen. Only a click does
     // this — a hover that moved the page would move itself out from under the
     // cursor. The scroll is its own tween because scrollIntoView's smooth scroll
@@ -1006,6 +1126,21 @@ __LECS__
     function house(){const box=narrow.matches?sheet:home;
       lecs.forEach(l=>{if(l&&l.parentNode!==box)box.appendChild(l);});}
     house();narrow.addEventListener('change',house);
+    // The open block is fixed to the screen (see LEC_CSS), and takes its left
+    // edge from where .lecs ends. The page does not scroll sideways, so this
+    // only moves with the window.
+    const edge=()=>root.style.setProperty('--lecs-r',home.getBoundingClientRect().right+'px');
+    edge();addEventListener('resize',edge,{passive:true});
+    // Opening beside the spine moves the block from its segment to the top of
+    // the screen, and it goes there at once: the head is already showing, so
+    // fading it out and in again flashed, and carrying it up read as a scroll.
+    // Only the detail, which was not showing, fades in under it.
+    function arrive(l){if(!l||still.matches)return;const m=l.querySelector('.more');
+      if(m)m.animate([{opacity:0},{opacity:1}],{duration:520,easing:'cubic-bezier(.3,0,.2,1)'});}
+    // whether an open block's scroller has anything scrolled up past it (.up)
+    const ends=sc=>sc.classList.toggle('up',sc.scrollTop>1);
+    const scrolls=lecs.map(l=>l&&l.querySelector('.scroll'));
+    scrolls.forEach(sc=>sc&&sc.addEventListener('scroll',()=>ends(sc),{passive:true}));
     // `at` is where on the screen the segment's centre is to land.
     function lend(g,at){
       const b=g.getBoundingClientRect();
@@ -1032,6 +1167,21 @@ __LECS__
       setRoom(p,q);if(dy)setY(getY()+dy);}
     addEventListener('scrollend',reclaim,{passive:true});
     main.addEventListener('scrollend',reclaim,{passive:true});
+    // Closing gives ALL the lent room back. What is out of sight goes at once
+    // (reclaim); what is on screen is let out over a glide, so the spine
+    // settles back where it began rather than jumping there -- or, as it did
+    // before, staying off where the first or last segment was brought to.
+    let giving=null;
+    function release(){
+      tween=null;reclaim();
+      if(!pre&&!post)return;
+      if(still.matches){setRoom(0,0);return;}
+      const p0=pre,q0=post,t0=performance.now(),id={};giving=id;
+      (function step(now){
+        if(giving!==id||open!==-1)return;   // opened again: that lends anew
+        const k=Math.min(1,(now-t0)/GLIDE),e=1-EASE(k);
+        setRoom(Math.round(p0*e),Math.round(q0*e));
+        if(k<1)requestAnimationFrame(step);})(t0);}
     function glide(g,l){
       const b=g.getBoundingClientRect();
       // on a phone the head is stuck over the top of the screen and the block
@@ -1112,9 +1262,11 @@ __LECS__
       // a finger does not hover, so on a phone what is lit is what is open
       g.addEventListener('click',e=>{open=(open===i?-1:i);hot=narrow.matches?open:i;
         sync();                        // renders the block; only then is it measurable
-        if(open===i)note(mores[i]);
+        if(open===i&&!narrow.matches)arrive(lecs[i]);
+        if(open===i){note(mores[i]);const sc=scrolls[i];
+          if(sc){sc.scrollTop=0;setTimeout(()=>ends(sc),300);}}
         if(open===i){px=e.clientX;py=e.clientY;held=glide(g,lecs[i]);}
-        else reclaim();
+        else release();
         e.stopPropagation();});
     });
     // The open block takes clicks now -- to select its text, to follow its
@@ -1123,7 +1275,7 @@ __LECS__
       l.addEventListener('click',e=>e.stopPropagation());
       // the phone's panel has its own way out
       l.querySelector('.lec-close').addEventListener('click',e=>{e.stopPropagation();
-        open=-1;hot=-1;sync();reclaim();});});
+        open=-1;hot=-1;sync();release();});});
     // Where the poster ends is where the spine, and the grid under it, begin.
     // (The poster used to fill the whole first screen, title pushed down to
     // its foot; with the heading now at the top it is simply read in order.)
@@ -1141,7 +1293,7 @@ __LECS__
     // are the only ones that are certainly current. Pinned, it closes nothing:
     // clicking the open segment again is the way back out.
     document.addEventListener('click',e=>{if(PINNED)return;
-      open=-1;held=false;px=e.clientX;py=e.clientY;look();sync();reclaim();});
+      open=-1;held=false;px=e.clientX;py=e.clientY;look();sync();release();});
     sync();
   })();
   const lens=document.getElementById('lens'), q=new URLSearchParams(location.search);
@@ -1296,9 +1448,8 @@ __LECS__
 # line break — one rule, so the tools panel can hand the same text back and the
 # export pastes straight in here.
 COPY = dict(
-    # the space before the break is what is left when a phone drops the break
-    title='Spinal \nMemory',
-    tag='Research and Practice \non Non-Human Animals',   # the space: see title
+    title='Spinal Memory',                             # not on the page for now
+    tag='[Research & Practice on\nNon-Human Animals]',  # likewise; a chip
     desc='[Intro]\n'
          'Spinal Memory, the 4th issue of te magazine, grew out of a reflection on '
          'the imagining of non-human animals\u2014examining how humans control, domesticate, '
@@ -1325,7 +1476,7 @@ COPY = dict(
          'lecture; replays do not include the live Q&A'
          '\n\n'
          '[Digital Reading Room]\n'
-         'Alongside the lecture series, we will also build a [[Digital Reading Room]], '
+         'For our participants, alongside the lecture series, we will also build a Digital Reading Room, '
          'gathering further readings and moving-image material prepared by the speakers. '
          'The conversation between creators, scholars, and audiences won\u2019t end with a '
          'single talk. It will keep opening up through ongoing reading, response, and '
@@ -1337,23 +1488,31 @@ COPY = dict(
 # tag -> the element each role's copy is wrapped in. The logo is a drawing, the
 # description is two paragraphs, so neither is a single text element.
 # Where a [[link]] in the copy goes, by its text.
-LINKS = {'Digital Reading Room': '#'}
+LINKS = {'Digital Reading Room': '#',
+         'ZOO Index': 'https://zooindex.net/',
+         'Institute of Critical Zoologists': 'https://www.criticalzoologists.org/main.html',
+         'Interspecies Library': 'https://interspecieslibrary.com/'}
 
-ROLE_TAG = dict(logo='div', title='h1', tag='p', info='p', desc='div', facts='div',
-                lecd='p', lecw='p', lect='p', lecl='p', lecb='div', lecno='p', lecs='p')
+ROLE_TAG = dict(logo='div', title='h1', tag='div', info='p', desc='div', facts='div',
+                lecd='p', lecw='p', lect='p', lecl='div', lecb='div', lecbio='div',
+                lecno='p', lecs='p', lecx='span')
 
 
 def copy_html(role, text):
     """Plain text in, markup out. Only the roles wrapped in a div can hold
     paragraphs; the rest are a single text element, so every newline is a break.
-    In a div, a paragraph that opens with a `[Label]` line opens with a chip, and
-    `[[text]]` anywhere is a link to LINKS[text]."""
+    In a div, a paragraph that opens with a `[Label]` line opens with a chip,
+    `[[text]]` anywhere is a link to LINKS[text], and `*text*` is italic."""
     esc = lambda t: t.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
     link = lambda t: re.sub(r'\[\[(.+?)\]\]', lambda m: f'<a href="{LINKS.get(m[1], "#")}" '
                             f'target="_blank" rel="noopener">{m[1]}</a>', t)
     paras = [p for p in re.split(r'\n\s*\n', text.strip()) if p.strip()]
-    br = lambda p: '<br>'.join(link(esc(line)) for line in p.split('\n'))
+    em = lambda t: re.sub(r'\*([^*]+)\*', r'<em>\1</em>', t)
+    br = lambda p: '<br>'.join(em(link(esc(line))) for line in p.split('\n'))
     def para(p):
+        whole = re.fullmatch(r'\[([^\[\]]+)\]', p.strip())
+        if whole:
+            return f'<p class="chip"><span>{br(whole[1])}</span></p>'
         head, _, rest = p.strip().partition('\n')
         m = re.fullmatch(r'\[([^\[\]]+)\]', head.strip())
         if m:
@@ -1385,6 +1544,72 @@ def corners():
     return '\n'.join(out)
 
 
+LEC_IMAGES = 'images/lectures'
+LEC_IMAGE_MAX = 1400   # px, the long side of the copy the page loads
+LEC_FACE_MAX = 800     # a portrait is shown at half the measure, uncropped
+
+
+def web_copy(path, web, size):
+    """The original as an sRGB JPEG no longer than `size` on its long side.
+    Print originals come in CMYK, and a plain convert() gets their colours
+    wrong; their own ICC profile is the way across."""
+    import io
+    from PIL import Image, ImageCms, ImageOps
+    im = ImageOps.exif_transpose(Image.open(path))
+    icc = im.info.get('icc_profile')
+    if im.mode == 'CMYK' and icc:
+        im = ImageCms.profileToProfile(im, ImageCms.ImageCmsProfile(io.BytesIO(icc)),
+                                       ImageCms.createProfile('sRGB'), outputMode='RGB')
+    im = im.convert('RGB')
+    im.thumbnail((size, size), Image.LANCZOS)
+    os.makedirs(os.path.dirname(web), exist_ok=True)
+    im.save(web, quality=84, optimize=True, progressive=True)
+
+
+def lec_img(name, size=None, **attrs):
+    """An <img> with its own width and height on it, so the box is the right
+    shape before the file arrives: the detail's height is measured to open it,
+    and an image that loaded later would push its bottom off. None if the file
+    is not there yet -- the lecture goes up without it."""
+    from PIL import Image
+    path = os.path.join(REPO, LEC_IMAGES, name)
+    if not os.path.exists(path):
+        print(f'  missing {LEC_IMAGES}/{name} -- left out')
+        return None
+    # Whatever size the file comes in, the page gets a copy no longer than
+    # LEC_IMAGE_MAX on its long side, made here and remade when the original
+    # changes -- so an original can go in straight off the camera.
+    # The copy's name is the original's, folder and all, lower-cased with
+    # anything but letters and digits made a hyphen: no spaces in a URL.
+    slug = re.sub(r'[^a-z0-9]+', '-', os.path.splitext(name)[0].lower()).strip('-')
+    web = os.path.join(REPO, LEC_IMAGES, 'web', slug + '.jpg')
+    if not os.path.exists(web) or os.path.getmtime(web) < os.path.getmtime(path):
+        web_copy(path, web, size or LEC_IMAGE_MAX)
+    w, h = Image.open(web).size
+    src = os.path.relpath(web, REPO)
+    extra = ''.join(f' {k}="{v}"' for k, v in attrs.items())
+    return (f'<img src="{src}" width="{w}" height="{h}" alt="" '
+            f'loading="lazy" decoding="async"{extra}>'), w / h
+
+
+def lec_extra(lec):
+    """The pictures and the speakers, under the description."""
+    out = ''
+    pics = [p for p in (lec_img(n) for n in lec.get('pics', [])) if p]
+    if pics:
+        out += '<div class="lec-pics">' + ''.join(t for t, _ in pics) + '</div>'
+    # One chip over the lot -- Speaker, or Speakers when there are two -- on
+    # the first bio, as the Intro's is on the description.
+    sps = lec.get('speakers', [])
+    for k, sp in enumerate(sps):
+        face = sp.get('face') and lec_img(sp['face'], size=LEC_FACE_MAX, **{'class': 'face'})
+        chip = ('[Speakers]\n' if len(sps) > 1 else '[Speaker]\n') if k == 0 else ''
+        out += ('<div class="lec-sp">'
+                + layers('div', 'lecbio', copy_html('lecbio', chip + sp.get('bio', '')))
+                + (face[0] if face else '') + '</div>')
+    return out
+
+
 def lectures_html():
     """One block per segment, parked at the middle of its own segment's band.
 
@@ -1411,19 +1636,25 @@ def lectures_html():
         # The number is not here — it sits on the segment, up in its own corner.
         out.append(
             f'<div class="lec" data-lec="{i}" style="--y:{cy:.4f}">'
-            + layers('p', 'lecd', copy_html('lecd', lec['when'] + '\u2003'
+            + layers('p', 'lecd', copy_html('lecd', lec['when'] + '\u2002'
                                             + lec.get('time', TIME)))
             + layers('p', 'lecw', copy_html('lecw', lec['who']))
             + layers('p', 'lect', copy_html('lect', lec['what']))
-            + '<div class="more"><div class="more-in"><div class="scroll">'
-            + layers('p', 'lecl', copy_html('lecl', lec['lang']))
-            + layers('div', 'lecb', copy_html('lecb', lec['about']))
-            + '</div>'
+            # the language is a chip, and Sign Up comes straight under it: both
+            # stay put while what is below them scrolls
+            + '<div class="more"><div class="more-in">'
+            + layers('div', 'lecl', copy_html('lecl', f"[{lec['lang']}]"))
             + f'<a class="signup" href="{lec.get("signup", SIGNUP)}" target="_blank" '
               f'rel="noopener">'
               + layers('p', 'lecs', '<span class="u">Sign up</span>\u2009\u2197') + '</a>'
+            + '<div class="scroll">'
+            + layers('div', 'lecb', copy_html('lecb', lec['about']))
+            + lec_extra(lec)
+            + '</div>'
             + '</div></div>'
-            + '<button class="lec-close" type="button" aria-label="Close">\u00d7</button>'
+            # the same five layers as every other word, so it glows as they do
+            + '<button class="lec-close" type="button" aria-label="Close">'
+            + layers('span', 'lecx', '\u00d7') + '</button>'
             + '</div>')
     return '\n'.join(out)
 
@@ -1431,7 +1662,7 @@ def lectures_html():
 TOOLS_CSS = '.tools{position:fixed;right:0;top:0;bottom:0;z-index:200;width:272px;overflow:auto;\n    background:#141614;color:#ECEEE9;font:11px/1.4 var(--font-sans);letter-spacing:.04em;\n    padding-bottom:18px;display:none}\n  .tools.on{display:block}\n  html.has-tools{--tools:272px}\n  .tools h3{margin:0;padding:8px 12px;font-size:10px;font-weight:600;letter-spacing:.14em;\n    text-transform:uppercase;background:#1D201D;color:#9BA39A;position:sticky;top:0}\n  .tools section{padding:7px 12px;border-bottom:1px solid #2A2E2A;display:grid;gap:5px}\n  .tools .f{display:grid;grid-template-columns:1fr 4.4em;gap:7px;align-items:center}\n  .tools label{color:#C8D4C2}\n  .tools input,.tools select{background:#0D0F0D;border:1px solid #2A2E2A;color:#ECEEE9;\n    font:inherit;padding:3px 4px;border-radius:3px;width:100%}\n  .tools input[type=number]{text-align:right}\n  .tools input[type=range]{grid-column:1/-1;accent-color:#C8D4C2;padding:0;border:0}\n  .tools textarea{width:100%;height:220px;background:#0D0F0D;color:#C8D4C2;\n    border:1px solid #2A2E2A;border-radius:3px;font:10px/1.45 ui-monospace,Menlo,monospace;\n    padding:6px;resize:vertical}\n  .tools .hint{color:#6E766C;font-size:9.5px;line-height:1.35}'
 
 
-PANEL_JS = '(function(){\n  if(!/[?&]tools/.test(location.search)) return;\n  const D = __DATA__;\n  D.all = Object.assign({}, D.roles, D.text);\n  D.order = Object.keys(D.all);\n\n  // The same rule as steps()/types() in build.py: every text step is the base\n  // resized, and only tracking and leading are walked with the size. Kept in\n  // step with it by hand — if the rule there changes, it changes here.\n  function derive() {\n    D.steps = {mark: D.markStep};\n    D.type = {mark: D.markType};\n    D.back = {mark: back(D.markBack)};\n    Object.entries(D.sizes).forEach(([n, size]) => {\n      const d = Math.min(size[0], D.walkStop) - D.baseSize;\n      D.steps[n] = {size, soft: D.base.soft, glow: D.base.glow,\n                    bloom: D.base.bloom, solid: D.base.solid};\n      D.type[n] = {weight: D.base.weight,\n                   ls: +(D.base.ls - D.track * d).toFixed(4),\n                   lh: +(D.base.lh - D.lead * d).toFixed(3)};\n      D.back[n] = back(D.baseBack);\n    });\n  }\n  // the backlight\'s opacities are its own; its colour is the page\'s\n  const back = b => Object.assign({}, b, {slab: [D.blc, b.slab], glow: [D.blc, b.glow]});\n  derive();\n  const redraw = () => { derive(); apply(); Object.keys(D.steps).forEach(paintBack); dump(); };\n  const panel = document.getElementById(\'tools\');\n  panel.classList.add(\'on\');\n  document.documentElement.classList.add(\'has-tools\');\n\n  const $ = (t, a = {}, kids = []) => {\n    const el = document.createElement(t);\n    for (const k in a) k === \'text\' ? el.textContent = a[k] : el.setAttribute(k, a[k]);\n    kids.forEach(c => el.appendChild(c));\n    return el;\n  };\n  const field = (box, label, input) => {\n    box.appendChild($(\'div\', {class: \'f\'}, [$(\'label\', {text: label}), input]));\n    return input;\n  };\n  const num = (v, min, max, step) => $(\'input\', {type: \'number\', value: v, min, max, step});\n  const slider = (box, v, min, max, step) => {\n    const r = $(\'input\', {type: \'range\', min, max, step, value: v});\n    box.appendChild(r); return r;\n  };\n  const colour = (v, onset) => {\n    const el = $(\'input\', {type: \'color\', value: v});\n    el.oninput = e => onset(e.target.value);\n    return el;\n  };\n\n  // The backlight is one SVG filter per step, built by build.py and not\n  // rebuildable from here -- but every number in it lives on an attribute that\n  // takes a new value in place: a morphology radius, two deviations, a matrix\n  // and two floods. Only `stack` needs nodes added or removed. The radii are in\n  // em of the step\'s own size, so each of a step\'s two filters (poster, and the\n  // small-screen one) is painted from its own font size.\n  function paintBack(name) {\n    const b = D.back[name], st = D.steps[name];\n    [[st.size[0], \'bl-\' + name], [st.size[1], \'bl-\' + name + \'-s\']].forEach(([fs, id]) => {\n      const f = document.getElementById(id);\n      if (!f) return;\n      const q = k => f.querySelector(\'[data-bl="\' + k + \'"]\');\n      q(\'dilate\').setAttribute(\'radius\', (b.dilate * fs).toFixed(2));\n      q(\'merge\').setAttribute(\'stdDeviation\', (b.merge * fs).toFixed(2));\n      q(\'halo\').setAttribute(\'stdDeviation\', (b.halo * fs).toFixed(2));\n      q(\'hard\').setAttribute(\'values\',\n        \'0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 \' + b.hard + \' \' + (-b.hard / 2));\n      [\'slab\', \'glow\'].forEach(k => {\n        q(k).setAttribute(\'flood-color\', b[k][0]);\n        q(k).setAttribute(\'flood-opacity\', b[k][1]);\n      });\n      // same curve as stack_table() in build.py\n      const n = Math.max(1, Math.round(b.stack)), S = 64, v = [];\n      for (let k = 0; k <= S; k++) v.push((1 - Math.pow(1 - k / S, n)).toFixed(4));\n      q(\'stack\').firstElementChild.setAttribute(\'tableValues\', v.join(\' \'));\n    });\n  }\n\n  const pick = (v, opts) => {\n    const sel = $(\'select\');\n    opts.forEach(o => {\n      const opt = $(\'option\', {value: o});\n      opt.textContent = o;\n      if (o === v) opt.selected = true;\n      sel.appendChild(opt);\n    });\n    return sel;\n  };\n\n  // The same rule as copy_html in build.py: a blank line starts a paragraph, a\n  // single newline is a break, and only the div-wrapped roles take paragraphs.\n  function copyHtml(role, text) {\n    const esc = t => t.replace(/&/g, \'&amp;\').replace(/</g, \'&lt;\').replace(/>/g, \'&gt;\');\n    const paras = text.trim().split(/\\n\\s*\\n/).filter(p => p.trim());\n    const link = t => t.replace(/\\[\\[(.+?)\\]\\]/g, (_, x) =>\n      \'<a href="\' + (D.links[x] || \'#\') + \'" target="_blank" rel="noopener">\' + x + \'</a>\');\n    const br = p => p.split(\'\\n\').map(l => link(esc(l))).join(\'<br>\');\n    const para = p => { const t = p.trim(), n = t.indexOf(\'\\n\');\n      const head = n < 0 ? t : t.slice(0, n), rest = n < 0 ? \'\' : t.slice(n + 1);\n      const m = head.trim().match(/^\\[([^\\[\\]]+)\\]$/);\n      return m ? \'<p class="chip"><span>\' + esc(m[1]) + \'</span></p>\'\n                 + (rest.trim() ? \'<p>\' + br(rest) + \'</p>\' : \'\')\n               : \'<p>\' + br(p) + \'</p>\'; };\n    return D.tag[role] === \'div\'\n      ? paras.map(para).join(\'\')\n      : paras.map(br).join(\'<br>\');\n  }\n  function setCopy(role) {\n    const el = document.querySelector(\'.t-\' + role);\n    if (!el) return;\n    const html = copyHtml(role, D.copy[role]);\n    [...el.children].forEach(layer => layer.innerHTML = html);\n  }\n\n  // The one place a role\'s numbers reach the page. Corners are re-filled in the\n  // declared order so moving one role never reshuffles the others.\n  function apply() {\n    D.order.forEach(role => {\n      const r = D.all[role], st = D.steps[r.step], c = D.sets[r.set];\n      document.querySelectorAll(\'.t-\' + role).forEach(el => {\n      const s = el.style;\n      s.setProperty(\'--fs\', st.size[0] + \'px\');\n      s.setProperty(\'--soft\', st.soft + \'px\');\n      s.setProperty(\'--solid\', st.solid == null ? 1 : st.solid);\n      s.setProperty(\'--glowR\', st.glow + \'em\');\n      s.setProperty(\'--bloomR\', st.bloom + \'px\');\n      s.setProperty(\'--slabF\', \'url(#bl-\' + r.step + \')\');\n      // 字重、字距、行距属于字号档，不属于角色——换档要整套跟过去\n      const ty = D.type[r.step] || {};\n      s.setProperty(\'--w\', ty.weight);\n      s.setProperty(\'--ls\', (r.ls ?? ty.ls) + \'em\');\n      s.setProperty(\'--lh\', r.lh ?? ty.lh);\n      s.setProperty(\'--ink\', c.ink);\n      s.setProperty(\'--glow\', c.glow);\n      s.setProperty(\'--bloom\', c.bloom);\n      s.setProperty(\'--gap\', (r.gap || 0) + \'px\');\n      s.setProperty(\'--maxw\', r.width ? r.width + \'ch\' : \'var(--fit)\');\n      });\n    });\n    // spacing and size both move the detail\'s height, and the reveal animates\n    // to a number that was measured before this edit\n    if (window.__lecMeasure) window.__lecMeasure();\n    D.corners.forEach(corner => {\n      const box = document.querySelector(\'.\' + corner);\n      if (!box) return;\n      Object.keys(D.roles).filter(role => D.roles[role].at === corner)\n             .forEach(role => { const b = D.roles[role].box;\n               (b && box.querySelector(\'.\' + b) || box)\n                 .appendChild(document.querySelector(\'.t-\' + role)); });\n    });\n  }\n\n  Object.entries(D.all).forEach(([role, r]) => {\n    const pinned = role in D.roles;\n    panel.appendChild($(\'h3\', {text: role + (pinned ? \'\' : \' · 讲座\')}));\n    const box = $(\'section\');\n    panel.appendChild(box);\n\n    field(box, \'字号档\', pick(r.step, Object.keys(D.steps)))\n      .onchange = e => { r.step = e.target.value; apply(); dump(); };\n    if (pinned) field(box, \'位置\', pick(r.at, D.corners))\n      .onchange = e => { r.at = e.target.value; apply(); dump(); };\n    field(box, \'配色\', pick(r.set, Object.keys(D.sets)))\n      .onchange = e => { r.set = e.target.value; apply(); dump(); };\n\n    const g = field(box, \'上方间距 px\', num(r.gap || 0, 0, 160, 2));\n    const gr = slider(box, r.gap || 0, 0, 160, 2);\n    const setGap = v => { r.gap = +v; g.value = v; gr.value = v; apply(); dump(); };\n    g.oninput = e => setGap(e.target.value);\n    gr.oninput = e => setGap(e.target.value);\n\n    if (role in D.copy) {\n      box.appendChild($(\'div\', {class: \'hint\', text: \'文案：空行分段，单个换行是换行\'}));\n      const ta = document.createElement(\'textarea\');\n      ta.value = D.copy[role];\n      ta.rows = role === \'desc\' ? 8 : 4;\n      ta.spellcheck = false;\n      ta.style.cssText = \'height:auto;font:10px/1.5 var(--font-sans)\';\n      box.appendChild(ta);\n      ta.oninput = () => { D.copy[role] = ta.value; setCopy(role); dump(); };\n    }\n\n    const w = field(box, \'宽度 ch · 0=不限\', num(r.width || 0, 0, 90, 1));\n    const wr = slider(box, r.width || 0, 0, 90, 1);\n    const setW = v => { r.width = +v; w.value = v; wr.value = v; apply(); dump(); };\n    w.oninput = e => setW(e.target.value);\n    wr.oninput = e => setW(e.target.value);\n  });\n\n  // A step is shared by every role that names it, so these move type all over\n  // the poster at once. soft is the blur on the ink layer -- the one that\n  // decides whether small type is legible -- and glow and bloom are the haze\n  // around it. The slab filter is built at build time from `size`, so changing\n  // size here moves the type without moving its silhouette: rebuild to see it.\n  // One section, not one per step: the ramp has a single hand-set size in it.\n  {\n    panel.appendChild($(\'h3\', {text: \'基准 t\' + D.baseSize}));\n    const box = $(\'section\');\n    panel.appendChild(box);\n    const knob = (label, min, max, step, read, write) => {\n      const n = field(box, label, num(read(), min, max, step));\n      const r = slider(box, read(), min, max, step);\n      const set = v => { write(+v); n.value = v; r.value = v; redraw(); };\n      n.oninput = e => set(e.target.value);\n      r.oninput = e => set(e.target.value);\n    };\n    const B = D.base;\n    knob(\'字距 em · ls\', -.12, .3, .005, () => B.ls, v => B.ls = v);\n    knob(\'行距 · lh\', .6, 2, .01, () => B.lh, v => B.lh = v);\n    knob(\'字重\', 100, 700, 50, () => B.weight, v => B.weight = v);\n    knob(\'模糊 px · soft\', 0, 4, .02, () => B.soft, v => B.soft = v);\n    knob(\'实心度 · solid\', 0, 1, .02, () => B.solid, v => B.solid = v);\n    knob(\'内发光 em · glow\', 0, 3, .01, () => B.glow, v => B.glow = v);\n    knob(\'外发光 px · bloom\', 0, 40, .1, () => B.bloom, v => B.bloom = v);\n    box.appendChild($(\'div\', {class: \'hint\', text:\n      \'其余字号由此算出。下面两个是阶梯的斜率：每大 1px，字距和行距各收回多少。\'}));\n    knob(\'字距斜率 · TRACK\', 0, .04, .0005, () => D.track, v => D.track = v);\n    knob(\'行距斜率 · LEAD\', 0, .06, .0005, () => D.lead, v => D.lead = v);\n  }\n\n  // The backlight. Radii in em, so the base\'s numbers are the whole ramp.\n  [[\'基准 背光\', D.baseBack], [\'mark 背光\', D.markBack]].forEach(([title, b]) => {\n    panel.appendChild($(\'h3\', {text: title}));\n    const box = $(\'section\');\n    panel.appendChild(box);\n    const knob = (label, min, max, step, read, write) => {\n      const n = field(box, label, num(read(), min, max, step));\n      const r = slider(box, read(), min, max, step);\n      const set = v => { write(+v); n.value = v; r.value = v; redraw(); };\n      n.oninput = e => set(e.target.value);\n      r.oninput = e => set(e.target.value);\n    };\n    knob(\'实色不透明\', 0, 1, .02, () => b.slab, v => b.slab = v);\n    knob(\'晕色不透明\', 0, 1, .02, () => b.glow, v => b.glow = v);\n    knob(\'外扩 em · dilate\', 0, .4, .005, () => b.dilate, v => b.dilate = v);\n    knob(\'合并 em · merge\', 0, .3, .005, () => b.merge, v => b.merge = v);\n    knob(\'晕开 em · halo\', 0, .8, .005, () => b.halo, v => b.halo = v);\n    knob(\'叠加次数 · stack\', 1, 24, 1, () => b.stack, v => b.stack = v);\n    knob(\'切边硬度 · hard\', .5, 12, .1, () => b.hard, v => b.hard = v);\n  });\n\n  // ONE colour, for every backlight on the page. Per-step would only ever\n  // produce four shades of almost-the-same-yellow lit side by side.\n  {\n    panel.appendChild($(\'h3\', {text: \'背光颜色 · 全局\'}));\n    const box = $(\'section\');\n    panel.appendChild(box);\n    field(box, \'颜色\', colour(D.blc, v => { D.blc = v; redraw(); }));\n    box.appendChild($(\'div\', {class: \'hint\', text:\n      \'整页所有背光共用这一个颜色。浓淡分别在上面两节的不透明度里调。\'}));\n  }\n\n  {\n    panel.appendChild($(\'h3\', {text: \'mark · 字号档\'}));\n    const box = $(\'section\');\n    panel.appendChild(box);\n    const knob = (label, min, max, step, read, write) => {\n      const n = field(box, label, num(read(), min, max, step));\n      const r = slider(box, read(), min, max, step);\n      const set = v => { write(+v); n.value = v; r.value = v; redraw(); };\n      n.oninput = e => set(e.target.value);\n      r.oninput = e => set(e.target.value);\n    };\n    const S = D.markStep, T = D.markType;\n    knob(\'字号 px\', 8, 200, .5, () => S.size[0], v => S.size[0] = v);\n    knob(\'字距 em · ls\', -.12, .3, .005, () => T.ls, v => T.ls = v);\n    knob(\'行距 · lh\', .6, 2, .01, () => T.lh, v => T.lh = v);\n    knob(\'字重\', 100, 700, 50, () => T.weight, v => T.weight = v);\n    knob(\'模糊 px · soft\', 0, 4, .02, () => S.soft, v => S.soft = v);\n    knob(\'实心度 · solid\', 0, 1, .02, () => S.solid, v => S.solid = v);\n    knob(\'内发光 em · glow\', 0, 3, .01, () => S.glow, v => S.glow = v);\n    knob(\'外发光 px · bloom\', 0, 40, .1, () => S.bloom, v => S.bloom = v);\n  }\n\n  // The two gaps that belong to the lecture blocks rather than to any one role.\n  panel.appendChild($(\'h3\', {text: \'讲座间距\'}));\n  {\n    const box = $(\'section\');\n    panel.appendChild(box);\n    const lecs = document.querySelector(\'.lecs\');\n    const pxKnob = (label, prop, min, max, step) => {\n      const cur = parseFloat(getComputedStyle(lecs).getPropertyValue(prop)) || 0;\n      const n = field(box, label, num(cur, min, max, step));\n      const r = slider(box, cur, min, max, step);\n      const set = v => { lecs.style.setProperty(prop, v + \'px\'); n.value = v; r.value = v; dump(); };\n      n.oninput = e => set(e.target.value);\n      r.oninput = e => set(e.target.value);\n    };\n    pxKnob(\'行距 --lec-lead\', \'--lec-lead\', 0, 60, 1);\n    pxKnob(\'离脊柱 --lec-gap\', \'--lec-gap\', 0, 200, 2);\n  }\n\n  panel.appendChild($(\'h3\', {text: \'页边距\'}));\n  {\n    const box = $(\'section\');\n    panel.appendChild(box);\n    const cur = parseInt(getComputedStyle(document.documentElement).getPropertyValue(\'--pad\'));\n    const p = field(box, \'--pad px\', num(cur, 8, 96, 2));\n    const pr = slider(box, cur, 8, 96, 2);\n    const setPad = v => {\n      document.documentElement.style.setProperty(\'--pad\', v + \'px\');\n      p.value = v; pr.value = v; dump();\n    };\n    p.oninput = e => setPad(e.target.value);\n    pr.oninput = e => setPad(e.target.value);\n  }\n\n  panel.appendChild($(\'h3\', {text: \'导出 · 贴回 build.py\'}));\n  const out = $(\'textarea\', {readonly: \'\', spellcheck: \'false\'});\n  {\n    const box = $(\'section\');\n    panel.appendChild(box);\n    box.appendChild(out);\n    box.appendChild($(\'div\', {class: \'hint\', text:\n      \'面板只改这一页，刷新就回到 build.py 里的值。\' +\n      \'导出的是手调的那些数，不是它们算出来的阶梯。\'}));\n  }\n\n  function dump() {\n    const q = s => "\'" + s + "\'";\n    const row = (role, withAt) => {\n      const r = D.all[role];\n      const bits = [];\n      if (withAt) bits.push(\'at=\' + q(r.at));\n      bits.push(\'step=\' + q(r.step), \'set=\' + q(r.set));\n      if (r.gap) bits.push(\'gap=\' + r.gap);\n      if (r.width) bits.push(\'width=\' + r.width);\n      if (r.ls != null) bits.push(\'ls=\' + r.ls);\n      if (r.lh != null) bits.push(\'lh=\' + r.lh);\n      return \'    \' + role + \'=dict(\' + bits.join(\', \') + \'),\';\n    };\n    const py = s => "\'" + s.replace(/\\\\/g, \'\\\\\\\\\').replace(/\'/g, "\\\\\'")\n      .replace(/\\n/g, \'\\\\n\') + "\'";\n    const copy = Object.keys(D.copy).map(k => \'    \' + k + \'=\' + py(D.copy[k]) + \',\');\n    // Only the hand-set numbers come back out. The ramp is a rule, and printing\n    // the five sizes it produces would invite pasting them back as five tables.\n    const B = D.base, S = D.markStep, T = D.markType;\n    const dict = (name, pairs) => name + \' = dict(\' + pairs.join(\', \') + \')\';\n    const bk = (name, b) => dict(name, [\'dilate=\' + b.dilate, \'merge=\' + b.merge,\n      \'hard=\' + b.hard, \'halo=\' + b.halo, \'stack=\' + Math.round(b.stack),\n      \'slab=\' + b.slab, \'glow=\' + b.glow]);\n    const lecs = getComputedStyle(document.querySelector(\'.lecs\'));\n    out.value =\n        dict(\'BASE\', [\'soft=\' + B.soft, \'glow=\' + B.glow, \'bloom=\' + B.bloom,\n                      \'solid=\' + B.solid, \'weight=\' + B.weight,\n                      \'ls=\' + B.ls, \'lh=\' + B.lh]) + \'\\n\'\n      + \'TRACK = \' + D.track + \'\\n\'\n      + \'LEAD = \' + D.lead + \'\\n\\n\'\n      + dict(\'MARK_STEP\', [\'size=(\' + S.size[0] + \', \' + S.size[1] + \')\',\n                           \'soft=\' + S.soft, \'glow=\' + S.glow, \'bloom=\' + S.bloom,\n                           \'solid=\' + S.solid]) + \'\\n\'\n      + dict(\'MARK_TYPE\', [\'weight=\' + T.weight, \'ls=\' + T.ls, \'lh=\' + T.lh]) + \'\\n\\n\'\n      + "BACKLIGHT_COLOUR = \'" + D.blc + "\'\\n"\n      + bk(\'BASE_BACK\', D.baseBack) + \'\\n\'\n      + bk(\'MARK_BACK\', D.markBack) + \'\\n\\n\'\n      + \'ROLES = dict(\\n\' + Object.keys(D.roles).map(r => row(r, true)).join(\'\\n\') + \'\\n)\\n\\n\'\n      + \'TEXT = dict(\\n\' + Object.keys(D.text).map(r => row(r, false)).join(\'\\n\') + \'\\n)\\n\\n\'\n      + \'COPY = dict(\\n\' + copy.join(\'\\n\') + \'\\n)\\n\\n\'\n      + \'--pad: \' + getComputedStyle(document.documentElement).getPropertyValue(\'--pad\').trim()\n      + \'\\n--lec-lead: \' + lecs.getPropertyValue(\'--lec-lead\').trim()\n      + \'\\n--lec-gap: \' + lecs.getPropertyValue(\'--lec-gap\').trim();\n  }\n\n  apply(); dump();\n})();\n'
+PANEL_JS = '(function(){\n  if(!/[?&]tools/.test(location.search)) return;\n  const D = __DATA__;\n  D.all = Object.assign({}, D.roles, D.text);\n  D.order = Object.keys(D.all);\n\n  // The same rule as steps()/types() in build.py: every text step is the base\n  // resized, and only tracking and leading are walked with the size. Kept in\n  // step with it by hand — if the rule there changes, it changes here.\n  function derive() {\n    D.steps = {mark: D.markStep};\n    D.type = {mark: D.markType};\n    D.back = {mark: back(D.markBack)};\n    Object.entries(D.sizes).forEach(([n, size]) => {\n      const d = Math.min(size[0], D.walkStop) - D.baseSize;\n      D.steps[n] = {size, soft: D.base.soft, glow: D.base.glow,\n                    bloom: D.base.bloom, solid: D.base.solid};\n      D.type[n] = {weight: D.base.weight,\n                   ls: +(D.base.ls - D.track * d).toFixed(4),\n                   lh: +(D.base.lh - D.lead * d).toFixed(3)};\n      D.back[n] = back(D.baseBack);\n    });\n  }\n  // the backlight\'s opacities are its own; its colour is the page\'s\n  const back = b => Object.assign({}, b, {slab: [D.blc, b.slab], glow: [D.blc, b.glow]});\n  derive();\n  const redraw = () => { derive(); apply(); Object.keys(D.steps).forEach(paintBack); dump(); };\n  const panel = document.getElementById(\'tools\');\n  panel.classList.add(\'on\');\n  document.documentElement.classList.add(\'has-tools\');\n\n  const $ = (t, a = {}, kids = []) => {\n    const el = document.createElement(t);\n    for (const k in a) k === \'text\' ? el.textContent = a[k] : el.setAttribute(k, a[k]);\n    kids.forEach(c => el.appendChild(c));\n    return el;\n  };\n  const field = (box, label, input) => {\n    box.appendChild($(\'div\', {class: \'f\'}, [$(\'label\', {text: label}), input]));\n    return input;\n  };\n  const num = (v, min, max, step) => $(\'input\', {type: \'number\', value: v, min, max, step});\n  const slider = (box, v, min, max, step) => {\n    const r = $(\'input\', {type: \'range\', min, max, step, value: v});\n    box.appendChild(r); return r;\n  };\n  const colour = (v, onset) => {\n    const el = $(\'input\', {type: \'color\', value: v});\n    el.oninput = e => onset(e.target.value);\n    return el;\n  };\n\n  // The backlight is one SVG filter per step, built by build.py and not\n  // rebuildable from here -- but every number in it lives on an attribute that\n  // takes a new value in place: a morphology radius, two deviations, a matrix\n  // and two floods. Only `stack` needs nodes added or removed. The radii are in\n  // em of the step\'s own size, so each of a step\'s two filters (poster, and the\n  // small-screen one) is painted from its own font size.\n  function paintBack(name) {\n    const b = D.back[name], st = D.steps[name];\n    [[st.size[0], \'bl-\' + name], [st.size[1], \'bl-\' + name + \'-s\']].forEach(([fs, id]) => {\n      const f = document.getElementById(id);\n      if (!f) return;\n      const q = k => f.querySelector(\'[data-bl="\' + k + \'"]\');\n      q(\'dilate\').setAttribute(\'radius\', (b.dilate * fs).toFixed(2));\n      q(\'merge\').setAttribute(\'stdDeviation\', (b.merge * fs).toFixed(2));\n      q(\'halo\').setAttribute(\'stdDeviation\', (b.halo * fs).toFixed(2));\n      q(\'hard\').setAttribute(\'values\',\n        \'0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 \' + b.hard + \' \' + (-b.hard / 2));\n      [\'slab\', \'glow\'].forEach(k => {\n        q(k).setAttribute(\'flood-color\', b[k][0]);\n        q(k).setAttribute(\'flood-opacity\', b[k][1]);\n      });\n      // same curve as stack_table() in build.py\n      const n = Math.max(1, Math.round(b.stack)), S = 64, v = [];\n      for (let k = 0; k <= S; k++) v.push((1 - Math.pow(1 - k / S, n)).toFixed(4));\n      q(\'stack\').firstElementChild.setAttribute(\'tableValues\', v.join(\' \'));\n    });\n  }\n\n  const pick = (v, opts) => {\n    const sel = $(\'select\');\n    opts.forEach(o => {\n      const opt = $(\'option\', {value: o});\n      opt.textContent = o;\n      if (o === v) opt.selected = true;\n      sel.appendChild(opt);\n    });\n    return sel;\n  };\n\n  // The same rule as copy_html in build.py: a blank line starts a paragraph, a\n  // single newline is a break, and only the div-wrapped roles take paragraphs.\n  function copyHtml(role, text) {\n    const esc = t => t.replace(/&/g, \'&amp;\').replace(/</g, \'&lt;\').replace(/>/g, \'&gt;\');\n    const paras = text.trim().split(/\\n\\s*\\n/).filter(p => p.trim());\n    const link = t => t.replace(/\\[\\[(.+?)\\]\\]/g, (_, x) =>\n      \'<a href="\' + (D.links[x] || \'#\') + \'" target="_blank" rel="noopener">\' + x + \'</a>\');\n    const em = t => t.replace(/\\*([^*]+)\\*/g, \'<em>$1</em>\');\n    const br = p => p.split(\'\\n\').map(l => em(link(esc(l)))).join(\'<br>\');\n    const para = p => { const t = p.trim(), n = t.indexOf(\'\\n\');\n      const w = t.match(/^\\[([^\\[\\]]+)\\]$/);\n      if (w) return \'<p class="chip"><span>\' + br(w[1]) + \'</span></p>\';\n      const head = n < 0 ? t : t.slice(0, n), rest = n < 0 ? \'\' : t.slice(n + 1);\n      const m = head.trim().match(/^\\[([^\\[\\]]+)\\]$/);\n      return m ? \'<p class="chip"><span>\' + esc(m[1]) + \'</span></p>\'\n                 + (rest.trim() ? \'<p>\' + br(rest) + \'</p>\' : \'\')\n               : \'<p>\' + br(p) + \'</p>\'; };\n    return D.tag[role] === \'div\'\n      ? paras.map(para).join(\'\')\n      : paras.map(br).join(\'<br>\');\n  }\n  function setCopy(role) {\n    const el = document.querySelector(\'.t-\' + role);\n    if (!el) return;\n    const html = copyHtml(role, D.copy[role]);\n    [...el.children].forEach(layer => layer.innerHTML = html);\n  }\n\n  // The one place a role\'s numbers reach the page. Corners are re-filled in the\n  // declared order so moving one role never reshuffles the others.\n  function apply() {\n    D.order.forEach(role => {\n      const r = D.all[role], st = D.steps[r.step], c = D.sets[r.set];\n      document.querySelectorAll(\'.t-\' + role).forEach(el => {\n      const s = el.style;\n      s.setProperty(\'--fs\', st.size[0] + \'px\');\n      s.setProperty(\'--soft\', st.soft + \'px\');\n      s.setProperty(\'--solid\', st.solid == null ? 1 : st.solid);\n      s.setProperty(\'--glowR\', st.glow + \'em\');\n      s.setProperty(\'--bloomR\', st.bloom + \'px\');\n      s.setProperty(\'--slabF\', \'url(#bl-\' + r.step + \')\');\n      // 字重、字距、行距属于字号档，不属于角色——换档要整套跟过去\n      const ty = D.type[r.step] || {};\n      s.setProperty(\'--w\', ty.weight);\n      s.setProperty(\'--ls\', (r.ls ?? ty.ls) + \'em\');\n      s.setProperty(\'--lh\', r.lh ?? ty.lh);\n      s.setProperty(\'--ink\', c.ink);\n      s.setProperty(\'--glow\', c.glow);\n      s.setProperty(\'--bloom\', c.bloom);\n      s.setProperty(\'--gap\', (r.gap || 0) + \'px\');\n      s.setProperty(\'--maxw\', r.width ? r.width + \'ch\' : \'var(--fit)\');\n      });\n    });\n    // spacing and size both move the detail\'s height, and the reveal animates\n    // to a number that was measured before this edit\n    if (window.__lecMeasure) window.__lecMeasure();\n    D.corners.forEach(corner => {\n      const box = document.querySelector(\'.\' + corner);\n      if (!box) return;\n      Object.keys(D.roles).filter(role => D.roles[role].at === corner)\n             .forEach(role => { const b = D.roles[role].box;\n               (b && box.querySelector(\'.\' + b) || box)\n                 .appendChild(document.querySelector(\'.t-\' + role)); });\n    });\n  }\n\n  Object.entries(D.all).forEach(([role, r]) => {\n    const pinned = role in D.roles;\n    panel.appendChild($(\'h3\', {text: role + (pinned ? \'\' : \' · 讲座\')}));\n    const box = $(\'section\');\n    panel.appendChild(box);\n\n    field(box, \'字号档\', pick(r.step, Object.keys(D.steps)))\n      .onchange = e => { r.step = e.target.value; apply(); dump(); };\n    if (pinned) field(box, \'位置\', pick(r.at, D.corners))\n      .onchange = e => { r.at = e.target.value; apply(); dump(); };\n    field(box, \'配色\', pick(r.set, Object.keys(D.sets)))\n      .onchange = e => { r.set = e.target.value; apply(); dump(); };\n\n    const g = field(box, \'上方间距 px\', num(r.gap || 0, 0, 160, 2));\n    const gr = slider(box, r.gap || 0, 0, 160, 2);\n    const setGap = v => { r.gap = +v; g.value = v; gr.value = v; apply(); dump(); };\n    g.oninput = e => setGap(e.target.value);\n    gr.oninput = e => setGap(e.target.value);\n\n    if (role in D.copy) {\n      box.appendChild($(\'div\', {class: \'hint\', text: \'文案：空行分段，单个换行是换行\'}));\n      const ta = document.createElement(\'textarea\');\n      ta.value = D.copy[role];\n      ta.rows = role === \'desc\' ? 8 : 4;\n      ta.spellcheck = false;\n      ta.style.cssText = \'height:auto;font:10px/1.5 var(--font-sans)\';\n      box.appendChild(ta);\n      ta.oninput = () => { D.copy[role] = ta.value; setCopy(role); dump(); };\n    }\n\n    const w = field(box, \'宽度 ch · 0=不限\', num(r.width || 0, 0, 90, 1));\n    const wr = slider(box, r.width || 0, 0, 90, 1);\n    const setW = v => { r.width = +v; w.value = v; wr.value = v; apply(); dump(); };\n    w.oninput = e => setW(e.target.value);\n    wr.oninput = e => setW(e.target.value);\n  });\n\n  // A step is shared by every role that names it, so these move type all over\n  // the poster at once. soft is the blur on the ink layer -- the one that\n  // decides whether small type is legible -- and glow and bloom are the haze\n  // around it. The slab filter is built at build time from `size`, so changing\n  // size here moves the type without moving its silhouette: rebuild to see it.\n  // One section, not one per step: the ramp has a single hand-set size in it.\n  {\n    panel.appendChild($(\'h3\', {text: \'基准 t\' + D.baseSize}));\n    const box = $(\'section\');\n    panel.appendChild(box);\n    const knob = (label, min, max, step, read, write) => {\n      const n = field(box, label, num(read(), min, max, step));\n      const r = slider(box, read(), min, max, step);\n      const set = v => { write(+v); n.value = v; r.value = v; redraw(); };\n      n.oninput = e => set(e.target.value);\n      r.oninput = e => set(e.target.value);\n    };\n    const B = D.base;\n    knob(\'字距 em · ls\', -.12, .3, .005, () => B.ls, v => B.ls = v);\n    knob(\'行距 · lh\', .6, 2, .01, () => B.lh, v => B.lh = v);\n    knob(\'字重\', 100, 700, 50, () => B.weight, v => B.weight = v);\n    knob(\'模糊 px · soft\', 0, 4, .02, () => B.soft, v => B.soft = v);\n    knob(\'实心度 · solid\', 0, 1, .02, () => B.solid, v => B.solid = v);\n    knob(\'内发光 em · glow\', 0, 3, .01, () => B.glow, v => B.glow = v);\n    knob(\'外发光 px · bloom\', 0, 40, .1, () => B.bloom, v => B.bloom = v);\n    box.appendChild($(\'div\', {class: \'hint\', text:\n      \'其余字号由此算出。下面两个是阶梯的斜率：每大 1px，字距和行距各收回多少。\'}));\n    knob(\'字距斜率 · TRACK\', 0, .04, .0005, () => D.track, v => D.track = v);\n    knob(\'行距斜率 · LEAD\', 0, .06, .0005, () => D.lead, v => D.lead = v);\n  }\n\n  // The backlight. Radii in em, so the base\'s numbers are the whole ramp.\n  [[\'基准 背光\', D.baseBack], [\'mark 背光\', D.markBack]].forEach(([title, b]) => {\n    panel.appendChild($(\'h3\', {text: title}));\n    const box = $(\'section\');\n    panel.appendChild(box);\n    const knob = (label, min, max, step, read, write) => {\n      const n = field(box, label, num(read(), min, max, step));\n      const r = slider(box, read(), min, max, step);\n      const set = v => { write(+v); n.value = v; r.value = v; redraw(); };\n      n.oninput = e => set(e.target.value);\n      r.oninput = e => set(e.target.value);\n    };\n    knob(\'实色不透明\', 0, 1, .02, () => b.slab, v => b.slab = v);\n    knob(\'晕色不透明\', 0, 1, .02, () => b.glow, v => b.glow = v);\n    knob(\'外扩 em · dilate\', 0, .4, .005, () => b.dilate, v => b.dilate = v);\n    knob(\'合并 em · merge\', 0, .3, .005, () => b.merge, v => b.merge = v);\n    knob(\'晕开 em · halo\', 0, .8, .005, () => b.halo, v => b.halo = v);\n    knob(\'叠加次数 · stack\', 1, 24, 1, () => b.stack, v => b.stack = v);\n    knob(\'切边硬度 · hard\', .5, 12, .1, () => b.hard, v => b.hard = v);\n  });\n\n  // ONE colour, for every backlight on the page. Per-step would only ever\n  // produce four shades of almost-the-same-yellow lit side by side.\n  {\n    panel.appendChild($(\'h3\', {text: \'背光颜色 · 全局\'}));\n    const box = $(\'section\');\n    panel.appendChild(box);\n    field(box, \'颜色\', colour(D.blc, v => { D.blc = v; redraw(); }));\n    box.appendChild($(\'div\', {class: \'hint\', text:\n      \'整页所有背光共用这一个颜色。浓淡分别在上面两节的不透明度里调。\'}));\n  }\n\n  {\n    panel.appendChild($(\'h3\', {text: \'mark · 字号档\'}));\n    const box = $(\'section\');\n    panel.appendChild(box);\n    const knob = (label, min, max, step, read, write) => {\n      const n = field(box, label, num(read(), min, max, step));\n      const r = slider(box, read(), min, max, step);\n      const set = v => { write(+v); n.value = v; r.value = v; redraw(); };\n      n.oninput = e => set(e.target.value);\n      r.oninput = e => set(e.target.value);\n    };\n    const S = D.markStep, T = D.markType;\n    knob(\'字号 px\', 8, 200, .5, () => S.size[0], v => S.size[0] = v);\n    knob(\'字距 em · ls\', -.12, .3, .005, () => T.ls, v => T.ls = v);\n    knob(\'行距 · lh\', .6, 2, .01, () => T.lh, v => T.lh = v);\n    knob(\'字重\', 100, 700, 50, () => T.weight, v => T.weight = v);\n    knob(\'模糊 px · soft\', 0, 4, .02, () => S.soft, v => S.soft = v);\n    knob(\'实心度 · solid\', 0, 1, .02, () => S.solid, v => S.solid = v);\n    knob(\'内发光 em · glow\', 0, 3, .01, () => S.glow, v => S.glow = v);\n    knob(\'外发光 px · bloom\', 0, 40, .1, () => S.bloom, v => S.bloom = v);\n  }\n\n  // The two gaps that belong to the lecture blocks rather than to any one role.\n  panel.appendChild($(\'h3\', {text: \'讲座间距\'}));\n  {\n    const box = $(\'section\');\n    panel.appendChild(box);\n    const lecs = document.querySelector(\'.lecs\');\n    const pxKnob = (label, prop, min, max, step) => {\n      const cur = parseFloat(getComputedStyle(lecs).getPropertyValue(prop)) || 0;\n      const n = field(box, label, num(cur, min, max, step));\n      const r = slider(box, cur, min, max, step);\n      const set = v => { lecs.style.setProperty(prop, v + \'px\'); n.value = v; r.value = v; dump(); };\n      n.oninput = e => set(e.target.value);\n      r.oninput = e => set(e.target.value);\n    };\n    pxKnob(\'行距 --lec-lead\', \'--lec-lead\', 0, 60, 1);\n    pxKnob(\'离脊柱 --lec-gap\', \'--lec-gap\', 0, 200, 2);\n  }\n\n  panel.appendChild($(\'h3\', {text: \'页边距\'}));\n  {\n    const box = $(\'section\');\n    panel.appendChild(box);\n    const cur = parseInt(getComputedStyle(document.documentElement).getPropertyValue(\'--pad\'));\n    const p = field(box, \'--pad px\', num(cur, 8, 96, 2));\n    const pr = slider(box, cur, 8, 96, 2);\n    const setPad = v => {\n      document.documentElement.style.setProperty(\'--pad\', v + \'px\');\n      p.value = v; pr.value = v; dump();\n    };\n    p.oninput = e => setPad(e.target.value);\n    pr.oninput = e => setPad(e.target.value);\n  }\n\n  panel.appendChild($(\'h3\', {text: \'导出 · 贴回 build.py\'}));\n  const out = $(\'textarea\', {readonly: \'\', spellcheck: \'false\'});\n  {\n    const box = $(\'section\');\n    panel.appendChild(box);\n    box.appendChild(out);\n    box.appendChild($(\'div\', {class: \'hint\', text:\n      \'面板只改这一页，刷新就回到 build.py 里的值。\' +\n      \'导出的是手调的那些数，不是它们算出来的阶梯。\'}));\n  }\n\n  function dump() {\n    const q = s => "\'" + s + "\'";\n    const row = (role, withAt) => {\n      const r = D.all[role];\n      const bits = [];\n      if (withAt) bits.push(\'at=\' + q(r.at));\n      bits.push(\'step=\' + q(r.step), \'set=\' + q(r.set));\n      if (r.gap) bits.push(\'gap=\' + r.gap);\n      if (r.width) bits.push(\'width=\' + r.width);\n      if (r.ls != null) bits.push(\'ls=\' + r.ls);\n      if (r.lh != null) bits.push(\'lh=\' + r.lh);\n      return \'    \' + role + \'=dict(\' + bits.join(\', \') + \'),\';\n    };\n    const py = s => "\'" + s.replace(/\\\\/g, \'\\\\\\\\\').replace(/\'/g, "\\\\\'")\n      .replace(/\\n/g, \'\\\\n\') + "\'";\n    const copy = Object.keys(D.copy).map(k => \'    \' + k + \'=\' + py(D.copy[k]) + \',\');\n    // Only the hand-set numbers come back out. The ramp is a rule, and printing\n    // the five sizes it produces would invite pasting them back as five tables.\n    const B = D.base, S = D.markStep, T = D.markType;\n    const dict = (name, pairs) => name + \' = dict(\' + pairs.join(\', \') + \')\';\n    const bk = (name, b) => dict(name, [\'dilate=\' + b.dilate, \'merge=\' + b.merge,\n      \'hard=\' + b.hard, \'halo=\' + b.halo, \'stack=\' + Math.round(b.stack),\n      \'slab=\' + b.slab, \'glow=\' + b.glow]);\n    const lecs = getComputedStyle(document.querySelector(\'.lecs\'));\n    out.value =\n        dict(\'BASE\', [\'soft=\' + B.soft, \'glow=\' + B.glow, \'bloom=\' + B.bloom,\n                      \'solid=\' + B.solid, \'weight=\' + B.weight,\n                      \'ls=\' + B.ls, \'lh=\' + B.lh]) + \'\\n\'\n      + \'TRACK = \' + D.track + \'\\n\'\n      + \'LEAD = \' + D.lead + \'\\n\\n\'\n      + dict(\'MARK_STEP\', [\'size=(\' + S.size[0] + \', \' + S.size[1] + \')\',\n                           \'soft=\' + S.soft, \'glow=\' + S.glow, \'bloom=\' + S.bloom,\n                           \'solid=\' + S.solid]) + \'\\n\'\n      + dict(\'MARK_TYPE\', [\'weight=\' + T.weight, \'ls=\' + T.ls, \'lh=\' + T.lh]) + \'\\n\\n\'\n      + "BACKLIGHT_COLOUR = \'" + D.blc + "\'\\n"\n      + bk(\'BASE_BACK\', D.baseBack) + \'\\n\'\n      + bk(\'MARK_BACK\', D.markBack) + \'\\n\\n\'\n      + \'ROLES = dict(\\n\' + Object.keys(D.roles).map(r => row(r, true)).join(\'\\n\') + \'\\n)\\n\\n\'\n      + \'TEXT = dict(\\n\' + Object.keys(D.text).map(r => row(r, false)).join(\'\\n\') + \'\\n)\\n\\n\'\n      + \'COPY = dict(\\n\' + copy.join(\'\\n\') + \'\\n)\\n\\n\'\n      + \'--pad: \' + getComputedStyle(document.documentElement).getPropertyValue(\'--pad\').trim()\n      + \'\\n--lec-lead: \' + lecs.getPropertyValue(\'--lec-lead\').trim()\n      + \'\\n--lec-gap: \' + lecs.getPropertyValue(\'--lec-gap\').trim();\n  }\n\n  apply(); dump();\n})();\n'
 
 
 def tools_panel():
@@ -1458,6 +1689,7 @@ def page(inline, spine=None, cols=None, rows=None, tools=False):
                 .replace('__TOOLSCSS__', TOOLS_CSS if tools else '').replace('__TYPECSS__', type_css())
                 .replace('__TYPECSS_SMALL__', type_css_small())
                 .replace('__LECCSS__', LEC_CSS)
+                .replace('__CLOSEFS__', ramp(28, 36))
                 .replace('__GRAINURL__', grain).replace('__GRAINA__', str(GRAIN['opacity']))
                 .replace('__GRAINSIZE__', f"{GRAIN['cell'] * 40:g}px")
                 .replace('__CELL__', ramp(CELL * SPINE_SMALL, CELL))
