@@ -297,14 +297,19 @@
     .lec{position:fixed;left:0;right:0;top:auto;bottom:0;width:auto;
       height:var(--lec-panel);margin:0;padding:calc(var(--halo) + 14px) var(--pad) var(--pad);
       overflow-y:auto;scrollbar-width:none;
-      pointer-events:auto;
+      /* no pointer-events here: all eight panels are stacked on the screen,
+         seven of them unseen, and only the open one (.lec.open, above) may
+         take a tap -- the rest would swallow every tap on the spine behind */
       -webkit-mask-image:linear-gradient(to bottom,transparent,#000 var(--halo));
       mask-image:linear-gradient(to bottom,transparent,#000 var(--halo));
       display:grid;grid-template-columns:1fr auto auto;
-      grid-template-rows:auto auto auto;align-content:start;column-gap:12px;align-items:start;
-      transform:translateY(var(--lec-rise))}
+      grid-template-rows:auto auto auto;align-content:start;column-gap:12px;align-items:start}
+    /* The panel changes in one frame. It used to rise and fade in, but the
+       one it replaced -- the information, or the last lecture -- went at once,
+       so every tap left the panel's ground empty for a quarter of a second:
+       a flash between the two. */
+    .lec,.lec.on{transform:none;transition:none}
     .lec::-webkit-scrollbar{display:none}
-    .lec.on{transform:none}
     /* over the segment numbers, which come later in the page and would
        otherwise show through */
     .lec.open{z-index:3}
@@ -408,7 +413,7 @@
        is lifted over them inside main). */
     /* Two heights: the information's panel, and an open lecture's. --panel
        is whichever is up, so the ground behind it follows. */
-    :root{--info-panel:200px;--lec-panel:240px;--panel:var(--info-panel);
+    :root{--info-panel:200px;--lec-panel:360px;--panel:var(--info-panel);
       --halo:26px;--panel-fade:26px}
     body:has(.lec.open){--panel:var(--lec-panel)}
     main{padding-bottom:calc(var(--info-panel) + 24px + var(--post, 0px))}
@@ -444,12 +449,15 @@
     .foot>.t-title,.foot>.t-tag{grid-column:2;justify-self:center;text-align:center;
       --maxw:100vw;white-space:nowrap}
     .head-r,.foot-r{display:none}
-    /* A line scrolled up fades over the room above the first line, and all
-       of that is over solid ground: the words' fade and the ground's fade
-       above it never share a pixel, which is what keeps them off the spine.
-       The distance from the spine to the first line is the two added. */
-    .poster .info{--info-fade:26px;
-      position:fixed;left:0;right:0;bottom:0;height:var(--info-panel);
+    /* A line scrolled up fades over --info-fade; the first line sits
+       --info-lead under the top of the solid ground. The fade is the longer,
+       so the box reaches up past the solid ground by the difference, and
+       there the words' fade and the ground's overlap a little -- traded for
+       a smaller gap between the spine and the first line (the ground's fade
+       plus the lead). */
+    .poster .info{--info-fade:26px;--info-lead:0px;
+      position:fixed;left:0;right:0;bottom:0;
+      height:calc(var(--info-panel) + var(--info-fade) - var(--info-lead));
       padding:var(--info-fade) var(--pad) var(--pad);overflow-y:auto;scrollbar-width:none;
       -webkit-mask-image:linear-gradient(to bottom,transparent,#000 var(--info-fade));
       mask-image:linear-gradient(to bottom,transparent,#000 var(--info-fade))}
