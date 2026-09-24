@@ -454,7 +454,7 @@
     /* It stays at the top while the spine scrolls under it, with no ground of
        its own: the spine runs on up to the top of the screen. Only the pieces take the pointer,
        so a tap in the gap still lands on the spine. */
-    .poster{position:sticky;top:0;pointer-events:none;padding-bottom:0}
+    .poster{position:fixed;top:0;left:0;right:0;pointer-events:none;padding-bottom:0}
     .poster>*,.poster .info{pointer-events:auto}
     /* Smaller here than in the column. The
        backlight is a filter per step, so each borrows the filter of the step
@@ -496,7 +496,12 @@
        its content (background-attachment:local). The spine starts up in the
        head, level with the logo, just under the subtitle. */
     :root{--main-top:-8px}
-    html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+    /* Nothing left over to scroll, either. body's min-height is 100vh, and
+       on iOS 100vh is the screen with the bars away -- taller than the page
+       with them showing, so the page could still be dragged up by the
+       difference, taking the head off the top with it. Hence the head is
+       fixed, too, rather than sticky: it no longer rides on the page at all. */
+    html,body{height:100%;min-height:0;overflow:hidden;overscroll-behavior:none}
     .grid{display:none}
     main{position:fixed;inset:0;margin:0;overflow-y:auto;overscroll-behavior:contain;
       scrollbar-width:none;
