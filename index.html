@@ -6,7 +6,11 @@
 <title>te online lecture</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Egyptian+Hieroglyphs&display=swap">
+<!-- The hieroglyph face is only for the animals, and must not hold up the
+     page: a plain stylesheet link blocks the first paint until it answers,
+     and where Google is unreachable (mainland China) that is a timeout. As
+     media=print it loads without blocking, and switches on when it lands. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Egyptian+Hieroglyphs&display=swap" media="print" onload="this.media='all'">
 <style>
   @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-Thin.woff2) format('woff2');font-weight:100;font-style:normal;font-display:swap}
   @font-face{font-family:'PP Neue Montreal';src:url(fonts/PPNeueMontreal-ThinItalic.woff2) format('woff2');font-weight:100;font-style:italic;font-display:swap}
@@ -366,12 +370,14 @@
   /* Beside the spine a corner has only its own column: the measure is capped
      at the room between the page edge and the spine, never across it. */
   @media not all and (max-width:760px){
-    /* Two columns: everything written on the left, then the spine a fixed
-       gap after it, and whatever is left over on the right is the lecture
-       blocks' room. --col is the written column's measure, --spine-x where the
-       spine starts; the spine, the grid under it and that room all follow it. */
-    :root{--col:clamp(280px, 26vw, 380px);
-      --spine-x:calc(var(--pad) + var(--col) + 40px)}
+    /* The spine in the middle of the page, everything written in the column
+       left of it, and the lecture blocks in the room right of it. --spine-x
+       is where the spine starts; the grid under it and the room beside it
+       follow it. --col is the written column's measure: its own width, but
+       never closer to the spine than 40px, so on a narrower screen the
+       column gives way rather than the spine moving off centre. */
+    :root{--spine-x:calc((100vw - var(--tools,0px) - 56 * var(--cell)) / 2);
+      --col:min(clamp(280px, 26vw, 380px), calc(var(--spine-x) - var(--pad) - 40px))}
     .poster{--col-fit:var(--col)}
     main{align-items:flex-start;margin-left:var(--spine-x)}
     .grid{background-position-x:var(--spine-x)}
