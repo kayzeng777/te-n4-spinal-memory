@@ -61,7 +61,8 @@ LEAD = .0164    # of line-height, likewise
 WALK_STOP = 26  # px past which tracking and leading stop tightening
 # poster size -> the size at NARROW, the ramp's own .857
 TEXT_SIZES = dict(t32=(32, 27.4), t26=(26, 22.3), t20=(20, 17.1), t18=(18, 15.4), t16=(16, 13.7),
-                  t14=(14, 12), t12=(12, 10.3))
+                  t14=(14, 12), t12=(12, 10.3),
+                  no=(16, 14))   # the segment numbers: 14 on a phone, not the ramp's 13.7
 MARK_STEP = dict(size=(100, 84), soft=1.92, glow=.04, bloom=9, solid=.76)
 MARK_TYPE = dict(weight=400, ls=-.055, lh=.8)
 
@@ -221,7 +222,7 @@ ROLES = dict(
 TEXT = dict(
     lecn=dict(step='t14', set='a'),
     lect=dict(step='t20', set='a'),
-    lecno=dict(step='t14', set='a'),
+    lecno=dict(step='no', set='a'),
     lecl=dict(step='t12', set='a', gap=12),
     lecb=dict(step='t14', set='a', gap=6, width=38),
     lecs=dict(step='t16', set='a', gap=14),
@@ -587,41 +588,70 @@ HEAD = '''<title>te online lecture</title>
     .poster>*{position:relative;left:auto;right:auto;top:auto;bottom:auto;
       width:auto;will-change:auto}
     /* The panel at the foot of the screen: the information, or an open
-       lecture in its place. Its ground is the page's own gradient where the
-       panel sits, fading in at the top so the spine goes under it softly. */
-    :root{--panel:240px;--halo:26px;--panel-bg:linear-gradient(#8bc888,#68c08d)}
-    main{padding-bottom:calc(var(--panel) + 24px + var(--post, 0px))}
-    /* The top: the logo on the left, as tall as the title block is on the
-       right. The foot corner dissolves (display:contents) so its title and
-       subtitle take the grid's right column and its info box leaves for the
-       panel. */
-    .poster{display:grid;grid-template-columns:auto 1fr;column-gap:16px;align-items:start}
+       lecture in its place. Its ground is not the panel's own: it is laid
+       once, behind whichever of the two is up, and fades out ABOVE the panel.
+       The words fade separately, inside the panel, so a line scrolled up has
+       gone before it reaches the part of the ground the spine shows through
+       -- when the two faded together, the last line and the spine overlapped.
+       The top of the screen gets the same, smaller, so the spine does not
+       meet the edge in a hard line. Both sit over the spine and under the
+       head and the panel's words (main is below the poster; an open lecture
+       is lifted over them inside main). */
+    /* Two heights: the information's panel, and an open lecture's. --panel
+       is whichever is up, so the ground behind it follows. */
+    :root{--info-panel:200px;--lec-panel:240px;--panel:var(--info-panel);
+      --halo:26px;--panel-fade:26px}
+    body:has(.lec.open){--panel:var(--lec-panel)}
+    main{padding-bottom:calc(var(--info-panel) + 24px + var(--post, 0px))}
+    main::before,main::after{content:"";position:fixed;left:0;right:0;z-index:2;
+      pointer-events:none}
+    main::before{top:0;height:64px;background:linear-gradient(#66bf8c,rgb(102 191 140 / 0))}
+    main::after{bottom:0;height:calc(var(--panel) + var(--panel-fade));
+      background:linear-gradient(rgb(139 200 136 / 0),#8bc888 var(--panel-fade),#68c08d)}
+    /* The top: the logo on the left, the title over the subtitle in the
+       middle of the page, each on one line. Two equal outer columns are what
+       keep the middle one centred on the page rather than on what is left
+       beside the logo. The foot corner dissolves (display:contents) so its
+       title and subtitle take the middle column and its info box leaves for
+       the panel. The logo spans both rows and is taller than the two lines
+       together; the second row takes what is left over, or the grid shares
+       it out and the subtitle drifts away from the title. */
+    .poster{display:grid;grid-template-columns:1fr auto 1fr;grid-template-rows:auto 1fr;
+      column-gap:12px;align-items:start}
     /* It stays at the top while the spine scrolls under it, with no ground of
-       its own: the spine runs on up to the top of the screen, through the
-       gap between the logo and the title. Only the pieces take the pointer,
+       its own: the spine runs on up to the top of the screen. Only the pieces take the pointer,
        so a tap in the gap still lands on the spine. */
-    .poster{position:sticky;top:0;pointer-events:none}
+    .poster{position:sticky;top:0;pointer-events:none;padding-bottom:0}
     .poster>*,.poster .info{pointer-events:auto}
-    /* Smaller here than in the column: this block sets the logo's height. The
+    /* Smaller here than in the column. The
        backlight is a filter per step, so each borrows the filter of the step
        nearest its size. */
-    .foot>.t-title{--fs:16px;--slabF:url(#bl-t16-s)}
+    .foot>.t-title{--fs:14px;--slabF:url(#bl-t16-s)}
     .foot>.t-tag{--fs:8.7px;--slabF:url(#bl-t12-s)}
-    .poster>.head{grid-row:1 / span 2;align-self:stretch;align-items:stretch}
-    .t-logo,.t-logo>*,.t-logo svg{height:100%}
+    .foot>.t-title br,.foot>.t-tag br{display:none}   /* one line each here */
+    .poster>.head{grid-row:1 / span 2}
+    .t-logo{--fs:44px}
     .poster>.foot{display:contents}
-    .foot>.t-title,.foot>.t-tag{grid-column:2;justify-self:end;text-align:right}
+    .foot>.t-title,.foot>.t-tag{grid-column:2;justify-self:center;text-align:center;
+      --maxw:100vw;white-space:nowrap}
     .head-r,.foot-r{display:none}
-    .poster .info{position:fixed;left:0;right:0;bottom:0;height:var(--panel);
-      padding:var(--halo) var(--pad) var(--pad);overflow-y:auto;scrollbar-width:none;
-      background:var(--panel-bg);
-      -webkit-mask-image:linear-gradient(to bottom,transparent,#000 var(--halo));
-      mask-image:linear-gradient(to bottom,transparent,#000 var(--halo))}
+    /* A line scrolled up fades over the room above the first line, and all
+       of that is over solid ground: the words' fade and the ground's fade
+       above it never share a pixel, which is what keeps them off the spine.
+       The distance from the spine to the first line is the two added. */
+    .poster .info{--info-fade:26px;
+      position:fixed;left:0;right:0;bottom:0;height:var(--info-panel);
+      padding:var(--info-fade) var(--pad) var(--pad);overflow-y:auto;scrollbar-width:none;
+      -webkit-mask-image:linear-gradient(to bottom,transparent,#000 var(--info-fade));
+      mask-image:linear-gradient(to bottom,transparent,#000 var(--info-fade))}
     .poster .info::-webkit-scrollbar{display:none}
     .poster .info>:first-child{margin-top:0}
     .poster .info>.t{--maxw:100%}
     body:has(.lec.open) .poster .info{visibility:hidden}
-    :root{--main-top:24px}
+    /* The spine starts up in the head, level with the logo, just under the
+       subtitle. Padding cannot go negative, so here the lift is a margin. */
+    :root{--main-top:-8px}
+    main{margin-top:var(--main-top);padding-top:var(--pre, 0px)}
   }
   @media (max-width:__MID__px){
     __TYPECSS_SMALL__
@@ -779,9 +809,9 @@ LEC_CSS = '''/* The lecture blocks. One per segment of the spine, parked at the 
      be laid out on the panel's own grid. */
   @media (max-width:__NARROW__px){
     .lec{position:fixed;left:0;right:0;top:auto;bottom:0;width:auto;
-      height:var(--panel);margin:0;padding:calc(var(--halo) + 14px) var(--pad) var(--pad);
+      height:var(--lec-panel);margin:0;padding:calc(var(--halo) + 14px) var(--pad) var(--pad);
       overflow-y:auto;scrollbar-width:none;
-      pointer-events:auto;background:var(--panel-bg);
+      pointer-events:auto;
       -webkit-mask-image:linear-gradient(to bottom,transparent,#000 var(--halo));
       mask-image:linear-gradient(to bottom,transparent,#000 var(--halo));
       display:grid;grid-template-columns:1fr auto auto;
@@ -926,7 +956,7 @@ __LECS__
       // is left between them
       const top=narrow.matches?poster.offsetHeight:0;
       const at=top+(innerHeight-top-(narrow.matches?
-        parseFloat(getComputedStyle(root).getPropertyValue('--panel'))||0:0))/2;
+        parseFloat(getComputedStyle(root).getPropertyValue('--lec-panel'))||0:0))/2;
       lend(g,at);
       const c=g.getBoundingClientRect();
       const to=Math.max(0,Math.min(scrollY+(c.top+c.bottom)/2-at,
@@ -1184,8 +1214,9 @@ __LECS__
 # line break — one rule, so the tools panel can hand the same text back and the
 # export pastes straight in here.
 COPY = dict(
-    title='Spinal\nMemory',
-    tag='Research and Practice\non Non-Human Animals',
+    # the space before the break is what is left when a phone drops the break
+    title='Spinal \nMemory',
+    tag='Research and Practice \non Non-Human Animals',   # the space: see title
     desc='[Intro]\n'
          'Spinal Memory, the 4th issue of te magazine, grew out of a reflection on '
          'the imagining of non-human animals\u2014examining how humans control, domesticate, '
