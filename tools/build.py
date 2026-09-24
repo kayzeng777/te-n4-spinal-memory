@@ -537,6 +537,8 @@ HEAD = '''<title>te online lecture</title>
     mix-blend-mode:overlay;opacity:__GRAINA__;
     background-size:__GRAINSIZE__ __GRAINSIZE__;background-image:__GRAINURL__}
   :root{--grid-img:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'><path d='M0 0H1M0 0V1' fill='none' stroke='%23cccccc' stroke-width='.05' stroke-dasharray='.14 .1'/></svg>")}
+  .nogrid .grid{display:none}
+  .nogrid main{background-image:none !important}
   .grid{position:absolute;inset:0;pointer-events:none;z-index:0;
     background-image:var(--grid-img);
     background-size:var(--cell) var(--cell);
@@ -1234,20 +1236,22 @@ __LECS__
     addEventListener('scrollend',reclaim,{passive:true});
     main.addEventListener('scrollend',reclaim,{passive:true});
     // Closing gives ALL the lent room back. What is out of sight goes at once
-    // (reclaim); what is on screen is let out over a glide, so the spine
-    // settles back where it began rather than jumping there -- or, as it did
-    // before, staying off where the first or last segment was brought to.
-    let giving=null;
+    // (reclaim); what is on screen is scrolled out of sight -- down past the
+    // room above, or up off the room below -- and reclaim takes it when the
+    // scroll settles. Letting the room itself shrink frame by frame looked the
+    // same but re-laid-out the whole spine every frame, which on a phone was
+    // anything but smooth.
     function release(){
       tween=null;reclaim();
       if(!pre&&!post)return;
       if(still.matches){setRoom(0,0);return;}
-      const p0=pre,q0=post,t0=performance.now(),id={};giving=id;
-      (function step(now){
-        if(giving!==id||open!==-1)return;   // opened again: that lends anew
-        const k=Math.min(1,(now-t0)/GLIDE),e=1-EASE(k);
-        setRoom(Math.round(p0*e),Math.round(q0*e));
-        if(k<1)requestAnimationFrame(step);})(t0);}
+      scrollToY(Math.max(0,Math.min(getY()+pre-post,maxY())));}
+    // Where scrollend is missing, a scroll that has been quiet for a moment is
+    // taken as settled.
+    if(!('onscrollend' in window)){let quiet;
+      const settle=()=>{clearTimeout(quiet);quiet=setTimeout(reclaim,160);};
+      addEventListener('scroll',settle,{passive:true});
+      main.addEventListener('scroll',settle,{passive:true});}
     // A custom property holding a length reads back as its text ("min(440px,
     // 54svh)"), not as px; a probe laid out at that height gives the number.
     const probe=document.createElement('div');
@@ -1265,25 +1269,29 @@ __LECS__
       lend(g,at);
       const c=g.getBoundingClientRect();
       const to=Math.max(0,Math.min(getY()+(c.top+c.bottom)/2-at,maxY()));
+      if(Math.abs(to-getY())<DEAD)return false;   // nothing moved, so nothing to hold
+      scrollToY(to);
+      return true;
+    }
+    // The tween is a main-thread scroll: every frame the whole paint pipeline
+    // has to finish inside that frame, and it is moving about 32px a frame
+    // across 9,300 elements. The browser's own smooth scroll runs on the
+    // compositor, which can move tiles it has already rasterised -- at the
+    // price of the duration and the curve, which it does not let you set. On
+    // a phone that trade is taken, and it was the smooth one; beside the spine
+    // the tween stays, or ?nativeglide there too.
+    const NATIVE=/[?&]nativeglide/.test(location.search);
+    function scrollToY(to){
       const from=getY(),d=to-from;
-      if(Math.abs(d)<DEAD)return false;   // nothing moved, so nothing to hold
-      if(still.matches){setY(to);return true;}
-      // The tween below is a main-thread scroll: every frame the whole paint
-      // pipeline has to finish inside that frame, and it is moving about 32px
-      // a frame across 9,300 elements. The browser's own smooth scroll runs on
-      // the compositor, which can move tiles it has already rasterised -- at
-      // the price of the duration and the curve, which it does not let you set.
-      if(/[?&]nativeglide/.test(location.search)){
-        (inMain()?main:window).scrollTo({top:to,behavior:'smooth'});return true;}
+      if(still.matches){setY(to);return;}
+      if(NATIVE||inMain()){(inMain()?main:window).scrollTo({top:to,behavior:'smooth'});return;}
       const t0=performance.now(),id={};tween=id;dir=Math.sign(d);
       coast=t0-lastWheel<GAP;             // clicked mid-coast
       (function step(now){
         if(tween!==id)return;               // the reader took the scroll back
         const k=Math.min(1,(now-t0)/GLIDE);
         setY(from+d*EASE(k));
-        if(k<1)requestAnimationFrame(step);else{tween=null;reclaim();}})(t0);
-      return true;
-    }
+        if(k<1)requestAnimationFrame(step);else{tween=null;reclaim();}})(t0);}
     // Hover is read from where the pointer actually is — not from enter/leave on
     // the segments. While the page glides, the spine slides under a cursor that
     // is standing still; the browser queues the boundary events that causes and
@@ -1383,6 +1391,10 @@ __LECS__
   // grain blends over everything including the lens. ?nolens / ?nograin / ?flat.
   if(q.has('nolens')||q.has('flat')||q.has('plain'))lens.remove();
   if(q.has('nograin')||q.has('flat')||q.has('plain')){const g=document.querySelector('.grain');if(g)g.remove();}
+  // ?nogrid drops the dotted grid. On a phone it is main's own background,
+  // scrolling with it (attachment:local), and may be repainted every frame
+  // of a scroll rather than moved.
+  if(q.has('nogrid')||q.has('plain'))document.documentElement.classList.add('nogrid');
   // ?nofilter drops the backlight: one SVG filter chain per role, over a filter
   // region 3.4x the box in each direction, which is 11x the area to rasterise.
   if(q.has('nofilter')||q.has('plain'))
@@ -1789,3 +1801,108 @@ art = page(True)
 open(os.path.join(REPO, 'artifact.html'), 'w').write(art)
 print(f'index.html {len(repo_doc)//1024} KB ({SPINE_COLS:g}x{SPINE_ROWS}) · '
       f'artifact.html {len(art)//1024} KB')
+
+
+# ---------------------------------------------------------------------------
+# The social cut: the phone poster in a 1080x1350 frame, for screen recordings
+# posted as 4:5. The frame is an iframe, so the poster's own viewport IS the
+# 4:5 box and every vw, svh and breakpoint in it answers to that and not to
+# the phone round it -- the layout is the phone's, only shorter. social.html is
+# the frame, social-poster.html what it holds.
+#
+# Against the site: the title block is set larger, its chip names the issue,
+# and the empty corner opposite the logo says when and where to find it.
+LINK_ICON = ('<svg class="link-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" '
+             'stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'
+             '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>'
+             '<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>')
+TEXT_SIZES.update(t30=(30, 30), t18p=(18, 18), t16p=(16, 16))
+STEPS, TYPE = steps(), types()
+ROLES.update(
+    edition=dict(ROLES['edition'], step='t18p'),
+    title=dict(ROLES['title'], step='t30', gap=8),
+    tag=dict(ROLES['tag'], step='t16p', gap=6),
+    when=dict(at='head-r', step='t18p', set='a'),
+)
+ROLE_TAG['when'] = 'div'
+COPY.update(edition='[Issue 4]',
+            when='Online Lectures\nOct 10 – Nov 8\n\n[Link in bio @ICON@]')
+SOCIAL_CSS = '''
+  @media (max-width:__NARROW__px){
+    /* opposite the logo, set right, over the spine like the logo is */
+    .poster>.head-r{display:flex;grid-column:3;grid-row:1 / span 2;justify-self:end;
+      align-items:flex-end;text-align:right;padding:var(--pad) var(--pad) 0 0}
+    .poster .t-title{--gap:8px}
+    /* the panel holds the bigger title block and still shows the Intro's head */
+    :root{--info-panel:210px}
+  }
+  .loop-copy{position:relative;pointer-events:none;flex-shrink:0}
+  .loop-copy .spine.anim,.loop-copy .spine.pics{position:absolute;left:0;top:0}
+  .t-when .chip{margin-top:.7em}
+  .t-when .link-icon{width:.95em;height:.95em;vertical-align:-.12em;display:inline-block}
+  .t-when .slab .link-icon{stroke:#000}
+'''.replace('__NARROW__', str(NARROW))
+social = page(False).replace('@ICON@', LINK_ICON)
+# its own sheet, after the phone rules it overrides: the main one ends inside
+# an unclosed block, which would swallow anything appended to it
+social = social.replace('</style>', '</style>\n<style>' + SOCIAL_CSS + '</style>', 1)
+# The spine climbs on its own, round and round. A copy of the drawing hangs
+# under the real one, one PERIOD down; the scroll runs up the page and, once it
+# has come a whole period, steps back by exactly that -- the frame after the
+# step is the frame before it, so the loop has no seam. The animals are copied
+# across as they change, or the step would swap one set for another. A touch,
+# a wheel or an open lecture stops it; it picks up again SOCIAL_IDLE ms after.
+# ?speed= in px a second, 0 to leave it still.
+SOCIAL_JS = """<script>(function(){
+  const main=document.getElementById('content'),stage=main&&main.querySelector('.stage');
+  if(!stage)return;
+  const q=/[?&]speed=([\\d.]+)/.exec(location.search), SPEED=q?+q[1]:22, IDLE=2500, GAP=4;
+  const copy=document.createElement('div');
+  copy.className='loop-copy';copy.setAttribute('aria-hidden','true');
+  stage.querySelectorAll(':scope>svg').forEach(sv=>{const c=sv.cloneNode(true);
+    c.querySelectorAll('[id]').forEach(e=>e.removeAttribute('id'));c.removeAttribute('aria-label');
+    copy.appendChild(c);});
+  stage.after(copy);
+  const src=stage.querySelector('.spine.anim .glyphs'),dst=copy.querySelector('.spine.anim .glyphs');
+  if(src&&dst)new MutationObserver(()=>{dst.innerHTML=src.innerHTML;})
+    .observe(src,{subtree:true,childList:true,attributes:true,characterData:true});
+  const cell=()=>stage.offsetWidth/"""+f"{SPINE_COLS:g}"+""";
+  const place=()=>{copy.style.marginTop=(GAP*cell()-(stage.offsetHeight-stage.querySelector('svg').getBoundingClientRect().height))+'px';};
+  place();addEventListener('resize',place);
+  const period=()=>copy.getBoundingClientRect().top-stage.getBoundingClientRect().top;
+  let y=main.scrollTop,last=performance.now(),held=0,down=false;
+  const hold=()=>{held=performance.now();y=main.scrollTop;};
+  ['pointerdown','touchstart','wheel'].forEach(e=>main.addEventListener(e,()=>{down=e!=='wheel';hold();},{passive:true}));
+  ['pointerup','pointercancel','touchend'].forEach(e=>addEventListener(e,()=>{down=false;hold();},{passive:true}));
+  main.addEventListener('scroll',()=>{const P=period();
+    if(P>0&&main.scrollTop>=P){main.scrollTop-=P;y-=P;}},{passive:true});
+  (function tick(now){
+    const dt=Math.min(now-last,100);last=now;
+    const busy=down||document.querySelector('.lec.open,.lec.on')||now-held<IDLE;
+    if(!busy&&SPEED>0){const P=period();
+      y+=SPEED*dt/1000;if(P>0&&y>=P)y-=P;main.scrollTop=y;}
+    else y=main.scrollTop;
+    requestAnimationFrame(tick);})(last);
+})();</script>
+"""
+open(os.path.join(REPO, 'social-poster.html'), 'w').write(
+    '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
+    '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
+    + social.replace('</style>', '</style>\n</head>\n<body>', 1) + SOCIAL_JS + '</body>\n</html>\n')
+open(os.path.join(REPO, 'social.html'), 'w').write('''<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>te online lecture · 4:5</title>
+<style>
+  html,body{margin:0;height:100%;background:#000;overflow:hidden;overscroll-behavior:none}
+  body{display:grid;place-items:center}
+  /* 1080 x 1350: as wide as the screen, or as tall, whichever runs out first */
+  iframe{display:block;border:0;width:min(100vw, 80svh);aspect-ratio:1080/1350}
+</style>
+</head>
+<body><iframe src="social-poster.html" title="te online lecture"></iframe></body>
+</html>
+''')
+print('social.html + social-poster.html')

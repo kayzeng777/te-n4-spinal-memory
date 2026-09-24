@@ -52,6 +52,8 @@
     mix-blend-mode:overlay;opacity:0.82;
     background-size:76px 76px;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.5263' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncR type='linear' slope='1' intercept='-0.232'/><feFuncG type='linear' slope='1' intercept='-0.232'/><feFuncB type='linear' slope='1' intercept='-0.232'/></feComponentTransfer></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
   :root{--grid-img:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'><path d='M0 0H1M0 0V1' fill='none' stroke='%23cccccc' stroke-width='.05' stroke-dasharray='.14 .1'/></svg>")}
+  .nogrid .grid{display:none}
+  .nogrid main{background-image:none !important}
   .grid{position:absolute;inset:0;pointer-events:none;z-index:0;
     background-image:var(--grid-img);
     background-size:var(--cell) var(--cell);
@@ -874,20 +876,22 @@
     addEventListener('scrollend',reclaim,{passive:true});
     main.addEventListener('scrollend',reclaim,{passive:true});
     // Closing gives ALL the lent room back. What is out of sight goes at once
-    // (reclaim); what is on screen is let out over a glide, so the spine
-    // settles back where it began rather than jumping there -- or, as it did
-    // before, staying off where the first or last segment was brought to.
-    let giving=null;
+    // (reclaim); what is on screen is scrolled out of sight -- down past the
+    // room above, or up off the room below -- and reclaim takes it when the
+    // scroll settles. Letting the room itself shrink frame by frame looked the
+    // same but re-laid-out the whole spine every frame, which on a phone was
+    // anything but smooth.
     function release(){
       tween=null;reclaim();
       if(!pre&&!post)return;
       if(still.matches){setRoom(0,0);return;}
-      const p0=pre,q0=post,t0=performance.now(),id={};giving=id;
-      (function step(now){
-        if(giving!==id||open!==-1)return;   // opened again: that lends anew
-        const k=Math.min(1,(now-t0)/GLIDE),e=1-EASE(k);
-        setRoom(Math.round(p0*e),Math.round(q0*e));
-        if(k<1)requestAnimationFrame(step);})(t0);}
+      scrollToY(Math.max(0,Math.min(getY()+pre-post,maxY())));}
+    // Where scrollend is missing, a scroll that has been quiet for a moment is
+    // taken as settled.
+    if(!('onscrollend' in window)){let quiet;
+      const settle=()=>{clearTimeout(quiet);quiet=setTimeout(reclaim,160);};
+      addEventListener('scroll',settle,{passive:true});
+      main.addEventListener('scroll',settle,{passive:true});}
     // A custom property holding a length reads back as its text ("min(440px,
     // 54svh)"), not as px; a probe laid out at that height gives the number.
     const probe=document.createElement('div');
@@ -905,25 +909,29 @@
       lend(g,at);
       const c=g.getBoundingClientRect();
       const to=Math.max(0,Math.min(getY()+(c.top+c.bottom)/2-at,maxY()));
+      if(Math.abs(to-getY())<DEAD)return false;   // nothing moved, so nothing to hold
+      scrollToY(to);
+      return true;
+    }
+    // The tween is a main-thread scroll: every frame the whole paint pipeline
+    // has to finish inside that frame, and it is moving about 32px a frame
+    // across 9,300 elements. The browser's own smooth scroll runs on the
+    // compositor, which can move tiles it has already rasterised -- at the
+    // price of the duration and the curve, which it does not let you set. On
+    // a phone that trade is taken, and it was the smooth one; beside the spine
+    // the tween stays, or ?nativeglide there too.
+    const NATIVE=/[?&]nativeglide/.test(location.search);
+    function scrollToY(to){
       const from=getY(),d=to-from;
-      if(Math.abs(d)<DEAD)return false;   // nothing moved, so nothing to hold
-      if(still.matches){setY(to);return true;}
-      // The tween below is a main-thread scroll: every frame the whole paint
-      // pipeline has to finish inside that frame, and it is moving about 32px
-      // a frame across 9,300 elements. The browser's own smooth scroll runs on
-      // the compositor, which can move tiles it has already rasterised -- at
-      // the price of the duration and the curve, which it does not let you set.
-      if(/[?&]nativeglide/.test(location.search)){
-        (inMain()?main:window).scrollTo({top:to,behavior:'smooth'});return true;}
+      if(still.matches){setY(to);return;}
+      if(NATIVE||inMain()){(inMain()?main:window).scrollTo({top:to,behavior:'smooth'});return;}
       const t0=performance.now(),id={};tween=id;dir=Math.sign(d);
       coast=t0-lastWheel<GAP;             // clicked mid-coast
       (function step(now){
         if(tween!==id)return;               // the reader took the scroll back
         const k=Math.min(1,(now-t0)/GLIDE);
         setY(from+d*EASE(k));
-        if(k<1)requestAnimationFrame(step);else{tween=null;reclaim();}})(t0);
-      return true;
-    }
+        if(k<1)requestAnimationFrame(step);else{tween=null;reclaim();}})(t0);}
     // Hover is read from where the pointer actually is — not from enter/leave on
     // the segments. While the page glides, the spine slides under a cursor that
     // is standing still; the browser queues the boundary events that causes and
@@ -1023,6 +1031,10 @@
   // grain blends over everything including the lens. ?nolens / ?nograin / ?flat.
   if(q.has('nolens')||q.has('flat')||q.has('plain'))lens.remove();
   if(q.has('nograin')||q.has('flat')||q.has('plain')){const g=document.querySelector('.grain');if(g)g.remove();}
+  // ?nogrid drops the dotted grid. On a phone it is main's own background,
+  // scrolling with it (attachment:local), and may be repainted every frame
+  // of a scroll rather than moved.
+  if(q.has('nogrid')||q.has('plain'))document.documentElement.classList.add('nogrid');
   // ?nofilter drops the backlight: one SVG filter chain per role, over a filter
   // region 3.4x the box in each direction, which is 11x the area to rasterise.
   if(q.has('nofilter')||q.has('plain'))
