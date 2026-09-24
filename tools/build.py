@@ -54,15 +54,42 @@ COLOUR_SETS = dict(
 # `mark` is outside the ramp. It is a logotype at 110px, tuned on its own, and
 # a rule fitted over a 12-to-20px range has nothing to say about it.
 BASE = dict(soft=.9, glow=2.22, bloom=5.2, solid=.84,
-            weight=400, ls=.035, lh=.92)
+            weight=400, ls=.035, lh=.98)
 BASE_SIZE = 14
 TRACK = .0091   # em of letter-spacing given back per px of size over the base
 LEAD = .0164    # of line-height, likewise
-# poster size -> the size under the 760px breakpoint, the ramp's own .857
-TEXT_SIZES = dict(t20=(20, 17.1), t18=(18, 15.4), t16=(16, 13.7),
+WALK_STOP = 26  # px past which tracking and leading stop tightening
+# poster size -> the size at NARROW, the ramp's own .857
+TEXT_SIZES = dict(t32=(32, 27.4), t26=(26, 22.3), t20=(20, 17.1), t18=(18, 15.4), t16=(16, 13.7),
                   t14=(14, 12), t12=(12, 10.3))
-MARK_STEP = dict(size=(100, 66), soft=1.92, glow=.04, bloom=9, solid=.76)
+MARK_STEP = dict(size=(100, 84), soft=1.92, glow=.04, bloom=9, solid=.76)
 MARK_TYPE = dict(weight=400, ls=-.055, lh=.8)
+
+
+# The poster keeps its three columns -- corner type, spine, lecture -- from WIDE
+# down to NARROW, and what makes room for them is everything getting smaller
+# together: the spine and every text size slide from their poster size at WIDE
+# to their small size at NARROW, on the same line. Stepping one and not the
+# other is what made the type look shrunk against a spine that was not.
+# Below NARROW the three columns do not fit at any size.
+NARROW, WIDE = 760, 1440
+# The spine goes further than the type does: it is the widest thing on the
+# page, and every px it keeps is a px taken off the lecture beside it, which
+# at .75 was squeezed into a strip one long word wide. The type stops at its
+# small sizes, which are as small as it reads. The lens is read against the
+# spine, so it shrinks by the spine's share.
+SPINE_SMALL = .55   # the spine's width at NARROW, of its poster width
+CELL = 9            # px per spine cell at WIDE and up
+LENS, FEATHER = 100, 8   # the lens's diameter and blur at WIDE, px
+
+
+def ramp(small, big):
+    """A length that is `small` at NARROW, `big` at WIDE, straight between."""
+    if small == big:
+        return f'{big:g}px'
+    slope = (big - small) / (WIDE - NARROW)
+    return (f'clamp({small:g}px, calc({small:g}px + {slope:.5f} * (100vw - {NARROW}px)), '
+            f'{big:g}px)')
 
 
 def steps():
@@ -75,7 +102,9 @@ def steps():
 def types():
     out = dict(mark=dict(MARK_TYPE))
     for name, size in TEXT_SIZES.items():
-        d = size[0] - BASE_SIZE
+        # the walk was fitted up to about 26px; past that it keeps tightening
+        # until the letters touch, so it stops there
+        d = min(size[0], WALK_STOP) - BASE_SIZE
         out[name] = dict(weight=BASE['weight'],
                          ls=round(BASE['ls'] - TRACK * d, 4),
                          lh=round(BASE['lh'] - LEAD * d, 3))
@@ -172,14 +201,17 @@ def backlight_defs():
 # edge it is pinned to, so the right-hand corners are right-aligned without being
 # told. `gap` is the space above a role when it follows a sibling in the same
 # corner. `step` names a row of STEPS, `set` a row of COLOUR_SETS. width caps the
-# measure in ch so it survives a size change.
+# measure in ch so it survives a size change. `ls` and `lh` override the step's
+# tracking and leading for that role alone. Roles that name the same `box` are
+# wrapped together in a div of that class inside their corner, so the corner
+# can place them as one: on a phone, `info` is the panel at the foot.
 CORNERS = ('head', 'head-r', 'foot', 'foot-r')
 ROLES = dict(
     logo=dict(at='head', step='mark', set='a'),
-    title=dict(at='foot', step='t20', set='a'),
+    title=dict(at='foot', step='t32', set='a', ls=-.035, lh=.88),
     tag=dict(at='foot', step='t14', set='a', gap=6, width=32),
-    info=dict(at='foot', step='t16', set='a', gap=48),
-    desc=dict(at='foot', step='t14', set='a', gap=48, width=19),
+    desc=dict(at='foot', step='t14', set='a', gap=32, width=46, box='info'),
+    facts=dict(at='foot', step='t14', set='a', gap=21, width=46, box='info'),
 )
 
 
@@ -192,7 +224,15 @@ TEXT = dict(
     lecno=dict(step='t14', set='a'),
     lecl=dict(step='t12', set='a', gap=12),
     lecb=dict(step='t14', set='a', gap=6, width=38),
+    lecs=dict(step='t16', set='a', gap=14),
 )
+
+# Where each lecture's Sign Up button goes. One link for the series unless a
+# lecture names its own with `signup=`.
+SIGNUP = '#'
+# The time is its own field, not part of `when`: the series is one time of day,
+# but a lecture that falls on the other side of a clock change is not.
+TIME = '9am EDT / 9pm CST'
 
 # One row per segment of the spine, top to bottom: segment 0 is the top vertebra.
 # `when`, `who` and `lang` are one line each; `what` is the title; `about` is prose, and
@@ -279,12 +319,13 @@ def type_css():
         c, st = COLOUR_SETS[r['set']], STEPS[r['step']]
         v = [f"--ink:{c['ink']}", f"--glow:{c['glow']}", f"--bloom:{c['bloom']}",
              f"--solid:{st.get('solid', 1)}",
-             f"--fs:{st['size'][0]}px", f"--soft:{st['soft']}px",
+             f"--fs:{ramp(st['size'][1], st['size'][0])}", f"--soft:{st['soft']}px",
              f"--glowR:{st['glow']}em", f"--bloomR:{st['bloom']}px",
              f"--slabF:url(#bl-{r['step']})"]
         t = TYPE.get(r['step'])
         if t:
-            v += [f"--w:{t['weight']}", f"--ls:{t['ls']}em", f"--lh:{t['lh']}"]
+            v += [f"--w:{t['weight']}", f"--ls:{r.get('ls', t['ls'])}em",
+                  f"--lh:{r.get('lh', t['lh'])}"]
         if 'width' in r:
             v += [f"--maxw:{r['width']}ch"]
         if r.get('gap'):
@@ -294,10 +335,10 @@ def type_css():
 
 
 def type_css_small():
-    """The breakpoint only moves font sizes. Every radius is absolute except the
-    tight glow, which is in em and follows on its own."""
-    return ''.join(f".t-{role}{{--fs:{STEPS[r['step']]['size'][1]}px;"
-                   f"--slabF:url(#bl-{r['step']}-s)}}"
+    """The size itself slides (see ramp), but a filter cannot read a custom
+    property, so the backlight is built twice and swaps halfway down the slide.
+    Every other radius is absolute, or in em and follows on its own."""
+    return ''.join(f".t-{role}{{--slabF:url(#bl-{r['step']}-s)}}"
                    for role, r in {**ROLES, **TEXT}.items()
                    if STEPS[r['step']]['size'][0] != STEPS[r['step']]['size'][1])
 
@@ -305,7 +346,7 @@ def type_css_small():
 # The measure is capped against the viewport as well as in ch: the poster's
 # blocks are max-content and pinned to a corner, so on a narrow screen a measure
 # set in ch would simply run off the edge.
-TYPE_CSS = '''.t{--fit:calc(100vw - 2 * var(--pad) - var(--tools,0px));
+TYPE_CSS = '''.t{--fit:var(--col-fit, calc(100vw - 2 * var(--pad) - var(--tools,0px)));
     position:relative;margin:0;color:var(--ink);font-size:var(--fs);
     max-width:min(var(--maxw,var(--fit)),var(--fit))}
   .t>*{margin:0;font-family:var(--font-sans);font-weight:var(--w);font-size:var(--fs);
@@ -319,8 +360,19 @@ TYPE_CSS = '''.t{--fit:calc(100vw - 2 * var(--pad) - var(--tools,0px));
      absolute ones are block formatting contexts and keep it inside, so their
      text lands a whole margin lower than the slab drawn behind it. Zero it here
      — on every layer at once — and say what the gap between paragraphs is. */
-  .t>*>p{margin:0}
+  .t>*>*{margin:0}
   .t>*>p+p{margin-top:.75em}
+  /* A chip labels what follows it: a small pill, drawn in the text's own
+     colour on every layer, so it takes the same glow as the words. */
+  .t>*>*+.chip{margin-top:1.5em}
+  .t>*>.chip+p{margin-top:.4em}
+  .t .chip>span{display:inline-block;font-size:.78em;line-height:1;
+    padding:.2em .6em .25em;border:1px solid currentColor;border-radius:999px}
+  .t a{color:inherit;text-decoration:none}
+  .t a::after{content:"\\2009\\2197"}
+  /* Five copies of every word, stacked. Only the top one takes a selection, so
+     a drag across two blocks copies the text once and not five times. */
+  .t>:not(.core){-webkit-user-select:none;user-select:none}
   /* The slab's own pixels are thrown away — the filter keeps nothing but its
      alpha and returns the silhouette. Hence the flat black: it is never seen. */
   .t .slab{color:#000;filter:var(--slabF)}
@@ -349,7 +401,11 @@ def layers(tag, role, html, **attrs):
     return (f'<div class="t t-{role}"{extra}>'
             + ''.join(f'<{tag} class="{name}"'
                       + ('' if name == 'ink' else ' aria-hidden="true"')
-                      + f'>{html}</{tag}>' for name in LAYERS)
+                      # a link is followed on the top copy; the rest stay out of
+                      # the tab order, or every link would be five stops
+                      + '>' + (html if name == 'core'
+                               else html.replace('<a ', '<a tabindex="-1" '))
+                      + f'</{tag}>' for name in LAYERS)
             + '</div>')
 
 
@@ -385,7 +441,7 @@ HEAD = '''<title>te online lecture</title>
   :root{
     --font-sans:"PP Neue Montreal",-apple-system,"Helvetica Neue",Arial,sans-serif;
     --ink:#101410; --ink-brown:#822D00; --ink-soft:rgba(16,20,16,.7);
-    --cell:min(8px, calc(66vw / __COLS__));
+    --cell:min(__CELL__, calc(66vw / __COLS__));
   }
   *{box-sizing:border-box}
   html,body{margin:0;min-height:100%}
@@ -409,9 +465,14 @@ HEAD = '''<title>te online lecture</title>
   .grid{position:absolute;inset:0;pointer-events:none;z-index:0;
     background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'><path d='M0 0H1M0 0V1' fill='none' stroke='%23cccccc' stroke-width='.05' stroke-dasharray='.14 .1'/></svg>");
     background-size:var(--cell) var(--cell);
-    background-position:calc(50% + var(--cell) / 2) 8vh;}
+    background-position:calc(50% + var(--cell) / 2)
+      calc(var(--poster-h, 0px) + var(--main-top) + var(--pre, 0px));}
   main{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;
-    padding:8vh 0 12vh;margin-right:var(--tools,0)}
+    padding:calc(var(--main-top) + var(--pre, 0px)) 0 calc(12vh + var(--post, 0px));
+    margin-right:var(--tools,0)}
+  /* --pre and --post are room the script lends above and below the spine, so
+     an opened segment at either end can still be brought to the middle. */
+  :root{--main-top:8vh}
   /* Three drawings in one place: the 9,300 elements that never change, then a
      layer for the animals and a layer for the photographs, which are the only
      things that do. Neither takes the pointer, so a hit test still lands on
@@ -460,6 +521,41 @@ HEAD = '''<title>te online lecture</title>
   .poster>*{position:absolute;pointer-events:auto;width:max-content;margin:0;
     will-change:transform}
   .poster h1,.poster p{margin:0}
+  /* Beside the spine a corner has only its own column: the measure is capped
+     at the room between the page edge and the spine, never across it. */
+  @media not all and (max-width:__NARROW__px){
+    /* Two columns: everything written on the left, then the spine a fixed
+       gap after it, and whatever is left over on the right is the lecture
+       blocks' room. --col is the written column's measure, --spine-x where the
+       spine starts; the spine, the grid under it and that room all follow it. */
+    :root{--col:clamp(280px, 26vw, 380px);
+      --spine-x:calc(var(--pad) + var(--col) + 40px)}
+    .poster{--col-fit:var(--col)}
+    main{align-items:flex-start;margin-left:var(--spine-x)}
+    .grid{background-position-x:var(--spine-x)}
+    /* The right-hand corners share their side with the lecture blocks, so they step
+       aside while one is up. */
+    .head-r,.foot-r{transition:opacity var(--lec-in,.24s) ease}
+    body:has(.lec.on) :is(.head-r,.foot-r){opacity:0;pointer-events:none;transition-duration:var(--lec-off,0s)}
+    /* The bottom-left column is longer than some screens are tall. It stays
+       on the bottom margin while it fits; when it does not, it stops under the
+       logo and scrolls on its own. The first child's auto margin is what does
+       both -- it takes the slack when there is some and is zero when there is
+       none, so the top is never scrolled out of reach. The box is padded by
+       the glow's reach, or the scroller would clip the light off the edges,
+       and that padding fades, so a line scrolled up under the logo goes soft
+       rather than being cut -- but nothing at rest sits in the fade. */
+    .poster>.foot{--halo:26px;
+      top:calc(var(--pad) + __MARKFS__ + 80px - var(--halo));
+      bottom:calc(var(--pad) - var(--halo));left:calc(var(--pad) - var(--halo));
+      padding:var(--halo);overflow-y:auto;scrollbar-width:none;
+      -webkit-mask-image:linear-gradient(to bottom,transparent,#000 var(--halo));
+      mask-image:linear-gradient(to bottom,transparent,#000 var(--halo))}
+    .poster>.foot::-webkit-scrollbar{display:none}
+    .poster>.foot>:first-child{margin-top:auto}
+  }
+  /* Pinned to the right, but read from the left. */
+  .poster>.foot-r{align-items:flex-start;text-align:left}
   /* Four corners. Everything on the poster is pinned to one of them, so a new
      block is a class, not a new rule. The right-hand pair is set right-aligned:
      they grow inward, away from their edge. */
@@ -468,16 +564,74 @@ HEAD = '''<title>te online lecture</title>
   .head-r,.foot-r{right:var(--pad);align-items:flex-end;text-align:right}
   .head,.head-r{top:var(--pad)}
   .foot,.foot-r{bottom:var(--pad)}
-  /* A role that follows a sibling in the same corner sets its own space above. */
+  /* A role that follows a sibling in the same corner sets its own space above,
+     and so does one inside a box -- the first one too, since the box itself
+     has no gap to give. */
   .poster>*>*+*{margin-top:var(--gap,0)}
-  /* The breakpoint changes sizes and the padding, nothing else: a block stays in
-     the corner it was placed in, so the arrangement reads the same on a phone as
-     on a screen. The measures are in ch and capped against --fit, which is what
-     keeps the two bottom corners from meeting. */
-  @media (max-width:760px){
-    :root{--pad:16px}
+  .poster .info{display:flex;flex-direction:column;align-items:flex-start}
+  .poster .info>*{margin-top:var(--gap,0)}
+  /* A block stays in the corner it was placed in at every width. The measures
+     are in ch and capped against --fit, which is what keeps the two bottom
+     corners from meeting. */
+  /* A phone. Three columns will not fit at any size, so the poster stops being
+     a poster laid over the page and becomes the top of it: the corners come
+     down out of their fixed positions and are read first, top to bottom, and
+     the spine follows, as wide as the margins allow.
+
+     --poster-h is where the spine starts now, which the grid has to know to
+     stay on the cells. */
+  @media (max-width:__NARROW__px){
+    :root{--pad:16px;--cell:calc((100vw - 2 * var(--pad)) * .72 / __COLS__)}
+    .poster{position:relative;inset:auto;z-index:2;pointer-events:auto;
+      display:flex;flex-direction:column}
+    .poster>*{position:relative;left:auto;right:auto;top:auto;bottom:auto;
+      width:auto;will-change:auto}
+    /* The panel at the foot of the screen: the information, or an open
+       lecture in its place. Its ground is the page's own gradient where the
+       panel sits, fading in at the top so the spine goes under it softly. */
+    :root{--panel:360px;--halo:26px;--panel-bg:linear-gradient(#8bc888,#68c08d)}
+    main{padding-bottom:calc(var(--panel) + 24px + var(--post, 0px))}
+    /* The top: the logo on the left, as tall as the title block is on the
+       right. The foot corner dissolves (display:contents) so its title and
+       subtitle take the grid's right column and its info box leaves for the
+       panel. */
+    .poster{display:grid;grid-template-columns:auto 1fr;column-gap:16px;align-items:start}
+    /* It stays at the top while the spine scrolls under it, on a ground of
+       the page's own colour there that fades out below it. A mask would do
+       the fade more simply, but it would mask the info panel with it: that
+       is a child of the poster, fixed or not. */
+    .poster{position:sticky;top:0}
+    .poster::before{content:"";position:absolute;inset:0 0 calc(-1 * var(--halo));
+      z-index:-1;pointer-events:none;
+      background:linear-gradient(#66bf8c calc(100% - var(--halo)),rgb(102 191 140 / 0))}
+    /* Smaller here than in the column: this block sets the logo's height. The
+       backlight is a filter per step, so each borrows the filter of the step
+       nearest its size. */
+    .foot>.t-title{--fs:19px;--slabF:url(#bl-t20-s)}
+    .foot>.t-tag{--fs:10.3px;--slabF:url(#bl-t12-s)}
+    .poster>.head{grid-row:1 / span 2;align-self:stretch;align-items:stretch}
+    .t-logo,.t-logo>*,.t-logo svg{height:100%}
+    .poster>.foot{display:contents}
+    .foot>.t-title,.foot>.t-tag{grid-column:2;justify-self:end;text-align:right}
+    .head-r,.foot-r{display:none}
+    .poster .info{position:fixed;left:0;right:0;bottom:0;height:var(--panel);
+      padding:var(--halo) var(--pad) var(--pad);overflow-y:auto;scrollbar-width:none;
+      background:var(--panel-bg);
+      -webkit-mask-image:linear-gradient(to bottom,transparent,#000 var(--halo));
+      mask-image:linear-gradient(to bottom,transparent,#000 var(--halo))}
+    .poster .info::-webkit-scrollbar{display:none}
+    .poster .info>:first-child{margin-top:0}
+    .poster .info>.t{--maxw:100%}
+    body:has(.lec.open) .poster .info{visibility:hidden}
+    :root{--main-top:24px}
+  }
+  @media (max-width:__MID__px){
     __TYPECSS_SMALL__
   }
+  /* The lens is read against the spine, so it shrinks with it, on the same
+     slide and by the same share -- the feather too, or a smaller lens would
+     come out softer. ?lens and ?feather still override both. */
+  .lens{--lens:__LENS__;--feather:__FEATHER__}
   .lens{position:fixed;left:0;top:0;width:var(--lens,100px);height:var(--lens,100px);border-radius:50%;--lens-rgb:138 138 138;background:rgb(var(--lens-rgb));filter:blur(var(--feather,8px));
     mix-blend-mode:difference;pointer-events:none;z-index:100;transform:translate(-1000px,-1000px);will-change:transform;display:none}
   @media (hover:hover) and (pointer:fine){.lens{display:block}}
@@ -510,8 +664,9 @@ LEC_CSS = '''/* The lecture blocks. One per segment of the spine, parked at the 
   :root{--lec-in:.24s; --lec-out:.26s; --lec-off:0s}
   .lecs{position:absolute;inset:0;pointer-events:none;
     /* room the spine leaves on one side, which is what a block has to live in */
-    --side:calc((100vw - var(--tools,0px) - __COLS__ * var(--cell)) / 2);
-    --lec-gap:48px;       /* between the spine and the block */
+    --side:calc(100vw - var(--tools,0px) - __COLS__ * var(--cell)
+      - var(--spine-x, calc((100vw - var(--tools,0px) - __COLS__ * var(--cell)) / 2)));
+    --lec-gap:48px;       /* between the spine and the block, at most */
     --lec-rise:10px;      /* how far a block travels as it arrives */
     --lec-lead:8px;
     --lec-halo:26px}   /* how far the type's glow reaches past its box */
@@ -522,9 +677,15 @@ LEC_CSS = '''/* The lecture blocks. One per segment of the spine, parked at the 
      level with the middle of the shape they name. .more is taken out of the
      flow below it, which is what keeps the head still while the detail opens:
      the block's own height is the head's height and nothing else. */
-  .lec{position:absolute;left:100%;margin-left:var(--lec-gap);
+  /* The block takes the room right of the spine. When that room is short of
+     the full measure plus a --lec-gap either side, the gap to the spine gives
+     way too, and stays equal to the gap left at the page edge -- the block sits
+     in the middle of what there is, never closer than --pad to either side. */
+  .lec{position:absolute;left:100%;
+    --lec-w:min(38ch, calc(var(--side) - 2 * var(--pad)));
+    margin-left:min(var(--lec-gap), calc((var(--side) - var(--lec-w)) / 2));
     top:calc(var(--y) * 100%);
-    width:max(18ch, min(38ch, calc(var(--side) - var(--lec-gap) - var(--pad))));
+    width:var(--lec-w);
     opacity:0;transform:translateY(calc(-50% + var(--lec-rise)));
     transition:opacity var(--lec-off), transform var(--lec-off);
     will-change:opacity,transform;
@@ -547,6 +708,12 @@ LEC_CSS = '''/* The lecture blocks. One per segment of the spine, parked at the 
      negative insets, so it reaches past the box on three sides and never
      touches a letter, while only the bottom edge sweeps down as it opens.
      --more-h is the detail's natural height, measured once the fonts land. */
+  /* A closed detail is height:0 with its whole text overflowing it, and
+     overflow counts toward how far the page scrolls. So a hover near the end
+     of the page lengthened the page, the leave shortened it, and at the
+     bottom the browser pulled the scroll back up each time: the spine rose
+     and fell under the pointer. Closed, it is clipped -- but not its glow. */
+  .lec:not(.open) .more{overflow:clip;overflow-clip-margin:var(--lec-halo)}
   .lec .more{height:0;opacity:0;
     clip-path:inset(calc(-1 * var(--lec-halo)) calc(-1 * var(--lec-halo)) 0);
     transition:height var(--lec-off), opacity var(--lec-off),
@@ -558,14 +725,16 @@ LEC_CSS = '''/* The lecture blocks. One per segment of the spine, parked at the 
      on top of it, the same knob that spaces the roles in the corners. The
      detail's first line takes only its gap: its distance from the title above
      is already .more's lead. */
-  .lec .more-in>*+*{margin-top:calc(var(--lec-lead) + var(--gap,0px))}
-  .lec .more-in>:first-child{margin-top:var(--gap,0px)}
+  .lec .more-in>*+*,.lec .scroll>*+*{margin-top:calc(var(--lec-lead) + var(--gap,0px))}
+  .lec .more-in>:first-child,.lec .scroll>:first-child{margin-top:var(--gap,0px)}
   /* Each line's glow spills onto the line under it, and in document order the
      one underneath paints last and washes over the one above. Reversed: the
      first line keeps its edges and every glow falls behind what came before.
      .more carries a clip-path, so it is its own stacking context and the two
      inside it order among themselves. */
-  .lec>*,.lec .more-in>*{position:relative}
+  .lec>*,.lec .more-in>*,.lec .scroll>*{position:relative}
+  .lec .scroll>:nth-child(1){z-index:2}
+  .lec .scroll>:nth-child(2){z-index:1}
   .lec>:nth-child(1){z-index:3}
   .lec>:nth-child(2){z-index:2}
   .lec>:nth-child(3){z-index:1}
@@ -583,11 +752,56 @@ LEC_CSS = '''/* The lecture blocks. One per segment of the spine, parked at the 
   .lec .t>*{max-width:100%}
   .lec.on{content-visibility:visible;opacity:1;transform:translateY(-50%);
     transition-duration:var(--lec-in),var(--lec-in)}
-  /* Not enough room beside the spine any more: the block lies over it, from the
-     left edge of the spine, where the segment\'s photo is its ground. */
-  @media (max-width:1100px){
-    .lecs{--lec-gap:0px}
-    .lec{left:0;margin-left:0;width:min(38ch,100%)}
+  /* An open block is something to read, copy from and click through, so it
+     takes the pointer. A hovered one does not: it goes the moment the pointer
+     leaves its segment, and it would only ever be caught half way. */
+  .lec.open{pointer-events:auto}
+  .lec .signup{display:block;width:max-content;text-decoration:none;
+    padding:.3em .75em .4em;border:1.5px solid #f28030;border-radius:999px;
+    box-shadow:0 0 10px #fdf48a,inset 0 0 6px #fdf48a;
+    transition:background-color .15s ease}
+  .lec .signup:hover{background-color:rgba(253,244,138,.45)}
+  .lec .signup:focus-visible{outline:2px solid #f28030;outline-offset:3px}
+  /* Once the column narrows, an open block's detail runs long enough to reach
+     its neighbours, and a hovered neighbour lands on it. Whichever it lands
+     on, the hovered one is on top: it is the one just asked for. Left to
+     document order, a hover above the open block went under it. Beside the
+     spine only -- on a phone the block is a sheet with its own place. */
+  @media not all and (max-width:__NARROW__px){
+    .lec.open{z-index:1}
+    .lec.on:not(.open){z-index:2}
+  }
+  /* The phone's close button; beside the spine a click elsewhere does it. */
+  .lec-close{display:none}
+  /* On a phone the open lecture takes the panel at the foot of the screen, the
+     one the information sits in the rest of the time: its when and who and
+     title across the top with Sign Up and the close beside them, and the
+     description under them; the panel scrolls as a whole. .more and its inner
+     box step out of the way (display:contents) so the pieces inside them can
+     be laid out on the panel's own grid. */
+  @media (max-width:__NARROW__px){
+    .lec{position:fixed;left:0;right:0;top:auto;bottom:0;width:auto;
+      height:var(--panel);margin:0;padding:calc(var(--halo) + 14px) var(--pad) var(--pad);
+      overflow-y:auto;scrollbar-width:none;
+      pointer-events:auto;background:var(--panel-bg);
+      -webkit-mask-image:linear-gradient(to bottom,transparent,#000 var(--halo));
+      mask-image:linear-gradient(to bottom,transparent,#000 var(--halo));
+      display:grid;grid-template-columns:1fr auto auto;
+      grid-template-rows:auto auto auto;align-content:start;column-gap:12px;align-items:start;
+      transform:translateY(var(--lec-rise))}
+    .lec::-webkit-scrollbar{display:none}
+    .lec.on{transform:none}
+    /* over the segment numbers, which come later in the page and would
+       otherwise show through */
+    .lec.open{z-index:3}
+    .lec .more,.lec .more-in{display:contents}
+    .lec>.t-lecn{grid-area:1/1}
+    .lec>.t-lect{grid-area:2/1}
+    .lec .signup{grid-area:1/2;margin:0}
+    .lec-close{grid-area:1/3;display:block;margin:0;padding:0 2px;border:0;
+      background:none;color:#f28030;font:300 26px/.8 var(--font-sans);cursor:pointer;
+      text-shadow:0 0 6px #fdf48a}
+    .lec .scroll{grid-area:3/1/4/-1;margin-top:var(--lec-lead)}
   }'''
 
 
@@ -655,10 +869,69 @@ __LECS__
     // Starts slow, arrives slow. For a pure ease-in, swap in t=>t*t*t.
     const EASE=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
     const still=matchMedia('(prefers-reduced-motion: reduce)');
-    let tween=null;
-    function glide(g){
+    let tween=null,dir=0;   // the glide's direction, -1 up or 1 down
+    let lastWheel=-1e9,coast=false;
+    // On a phone the sheet takes the bottom of the screen, so "the middle" is
+    // the middle of what is left above it.
+    const narrow=matchMedia('(max-width:__NARROW__px)'),root=document.documentElement;
+    // The first segment sits too near the top of the page, and the last too near
+    // the bottom, for any scroll to bring them to the middle. So the page is
+    // lent the room: exactly as much above or below the spine as the segment
+    // needs. Changing the room above moves everything under it, so the scroll
+    // is corrected by what the segment moved and nothing on screen jumps; the
+    // glide then starts from where the reader was.
+    //
+    // Lending only ever adds. Room that is on screen cannot be taken away
+    // without the page jumping by that much -- open 01, then 02, and the room
+    // 01 needed is still right there above the spine -- so what the segment
+    // now open no longer needs is handed back by reclaim(), and only the part
+    // of it out of sight.
+    let pre=0,post=0,want=[0,0];
+    function setRoom(p,q){
+      pre=p;post=q;
+      root.style.setProperty('--pre',p+'px');
+      root.style.setProperty('--post',q+'px');}
+    // Measured against the bottom of main, not the page's scroll height: an
+    // open block hangs past the end of main, and counting what hangs there as
+    // room already made lends the last segment too little to reach the middle.
+    const main=document.getElementById('content');
+    // `at` is where on the screen the segment's centre is to land.
+    function lend(g,at){
       const b=g.getBoundingClientRect();
-      const to=Math.max(0,Math.min(scrollY+(b.top+b.bottom)/2-innerHeight/2,
+      const y=scrollY+(b.top+b.bottom)/2-pre;      // the centre, with nothing lent
+      const end=scrollY+main.getBoundingClientRect().bottom-pre-post;
+      const p=Math.max(0,Math.round(at-y));
+      const q=Math.max(0,Math.round(y-at+innerHeight-end));
+      want=[p,q];
+      if(p<=pre&&q<=post)return;
+      setRoom(Math.max(p,pre),Math.max(q,post));
+      scrollTo(0,scrollY+g.getBoundingClientRect().top-b.top);}
+    // Taken back only as far as it is out of sight -- above the top of the
+    // screen for the room above, below the bottom for the room below -- and
+    // never below what the open segment still needs, so the page never moves
+    // under the reader to get it back. Runs whenever scrolling settles.
+    function reclaim(){
+      if(tween||(!pre&&!post))return;
+      const [wp,wq]=open===-1?[0,0]:want;
+      const y=Math.floor(scrollY);
+      const p=Math.max(wp,pre-Math.max(0,y));
+      const q=Math.max(wq,post-Math.max(0,
+        Math.floor(main.getBoundingClientRect().bottom-innerHeight)));
+      if(p===pre&&q===post)return;
+      const dy=p-pre;
+      setRoom(p,q);if(dy)scrollTo(0,scrollY+dy);}
+    addEventListener('scrollend',reclaim,{passive:true});
+    function glide(g,l){
+      const b=g.getBoundingClientRect();
+      // on a phone the head is stuck over the top of the screen and the block
+      // is the panel over the foot, so the segment goes to the middle of what
+      // is left between them
+      const top=narrow.matches?poster.offsetHeight:0;
+      const at=top+(innerHeight-top-(narrow.matches?
+        parseFloat(getComputedStyle(root).getPropertyValue('--panel'))||0:0))/2;
+      lend(g,at);
+      const c=g.getBoundingClientRect();
+      const to=Math.max(0,Math.min(scrollY+(c.top+c.bottom)/2-at,
                                    document.documentElement.scrollHeight-innerHeight));
       const from=scrollY,d=to-from;
       if(Math.abs(d)<DEAD)return false;   // nothing moved, so nothing to hold
@@ -670,12 +943,13 @@ __LECS__
       // the price of the duration and the curve, which it does not let you set.
       if(/[?&]nativeglide/.test(location.search)){
         scrollTo({top:to,behavior:'smooth'});return true;}
-      const t0=performance.now(),id={};tween=id;
+      const t0=performance.now(),id={};tween=id;dir=Math.sign(d);
+      coast=t0-lastWheel<GAP;             // clicked mid-coast
       (function step(now){
         if(tween!==id)return;               // the reader took the scroll back
         const k=Math.min(1,(now-t0)/GLIDE);
         scrollTo(0,from+d*EASE(k));
-        k<1?requestAnimationFrame(step):tween=null;})(t0);
+        if(k<1)requestAnimationFrame(step);else{tween=null;reclaim();}})(t0);
       return true;
     }
     // Hover is read from where the pointer actually is — not from enter/leave on
@@ -695,27 +969,69 @@ __LECS__
     function look(){queued=false;if(PINNED&&open!==-1)return;
       const i=at(px,py);if(i!==hot){hot=i;sync();}}
     addEventListener('pointermove',e=>{
+      // a finger is never hovering: its moves are a scroll, and a block that
+      // came up under a scrolling thumb would be one nobody asked for
+      if(e.pointerType==='touch')return;
       if(held&&Math.hypot(e.clientX-px,e.clientY-py)<=3)return;   // the glide's own
       held=false;px=e.clientX;py=e.clientY;
       if(!queued){queued=true;requestAnimationFrame(look);}},{passive:true});
     addEventListener('pointerleave',()=>{held=false;px=py=-1;
       if(PINNED&&open!==-1)return;
       if(hot!==-1){hot=-1;sync();}});
-    ['wheel','touchstart','keydown'].forEach(e=>
+    // A trackpad keeps coasting after the fingers lift, and near the end of
+    // the page the wheel events go on arriving with nothing left to scroll. The
+    // segments down there are reached by scrolling, so a click on one lands in
+    // that coast -- and a glide that any wheel event cancelled was cancelled
+    // before it moved, whichever way it was going.
+    //
+    // A coast is one unbroken stream of events. So the stream that was already
+    // running at the click is the reader's last scroll, not a new one, and is
+    // let run out; what takes the scroll back is a wheel after a break in it,
+    // and then only one going against the glide.
+    const GAP=120;   // ms between wheel events that still counts as one stream
+    addEventListener('wheel',e=>{
+      const now=performance.now(),gap=now-lastWheel;lastWheel=now;
+      if(tween){
+        if(coast&&gap<GAP)return;
+        coast=false;
+        if(Math.sign(e.deltaY)===dir)return;}
+      tween=null;held=false;},{passive:true});
+    ['touchstart','keydown'].forEach(e=>
       addEventListener(e,()=>{tween=null;held=false;},{passive:true}));
     segs.forEach((g,i)=>{
-      g.addEventListener('click',e=>{open=(open===i?-1:i);hot=i;
+      // a finger does not hover, so on a phone what is lit is what is open
+      g.addEventListener('click',e=>{open=(open===i?-1:i);hot=narrow.matches?open:i;
         sync();                        // renders the block; only then is it measurable
         if(open===i)note(mores[i]);
-        if(open===i){px=e.clientX;py=e.clientY;held=glide(g);}
+        if(open===i){px=e.clientX;py=e.clientY;held=glide(g,lecs[i]);}
+        else reclaim();
         e.stopPropagation();});
     });
+    // The open block takes clicks now -- to select its text, to follow its
+    // link -- and none of them should reach the document and close it.
+    lecs.forEach(l=>{if(!l)return;
+      l.addEventListener('click',e=>e.stopPropagation());
+      // the phone's panel has its own way out
+      l.querySelector('.lec-close').addEventListener('click',e=>{e.stopPropagation();
+        open=-1;hot=-1;sync();reclaim();});});
+    // Where the poster ends is where the spine, and the grid under it, begin.
+    // (The poster used to fill the whole first screen, title pushed down to
+    // its foot; with the heading now at the top it is simply read in order.)
+    const poster=document.querySelector('.poster');
+    function intro(){
+      if(!narrow.matches){root.style.removeProperty('--poster-h');return;}
+      root.style.setProperty('--poster-h',poster.offsetHeight+'px');
+    }
+    addEventListener('resize',()=>{if(open!==-1)note(mores[open]);},{passive:true});
+    intro();
+    if(document.fonts&&document.fonts.ready)document.fonts.ready.then(intro);
+    addEventListener('resize',intro,{passive:true});
     // A click outside closes everything, and it says where the pointer is:
     // a click does not have to be preceded by a move, so its own coordinates
     // are the only ones that are certainly current. Pinned, it closes nothing:
     // clicking the open segment again is the way back out.
     document.addEventListener('click',e=>{if(PINNED)return;
-      open=-1;held=false;px=e.clientX;py=e.clientY;look();sync();});
+      open=-1;held=false;px=e.clientX;py=e.clientY;look();sync();reclaim();});
     sync();
   })();
   const lens=document.getElementById('lens'), q=new URLSearchParams(location.search);
@@ -871,32 +1187,76 @@ __LECS__
 # export pastes straight in here.
 COPY = dict(
     title='Spinal\nMemory',
-    tag='research and practice\non non-human animals',
-    info='Online Lectures\n5 weeks\nOct 10 ~ Nov 7, 2026\n9am EDT / 9pm CST',
-    desc='Spinal Memory, the fourth issue of te magazine, grew out of a reflection on '
-         'the imagining of non-human animals. As an extension of this issue\u2019s theme, te '
-         'editions is launching its first online lecture series, inviting nine speakers '
-         '(including several contributors to this issue) to give eight online lectures.'
+    tag='Research and Practice\non Non-Human Animals',
+    desc='[Intro]\n'
+         'Spinal Memory, the fourth issue of te magazine, grew out of a reflection on '
+         'the imagining of non-human animals\u2014examining how humans control, domesticate, '
+         'and make use of animal bodies, while also trying to sketch out a new, open-ended '
+         'relationship not yet fixed in form, one that reaches toward the future. As an '
+         'extension of this issue\u2019s theme, te editions is launching its first online '
+         'lecture series, inviting nine speakers (including several contributors to this '
+         'issue) to give eight online lectures.'
          '\n\n'
          'Each speaker approaches this theme in a completely different way: years of '
          'companionship and careful field observation, or history, design, writing, '
-         'moving image, archives, and data.',
+         'moving image, archives, and data. Consider a Tyvan pastoralist who has spent a '
+         'lifetime living alongside horses, or an artist who has shared over a decade with '
+         'a parrot. Or how zoos shape our encounters with animals, the sounds birds make, '
+         'the secondary forests of Singapore, interspecies publishing and archives, animals '
+         'kept as specimens, or a dairy cow\u2019s body flattened into data. How should we '
+         'approach, investigate, or simply imagine what it might mean to live alongside '
+         'non-human animals? And from there, how do we turn that into practice and research? '
+         'Weaving together text and practice, each speaker unfolds their own way of working, '
+         'sometimes out in the open landscapes of pasture and forest, sometimes back at a '
+         'worktable or in an archive.',
+    facts='[Cost]\n$10 USD / \u00a566 CNY per lecture'
+         '\n\n'
+         '[Duration]\n1.5 hours per lecture (including Q&A)'
+         '\n\n'
+         '[Capacity]\nLimited to 50 participants per lecture'
+         '\n\n'
+         '[Note]\nRegistrants will receive a replay link valid for one month after the '
+         'lecture; replays do not include the live Q&A'
+         '\n\n'
+         '[Digital Reading Room]\n'
+         'Alongside the lecture series, we will also build a [[Digital Reading Room]], '
+         'gathering further readings and moving-image material prepared by the speakers. '
+         'The conversation between creators, scholars, and audiences won\u2019t end with a '
+         'single talk. It will keep opening up through ongoing reading, response, and '
+         'addition, and through thinking together about our sympoiesis with all living '
+         'things. Whether you\u2019re a creator, a researcher, or simply curious about '
+         'interspecies, you\u2019re welcome to join!',
 )
 
 
 # tag -> the element each role's copy is wrapped in. The logo is a drawing, the
 # description is two paragraphs, so neither is a single text element.
-ROLE_TAG = dict(logo='div', title='h1', tag='p', info='p', desc='div',
-                lecn='p', lect='p', lecl='p', lecb='div', lecno='p')
+# Where a [[link]] in the copy goes, by its text.
+LINKS = {'Digital Reading Room': '#'}
+
+ROLE_TAG = dict(logo='div', title='h1', tag='p', info='p', desc='div', facts='div',
+                lecn='p', lect='p', lecl='p', lecb='div', lecno='p', lecs='p')
 
 
 def copy_html(role, text):
     """Plain text in, markup out. Only the roles wrapped in a div can hold
-    paragraphs; the rest are a single text element, so every newline is a break."""
+    paragraphs; the rest are a single text element, so every newline is a break.
+    In a div, a paragraph that opens with a `[Label]` line opens with a chip, and
+    `[[text]]` anywhere is a link to LINKS[text]."""
+    esc = lambda t: t.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+    link = lambda t: re.sub(r'\[\[(.+?)\]\]', lambda m: f'<a href="{LINKS.get(m[1], "#")}" '
+                            f'target="_blank" rel="noopener">{m[1]}</a>', t)
     paras = [p for p in re.split(r'\n\s*\n', text.strip()) if p.strip()]
-    br = lambda p: '<br>'.join(line for line in p.split('\n'))
+    br = lambda p: '<br>'.join(link(esc(line)) for line in p.split('\n'))
+    def para(p):
+        head, _, rest = p.strip().partition('\n')
+        m = re.fullmatch(r'\[([^\[\]]+)\]', head.strip())
+        if m:
+            return (f'<p class="chip"><span>{esc(m[1])}</span></p>'
+                    + (f'<p>{br(rest)}</p>' if rest.strip() else ''))
+        return f'<p>{br(p)}</p>'
     if ROLE_TAG[role] == 'div':
-        return ''.join(f'<p>{br(p)}</p>' for p in paras)
+        return ''.join(para(p) for p in paras)
     return '<br>'.join(br(p) for p in paras)
 
 
@@ -907,9 +1267,15 @@ def corners():
         roles = at_corner(corner)
         if not roles:
             continue
-        inner = ''.join(
-            layers(ROLE_TAG[r], r, LOGO, **{'aria-label': 'te'}) if r == 'logo'
-            else layers(ROLE_TAG[r], r, copy_html(r, COPY[r])) for r in roles)
+        inner, box = '', None
+        for r in roles:
+            b = ROLES[r].get('box')
+            if b != box:
+                inner += ('</div>' if box else '') + (f'<div class="{b}">' if b else '')
+                box = b
+            inner += (layers(ROLE_TAG[r], r, LOGO, **{'aria-label': 'te'}) if r == 'logo'
+                      else layers(ROLE_TAG[r], r, copy_html(r, COPY[r])))
+        inner += '</div>' if box else ''
         out.append(f'  <div class="{corner}">{inner}</div>')
     return '\n'.join(out)
 
@@ -940,19 +1306,25 @@ def lectures_html():
         # The number is not here — it sits on the segment, up in its own corner.
         out.append(
             f'<div class="lec" data-lec="{i}" style="--y:{cy:.4f}">'
-            + layers('p', 'lecn', copy_html('lecn', lec['when'] + '\n' + lec['who']))
+            + layers('p', 'lecn', copy_html('lecn', lec['when'] + '\u2003'
+                                            + lec.get('time', TIME) + '\n' + lec['who']))
             + layers('p', 'lect', copy_html('lect', lec['what']))
-            + '<div class="more"><div class="more-in">'
+            + '<div class="more"><div class="more-in"><div class="scroll">'
             + layers('p', 'lecl', copy_html('lecl', lec['lang']))
             + layers('div', 'lecb', copy_html('lecb', lec['about']))
-            + '</div></div></div>')
+            + '</div>'
+            + f'<a class="signup" href="{lec.get("signup", SIGNUP)}" target="_blank" '
+              f'rel="noopener">' + layers('p', 'lecs', 'Sign Up') + '</a>'
+            + '</div></div>'
+            + '<button class="lec-close" type="button" aria-label="Close">\u00d7</button>'
+            + '</div>')
     return '\n'.join(out)
 
 
 TOOLS_CSS = '.tools{position:fixed;right:0;top:0;bottom:0;z-index:200;width:272px;overflow:auto;\n    background:#141614;color:#ECEEE9;font:11px/1.4 var(--font-sans);letter-spacing:.04em;\n    padding-bottom:18px;display:none}\n  .tools.on{display:block}\n  html.has-tools{--tools:272px}\n  .tools h3{margin:0;padding:8px 12px;font-size:10px;font-weight:600;letter-spacing:.14em;\n    text-transform:uppercase;background:#1D201D;color:#9BA39A;position:sticky;top:0}\n  .tools section{padding:7px 12px;border-bottom:1px solid #2A2E2A;display:grid;gap:5px}\n  .tools .f{display:grid;grid-template-columns:1fr 4.4em;gap:7px;align-items:center}\n  .tools label{color:#C8D4C2}\n  .tools input,.tools select{background:#0D0F0D;border:1px solid #2A2E2A;color:#ECEEE9;\n    font:inherit;padding:3px 4px;border-radius:3px;width:100%}\n  .tools input[type=number]{text-align:right}\n  .tools input[type=range]{grid-column:1/-1;accent-color:#C8D4C2;padding:0;border:0}\n  .tools textarea{width:100%;height:220px;background:#0D0F0D;color:#C8D4C2;\n    border:1px solid #2A2E2A;border-radius:3px;font:10px/1.45 ui-monospace,Menlo,monospace;\n    padding:6px;resize:vertical}\n  .tools .hint{color:#6E766C;font-size:9.5px;line-height:1.35}'
 
 
-PANEL_JS = '(function(){\n  if(!/[?&]tools/.test(location.search)) return;\n  const D = __DATA__;\n  D.all = Object.assign({}, D.roles, D.text);\n  D.order = Object.keys(D.all);\n\n  // The same rule as steps()/types() in build.py: every text step is the base\n  // resized, and only tracking and leading are walked with the size. Kept in\n  // step with it by hand — if the rule there changes, it changes here.\n  function derive() {\n    D.steps = {mark: D.markStep};\n    D.type = {mark: D.markType};\n    D.back = {mark: back(D.markBack)};\n    Object.entries(D.sizes).forEach(([n, size]) => {\n      const d = size[0] - D.baseSize;\n      D.steps[n] = {size, soft: D.base.soft, glow: D.base.glow,\n                    bloom: D.base.bloom, solid: D.base.solid};\n      D.type[n] = {weight: D.base.weight,\n                   ls: +(D.base.ls - D.track * d).toFixed(4),\n                   lh: +(D.base.lh - D.lead * d).toFixed(3)};\n      D.back[n] = back(D.baseBack);\n    });\n  }\n  // the backlight\'s opacities are its own; its colour is the page\'s\n  const back = b => Object.assign({}, b, {slab: [D.blc, b.slab], glow: [D.blc, b.glow]});\n  derive();\n  const redraw = () => { derive(); apply(); Object.keys(D.steps).forEach(paintBack); dump(); };\n  const panel = document.getElementById(\'tools\');\n  panel.classList.add(\'on\');\n  document.documentElement.classList.add(\'has-tools\');\n\n  const $ = (t, a = {}, kids = []) => {\n    const el = document.createElement(t);\n    for (const k in a) k === \'text\' ? el.textContent = a[k] : el.setAttribute(k, a[k]);\n    kids.forEach(c => el.appendChild(c));\n    return el;\n  };\n  const field = (box, label, input) => {\n    box.appendChild($(\'div\', {class: \'f\'}, [$(\'label\', {text: label}), input]));\n    return input;\n  };\n  const num = (v, min, max, step) => $(\'input\', {type: \'number\', value: v, min, max, step});\n  const slider = (box, v, min, max, step) => {\n    const r = $(\'input\', {type: \'range\', min, max, step, value: v});\n    box.appendChild(r); return r;\n  };\n  const colour = (v, onset) => {\n    const el = $(\'input\', {type: \'color\', value: v});\n    el.oninput = e => onset(e.target.value);\n    return el;\n  };\n\n  // The backlight is one SVG filter per step, built by build.py and not\n  // rebuildable from here -- but every number in it lives on an attribute that\n  // takes a new value in place: a morphology radius, two deviations, a matrix\n  // and two floods. Only `stack` needs nodes added or removed. The radii are in\n  // em of the step\'s own size, so each of a step\'s two filters (poster, and the\n  // small-screen one) is painted from its own font size.\n  function paintBack(name) {\n    const b = D.back[name], st = D.steps[name];\n    [[st.size[0], \'bl-\' + name], [st.size[1], \'bl-\' + name + \'-s\']].forEach(([fs, id]) => {\n      const f = document.getElementById(id);\n      if (!f) return;\n      const q = k => f.querySelector(\'[data-bl="\' + k + \'"]\');\n      q(\'dilate\').setAttribute(\'radius\', (b.dilate * fs).toFixed(2));\n      q(\'merge\').setAttribute(\'stdDeviation\', (b.merge * fs).toFixed(2));\n      q(\'halo\').setAttribute(\'stdDeviation\', (b.halo * fs).toFixed(2));\n      q(\'hard\').setAttribute(\'values\',\n        \'0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 \' + b.hard + \' \' + (-b.hard / 2));\n      [\'slab\', \'glow\'].forEach(k => {\n        q(k).setAttribute(\'flood-color\', b[k][0]);\n        q(k).setAttribute(\'flood-opacity\', b[k][1]);\n      });\n      // same curve as stack_table() in build.py\n      const n = Math.max(1, Math.round(b.stack)), S = 64, v = [];\n      for (let k = 0; k <= S; k++) v.push((1 - Math.pow(1 - k / S, n)).toFixed(4));\n      q(\'stack\').firstElementChild.setAttribute(\'tableValues\', v.join(\' \'));\n    });\n  }\n\n  const pick = (v, opts) => {\n    const sel = $(\'select\');\n    opts.forEach(o => {\n      const opt = $(\'option\', {value: o});\n      opt.textContent = o;\n      if (o === v) opt.selected = true;\n      sel.appendChild(opt);\n    });\n    return sel;\n  };\n\n  // The same rule as copy_html in build.py: a blank line starts a paragraph, a\n  // single newline is a break, and only the div-wrapped roles take paragraphs.\n  function copyHtml(role, text) {\n    const esc = t => t.replace(/&/g, \'&amp;\').replace(/</g, \'&lt;\').replace(/>/g, \'&gt;\');\n    const paras = text.trim().split(/\\n\\s*\\n/).filter(p => p.trim());\n    const br = p => p.split(\'\\n\').map(esc).join(\'<br>\');\n    return D.tag[role] === \'div\'\n      ? paras.map(p => \'<p>\' + br(p) + \'</p>\').join(\'\')\n      : paras.map(br).join(\'<br>\');\n  }\n  function setCopy(role) {\n    const el = document.querySelector(\'.t-\' + role);\n    if (!el) return;\n    const html = copyHtml(role, D.copy[role]);\n    [...el.children].forEach(layer => layer.innerHTML = html);\n  }\n\n  // The one place a role\'s numbers reach the page. Corners are re-filled in the\n  // declared order so moving one role never reshuffles the others.\n  function apply() {\n    D.order.forEach(role => {\n      const r = D.all[role], st = D.steps[r.step], c = D.sets[r.set];\n      document.querySelectorAll(\'.t-\' + role).forEach(el => {\n      const s = el.style;\n      s.setProperty(\'--fs\', st.size[0] + \'px\');\n      s.setProperty(\'--soft\', st.soft + \'px\');\n      s.setProperty(\'--solid\', st.solid == null ? 1 : st.solid);\n      s.setProperty(\'--glowR\', st.glow + \'em\');\n      s.setProperty(\'--bloomR\', st.bloom + \'px\');\n      s.setProperty(\'--slabF\', \'url(#bl-\' + r.step + \')\');\n      // 字重、字距、行距属于字号档，不属于角色——换档要整套跟过去\n      const ty = D.type[r.step] || {};\n      s.setProperty(\'--w\', ty.weight);\n      s.setProperty(\'--ls\', ty.ls + \'em\');\n      s.setProperty(\'--lh\', ty.lh);\n      s.setProperty(\'--ink\', c.ink);\n      s.setProperty(\'--glow\', c.glow);\n      s.setProperty(\'--bloom\', c.bloom);\n      s.setProperty(\'--gap\', (r.gap || 0) + \'px\');\n      s.setProperty(\'--maxw\', r.width ? r.width + \'ch\' : \'var(--fit)\');\n      });\n    });\n    // spacing and size both move the detail\'s height, and the reveal animates\n    // to a number that was measured before this edit\n    if (window.__lecMeasure) window.__lecMeasure();\n    D.corners.forEach(corner => {\n      const box = document.querySelector(\'.\' + corner);\n      if (!box) return;\n      Object.keys(D.roles).filter(role => D.roles[role].at === corner)\n             .forEach(role => box.appendChild(document.querySelector(\'.t-\' + role)));\n    });\n  }\n\n  Object.entries(D.all).forEach(([role, r]) => {\n    const pinned = role in D.roles;\n    panel.appendChild($(\'h3\', {text: role + (pinned ? \'\' : \' · 讲座\')}));\n    const box = $(\'section\');\n    panel.appendChild(box);\n\n    field(box, \'字号档\', pick(r.step, Object.keys(D.steps)))\n      .onchange = e => { r.step = e.target.value; apply(); dump(); };\n    if (pinned) field(box, \'位置\', pick(r.at, D.corners))\n      .onchange = e => { r.at = e.target.value; apply(); dump(); };\n    field(box, \'配色\', pick(r.set, Object.keys(D.sets)))\n      .onchange = e => { r.set = e.target.value; apply(); dump(); };\n\n    const g = field(box, \'上方间距 px\', num(r.gap || 0, 0, 160, 2));\n    const gr = slider(box, r.gap || 0, 0, 160, 2);\n    const setGap = v => { r.gap = +v; g.value = v; gr.value = v; apply(); dump(); };\n    g.oninput = e => setGap(e.target.value);\n    gr.oninput = e => setGap(e.target.value);\n\n    if (role in D.copy) {\n      box.appendChild($(\'div\', {class: \'hint\', text: \'文案：空行分段，单个换行是换行\'}));\n      const ta = document.createElement(\'textarea\');\n      ta.value = D.copy[role];\n      ta.rows = role === \'desc\' ? 8 : 4;\n      ta.spellcheck = false;\n      ta.style.cssText = \'height:auto;font:10px/1.5 var(--font-sans)\';\n      box.appendChild(ta);\n      ta.oninput = () => { D.copy[role] = ta.value; setCopy(role); dump(); };\n    }\n\n    const w = field(box, \'宽度 ch · 0=不限\', num(r.width || 0, 0, 90, 1));\n    const wr = slider(box, r.width || 0, 0, 90, 1);\n    const setW = v => { r.width = +v; w.value = v; wr.value = v; apply(); dump(); };\n    w.oninput = e => setW(e.target.value);\n    wr.oninput = e => setW(e.target.value);\n  });\n\n  // A step is shared by every role that names it, so these move type all over\n  // the poster at once. soft is the blur on the ink layer -- the one that\n  // decides whether small type is legible -- and glow and bloom are the haze\n  // around it. The slab filter is built at build time from `size`, so changing\n  // size here moves the type without moving its silhouette: rebuild to see it.\n  // One section, not one per step: the ramp has a single hand-set size in it.\n  {\n    panel.appendChild($(\'h3\', {text: \'基准 t\' + D.baseSize}));\n    const box = $(\'section\');\n    panel.appendChild(box);\n    const knob = (label, min, max, step, read, write) => {\n      const n = field(box, label, num(read(), min, max, step));\n      const r = slider(box, read(), min, max, step);\n      const set = v => { write(+v); n.value = v; r.value = v; redraw(); };\n      n.oninput = e => set(e.target.value);\n      r.oninput = e => set(e.target.value);\n    };\n    const B = D.base;\n    knob(\'字距 em · ls\', -.12, .3, .005, () => B.ls, v => B.ls = v);\n    knob(\'行距 · lh\', .6, 2, .01, () => B.lh, v => B.lh = v);\n    knob(\'字重\', 100, 700, 50, () => B.weight, v => B.weight = v);\n    knob(\'模糊 px · soft\', 0, 4, .02, () => B.soft, v => B.soft = v);\n    knob(\'实心度 · solid\', 0, 1, .02, () => B.solid, v => B.solid = v);\n    knob(\'内发光 em · glow\', 0, 3, .01, () => B.glow, v => B.glow = v);\n    knob(\'外发光 px · bloom\', 0, 40, .1, () => B.bloom, v => B.bloom = v);\n    box.appendChild($(\'div\', {class: \'hint\', text:\n      \'其余字号由此算出。下面两个是阶梯的斜率：每大 1px，字距和行距各收回多少。\'}));\n    knob(\'字距斜率 · TRACK\', 0, .04, .0005, () => D.track, v => D.track = v);\n    knob(\'行距斜率 · LEAD\', 0, .06, .0005, () => D.lead, v => D.lead = v);\n  }\n\n  // The backlight. Radii in em, so the base\'s numbers are the whole ramp.\n  [[\'基准 背光\', D.baseBack], [\'mark 背光\', D.markBack]].forEach(([title, b]) => {\n    panel.appendChild($(\'h3\', {text: title}));\n    const box = $(\'section\');\n    panel.appendChild(box);\n    const knob = (label, min, max, step, read, write) => {\n      const n = field(box, label, num(read(), min, max, step));\n      const r = slider(box, read(), min, max, step);\n      const set = v => { write(+v); n.value = v; r.value = v; redraw(); };\n      n.oninput = e => set(e.target.value);\n      r.oninput = e => set(e.target.value);\n    };\n    knob(\'实色不透明\', 0, 1, .02, () => b.slab, v => b.slab = v);\n    knob(\'晕色不透明\', 0, 1, .02, () => b.glow, v => b.glow = v);\n    knob(\'外扩 em · dilate\', 0, .4, .005, () => b.dilate, v => b.dilate = v);\n    knob(\'合并 em · merge\', 0, .3, .005, () => b.merge, v => b.merge = v);\n    knob(\'晕开 em · halo\', 0, .8, .005, () => b.halo, v => b.halo = v);\n    knob(\'叠加次数 · stack\', 1, 24, 1, () => b.stack, v => b.stack = v);\n    knob(\'切边硬度 · hard\', .5, 12, .1, () => b.hard, v => b.hard = v);\n  });\n\n  // ONE colour, for every backlight on the page. Per-step would only ever\n  // produce four shades of almost-the-same-yellow lit side by side.\n  {\n    panel.appendChild($(\'h3\', {text: \'背光颜色 · 全局\'}));\n    const box = $(\'section\');\n    panel.appendChild(box);\n    field(box, \'颜色\', colour(D.blc, v => { D.blc = v; redraw(); }));\n    box.appendChild($(\'div\', {class: \'hint\', text:\n      \'整页所有背光共用这一个颜色。浓淡分别在上面两节的不透明度里调。\'}));\n  }\n\n  {\n    panel.appendChild($(\'h3\', {text: \'mark · 字号档\'}));\n    const box = $(\'section\');\n    panel.appendChild(box);\n    const knob = (label, min, max, step, read, write) => {\n      const n = field(box, label, num(read(), min, max, step));\n      const r = slider(box, read(), min, max, step);\n      const set = v => { write(+v); n.value = v; r.value = v; redraw(); };\n      n.oninput = e => set(e.target.value);\n      r.oninput = e => set(e.target.value);\n    };\n    const S = D.markStep, T = D.markType;\n    knob(\'字号 px\', 8, 200, .5, () => S.size[0], v => S.size[0] = v);\n    knob(\'字距 em · ls\', -.12, .3, .005, () => T.ls, v => T.ls = v);\n    knob(\'行距 · lh\', .6, 2, .01, () => T.lh, v => T.lh = v);\n    knob(\'字重\', 100, 700, 50, () => T.weight, v => T.weight = v);\n    knob(\'模糊 px · soft\', 0, 4, .02, () => S.soft, v => S.soft = v);\n    knob(\'实心度 · solid\', 0, 1, .02, () => S.solid, v => S.solid = v);\n    knob(\'内发光 em · glow\', 0, 3, .01, () => S.glow, v => S.glow = v);\n    knob(\'外发光 px · bloom\', 0, 40, .1, () => S.bloom, v => S.bloom = v);\n  }\n\n  // The two gaps that belong to the lecture blocks rather than to any one role.\n  panel.appendChild($(\'h3\', {text: \'讲座间距\'}));\n  {\n    const box = $(\'section\');\n    panel.appendChild(box);\n    const lecs = document.querySelector(\'.lecs\');\n    const pxKnob = (label, prop, min, max, step) => {\n      const cur = parseFloat(getComputedStyle(lecs).getPropertyValue(prop)) || 0;\n      const n = field(box, label, num(cur, min, max, step));\n      const r = slider(box, cur, min, max, step);\n      const set = v => { lecs.style.setProperty(prop, v + \'px\'); n.value = v; r.value = v; dump(); };\n      n.oninput = e => set(e.target.value);\n      r.oninput = e => set(e.target.value);\n    };\n    pxKnob(\'行距 --lec-lead\', \'--lec-lead\', 0, 60, 1);\n    pxKnob(\'离脊柱 --lec-gap\', \'--lec-gap\', 0, 200, 2);\n  }\n\n  panel.appendChild($(\'h3\', {text: \'页边距\'}));\n  {\n    const box = $(\'section\');\n    panel.appendChild(box);\n    const cur = parseInt(getComputedStyle(document.documentElement).getPropertyValue(\'--pad\'));\n    const p = field(box, \'--pad px\', num(cur, 8, 96, 2));\n    const pr = slider(box, cur, 8, 96, 2);\n    const setPad = v => {\n      document.documentElement.style.setProperty(\'--pad\', v + \'px\');\n      p.value = v; pr.value = v; dump();\n    };\n    p.oninput = e => setPad(e.target.value);\n    pr.oninput = e => setPad(e.target.value);\n  }\n\n  panel.appendChild($(\'h3\', {text: \'导出 · 贴回 build.py\'}));\n  const out = $(\'textarea\', {readonly: \'\', spellcheck: \'false\'});\n  {\n    const box = $(\'section\');\n    panel.appendChild(box);\n    box.appendChild(out);\n    box.appendChild($(\'div\', {class: \'hint\', text:\n      \'面板只改这一页，刷新就回到 build.py 里的值。\' +\n      \'导出的是手调的那些数，不是它们算出来的阶梯。\'}));\n  }\n\n  function dump() {\n    const q = s => "\'" + s + "\'";\n    const row = (role, withAt) => {\n      const r = D.all[role];\n      const bits = [];\n      if (withAt) bits.push(\'at=\' + q(r.at));\n      bits.push(\'step=\' + q(r.step), \'set=\' + q(r.set));\n      if (r.gap) bits.push(\'gap=\' + r.gap);\n      if (r.width) bits.push(\'width=\' + r.width);\n      return \'    \' + role + \'=dict(\' + bits.join(\', \') + \'),\';\n    };\n    const py = s => "\'" + s.replace(/\\\\/g, \'\\\\\\\\\').replace(/\'/g, "\\\\\'")\n      .replace(/\\n/g, \'\\\\n\') + "\'";\n    const copy = Object.keys(D.copy).map(k => \'    \' + k + \'=\' + py(D.copy[k]) + \',\');\n    // Only the hand-set numbers come back out. The ramp is a rule, and printing\n    // the five sizes it produces would invite pasting them back as five tables.\n    const B = D.base, S = D.markStep, T = D.markType;\n    const dict = (name, pairs) => name + \' = dict(\' + pairs.join(\', \') + \')\';\n    const bk = (name, b) => dict(name, [\'dilate=\' + b.dilate, \'merge=\' + b.merge,\n      \'hard=\' + b.hard, \'halo=\' + b.halo, \'stack=\' + Math.round(b.stack),\n      \'slab=\' + b.slab, \'glow=\' + b.glow]);\n    const lecs = getComputedStyle(document.querySelector(\'.lecs\'));\n    out.value =\n        dict(\'BASE\', [\'soft=\' + B.soft, \'glow=\' + B.glow, \'bloom=\' + B.bloom,\n                      \'solid=\' + B.solid, \'weight=\' + B.weight,\n                      \'ls=\' + B.ls, \'lh=\' + B.lh]) + \'\\n\'\n      + \'TRACK = \' + D.track + \'\\n\'\n      + \'LEAD = \' + D.lead + \'\\n\\n\'\n      + dict(\'MARK_STEP\', [\'size=(\' + S.size[0] + \', \' + S.size[1] + \')\',\n                           \'soft=\' + S.soft, \'glow=\' + S.glow, \'bloom=\' + S.bloom,\n                           \'solid=\' + S.solid]) + \'\\n\'\n      + dict(\'MARK_TYPE\', [\'weight=\' + T.weight, \'ls=\' + T.ls, \'lh=\' + T.lh]) + \'\\n\\n\'\n      + "BACKLIGHT_COLOUR = \'" + D.blc + "\'\\n"\n      + bk(\'BASE_BACK\', D.baseBack) + \'\\n\'\n      + bk(\'MARK_BACK\', D.markBack) + \'\\n\\n\'\n      + \'ROLES = dict(\\n\' + Object.keys(D.roles).map(r => row(r, true)).join(\'\\n\') + \'\\n)\\n\\n\'\n      + \'TEXT = dict(\\n\' + Object.keys(D.text).map(r => row(r, false)).join(\'\\n\') + \'\\n)\\n\\n\'\n      + \'COPY = dict(\\n\' + copy.join(\'\\n\') + \'\\n)\\n\\n\'\n      + \'--pad: \' + getComputedStyle(document.documentElement).getPropertyValue(\'--pad\').trim()\n      + \'\\n--lec-lead: \' + lecs.getPropertyValue(\'--lec-lead\').trim()\n      + \'\\n--lec-gap: \' + lecs.getPropertyValue(\'--lec-gap\').trim();\n  }\n\n  apply(); dump();\n})();\n'
+PANEL_JS = '(function(){\n  if(!/[?&]tools/.test(location.search)) return;\n  const D = __DATA__;\n  D.all = Object.assign({}, D.roles, D.text);\n  D.order = Object.keys(D.all);\n\n  // The same rule as steps()/types() in build.py: every text step is the base\n  // resized, and only tracking and leading are walked with the size. Kept in\n  // step with it by hand — if the rule there changes, it changes here.\n  function derive() {\n    D.steps = {mark: D.markStep};\n    D.type = {mark: D.markType};\n    D.back = {mark: back(D.markBack)};\n    Object.entries(D.sizes).forEach(([n, size]) => {\n      const d = Math.min(size[0], D.walkStop) - D.baseSize;\n      D.steps[n] = {size, soft: D.base.soft, glow: D.base.glow,\n                    bloom: D.base.bloom, solid: D.base.solid};\n      D.type[n] = {weight: D.base.weight,\n                   ls: +(D.base.ls - D.track * d).toFixed(4),\n                   lh: +(D.base.lh - D.lead * d).toFixed(3)};\n      D.back[n] = back(D.baseBack);\n    });\n  }\n  // the backlight\'s opacities are its own; its colour is the page\'s\n  const back = b => Object.assign({}, b, {slab: [D.blc, b.slab], glow: [D.blc, b.glow]});\n  derive();\n  const redraw = () => { derive(); apply(); Object.keys(D.steps).forEach(paintBack); dump(); };\n  const panel = document.getElementById(\'tools\');\n  panel.classList.add(\'on\');\n  document.documentElement.classList.add(\'has-tools\');\n\n  const $ = (t, a = {}, kids = []) => {\n    const el = document.createElement(t);\n    for (const k in a) k === \'text\' ? el.textContent = a[k] : el.setAttribute(k, a[k]);\n    kids.forEach(c => el.appendChild(c));\n    return el;\n  };\n  const field = (box, label, input) => {\n    box.appendChild($(\'div\', {class: \'f\'}, [$(\'label\', {text: label}), input]));\n    return input;\n  };\n  const num = (v, min, max, step) => $(\'input\', {type: \'number\', value: v, min, max, step});\n  const slider = (box, v, min, max, step) => {\n    const r = $(\'input\', {type: \'range\', min, max, step, value: v});\n    box.appendChild(r); return r;\n  };\n  const colour = (v, onset) => {\n    const el = $(\'input\', {type: \'color\', value: v});\n    el.oninput = e => onset(e.target.value);\n    return el;\n  };\n\n  // The backlight is one SVG filter per step, built by build.py and not\n  // rebuildable from here -- but every number in it lives on an attribute that\n  // takes a new value in place: a morphology radius, two deviations, a matrix\n  // and two floods. Only `stack` needs nodes added or removed. The radii are in\n  // em of the step\'s own size, so each of a step\'s two filters (poster, and the\n  // small-screen one) is painted from its own font size.\n  function paintBack(name) {\n    const b = D.back[name], st = D.steps[name];\n    [[st.size[0], \'bl-\' + name], [st.size[1], \'bl-\' + name + \'-s\']].forEach(([fs, id]) => {\n      const f = document.getElementById(id);\n      if (!f) return;\n      const q = k => f.querySelector(\'[data-bl="\' + k + \'"]\');\n      q(\'dilate\').setAttribute(\'radius\', (b.dilate * fs).toFixed(2));\n      q(\'merge\').setAttribute(\'stdDeviation\', (b.merge * fs).toFixed(2));\n      q(\'halo\').setAttribute(\'stdDeviation\', (b.halo * fs).toFixed(2));\n      q(\'hard\').setAttribute(\'values\',\n        \'0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 \' + b.hard + \' \' + (-b.hard / 2));\n      [\'slab\', \'glow\'].forEach(k => {\n        q(k).setAttribute(\'flood-color\', b[k][0]);\n        q(k).setAttribute(\'flood-opacity\', b[k][1]);\n      });\n      // same curve as stack_table() in build.py\n      const n = Math.max(1, Math.round(b.stack)), S = 64, v = [];\n      for (let k = 0; k <= S; k++) v.push((1 - Math.pow(1 - k / S, n)).toFixed(4));\n      q(\'stack\').firstElementChild.setAttribute(\'tableValues\', v.join(\' \'));\n    });\n  }\n\n  const pick = (v, opts) => {\n    const sel = $(\'select\');\n    opts.forEach(o => {\n      const opt = $(\'option\', {value: o});\n      opt.textContent = o;\n      if (o === v) opt.selected = true;\n      sel.appendChild(opt);\n    });\n    return sel;\n  };\n\n  // The same rule as copy_html in build.py: a blank line starts a paragraph, a\n  // single newline is a break, and only the div-wrapped roles take paragraphs.\n  function copyHtml(role, text) {\n    const esc = t => t.replace(/&/g, \'&amp;\').replace(/</g, \'&lt;\').replace(/>/g, \'&gt;\');\n    const paras = text.trim().split(/\\n\\s*\\n/).filter(p => p.trim());\n    const link = t => t.replace(/\\[\\[(.+?)\\]\\]/g, (_, x) =>\n      \'<a href="\' + (D.links[x] || \'#\') + \'" target="_blank" rel="noopener">\' + x + \'</a>\');\n    const br = p => p.split(\'\\n\').map(l => link(esc(l))).join(\'<br>\');\n    const para = p => { const t = p.trim(), n = t.indexOf(\'\\n\');\n      const head = n < 0 ? t : t.slice(0, n), rest = n < 0 ? \'\' : t.slice(n + 1);\n      const m = head.trim().match(/^\\[([^\\[\\]]+)\\]$/);\n      return m ? \'<p class="chip"><span>\' + esc(m[1]) + \'</span></p>\'\n                 + (rest.trim() ? \'<p>\' + br(rest) + \'</p>\' : \'\')\n               : \'<p>\' + br(p) + \'</p>\'; };\n    return D.tag[role] === \'div\'\n      ? paras.map(para).join(\'\')\n      : paras.map(br).join(\'<br>\');\n  }\n  function setCopy(role) {\n    const el = document.querySelector(\'.t-\' + role);\n    if (!el) return;\n    const html = copyHtml(role, D.copy[role]);\n    [...el.children].forEach(layer => layer.innerHTML = html);\n  }\n\n  // The one place a role\'s numbers reach the page. Corners are re-filled in the\n  // declared order so moving one role never reshuffles the others.\n  function apply() {\n    D.order.forEach(role => {\n      const r = D.all[role], st = D.steps[r.step], c = D.sets[r.set];\n      document.querySelectorAll(\'.t-\' + role).forEach(el => {\n      const s = el.style;\n      s.setProperty(\'--fs\', st.size[0] + \'px\');\n      s.setProperty(\'--soft\', st.soft + \'px\');\n      s.setProperty(\'--solid\', st.solid == null ? 1 : st.solid);\n      s.setProperty(\'--glowR\', st.glow + \'em\');\n      s.setProperty(\'--bloomR\', st.bloom + \'px\');\n      s.setProperty(\'--slabF\', \'url(#bl-\' + r.step + \')\');\n      // 字重、字距、行距属于字号档，不属于角色——换档要整套跟过去\n      const ty = D.type[r.step] || {};\n      s.setProperty(\'--w\', ty.weight);\n      s.setProperty(\'--ls\', (r.ls ?? ty.ls) + \'em\');\n      s.setProperty(\'--lh\', r.lh ?? ty.lh);\n      s.setProperty(\'--ink\', c.ink);\n      s.setProperty(\'--glow\', c.glow);\n      s.setProperty(\'--bloom\', c.bloom);\n      s.setProperty(\'--gap\', (r.gap || 0) + \'px\');\n      s.setProperty(\'--maxw\', r.width ? r.width + \'ch\' : \'var(--fit)\');\n      });\n    });\n    // spacing and size both move the detail\'s height, and the reveal animates\n    // to a number that was measured before this edit\n    if (window.__lecMeasure) window.__lecMeasure();\n    D.corners.forEach(corner => {\n      const box = document.querySelector(\'.\' + corner);\n      if (!box) return;\n      Object.keys(D.roles).filter(role => D.roles[role].at === corner)\n             .forEach(role => { const b = D.roles[role].box;\n               (b && box.querySelector(\'.\' + b) || box)\n                 .appendChild(document.querySelector(\'.t-\' + role)); });\n    });\n  }\n\n  Object.entries(D.all).forEach(([role, r]) => {\n    const pinned = role in D.roles;\n    panel.appendChild($(\'h3\', {text: role + (pinned ? \'\' : \' · 讲座\')}));\n    const box = $(\'section\');\n    panel.appendChild(box);\n\n    field(box, \'字号档\', pick(r.step, Object.keys(D.steps)))\n      .onchange = e => { r.step = e.target.value; apply(); dump(); };\n    if (pinned) field(box, \'位置\', pick(r.at, D.corners))\n      .onchange = e => { r.at = e.target.value; apply(); dump(); };\n    field(box, \'配色\', pick(r.set, Object.keys(D.sets)))\n      .onchange = e => { r.set = e.target.value; apply(); dump(); };\n\n    const g = field(box, \'上方间距 px\', num(r.gap || 0, 0, 160, 2));\n    const gr = slider(box, r.gap || 0, 0, 160, 2);\n    const setGap = v => { r.gap = +v; g.value = v; gr.value = v; apply(); dump(); };\n    g.oninput = e => setGap(e.target.value);\n    gr.oninput = e => setGap(e.target.value);\n\n    if (role in D.copy) {\n      box.appendChild($(\'div\', {class: \'hint\', text: \'文案：空行分段，单个换行是换行\'}));\n      const ta = document.createElement(\'textarea\');\n      ta.value = D.copy[role];\n      ta.rows = role === \'desc\' ? 8 : 4;\n      ta.spellcheck = false;\n      ta.style.cssText = \'height:auto;font:10px/1.5 var(--font-sans)\';\n      box.appendChild(ta);\n      ta.oninput = () => { D.copy[role] = ta.value; setCopy(role); dump(); };\n    }\n\n    const w = field(box, \'宽度 ch · 0=不限\', num(r.width || 0, 0, 90, 1));\n    const wr = slider(box, r.width || 0, 0, 90, 1);\n    const setW = v => { r.width = +v; w.value = v; wr.value = v; apply(); dump(); };\n    w.oninput = e => setW(e.target.value);\n    wr.oninput = e => setW(e.target.value);\n  });\n\n  // A step is shared by every role that names it, so these move type all over\n  // the poster at once. soft is the blur on the ink layer -- the one that\n  // decides whether small type is legible -- and glow and bloom are the haze\n  // around it. The slab filter is built at build time from `size`, so changing\n  // size here moves the type without moving its silhouette: rebuild to see it.\n  // One section, not one per step: the ramp has a single hand-set size in it.\n  {\n    panel.appendChild($(\'h3\', {text: \'基准 t\' + D.baseSize}));\n    const box = $(\'section\');\n    panel.appendChild(box);\n    const knob = (label, min, max, step, read, write) => {\n      const n = field(box, label, num(read(), min, max, step));\n      const r = slider(box, read(), min, max, step);\n      const set = v => { write(+v); n.value = v; r.value = v; redraw(); };\n      n.oninput = e => set(e.target.value);\n      r.oninput = e => set(e.target.value);\n    };\n    const B = D.base;\n    knob(\'字距 em · ls\', -.12, .3, .005, () => B.ls, v => B.ls = v);\n    knob(\'行距 · lh\', .6, 2, .01, () => B.lh, v => B.lh = v);\n    knob(\'字重\', 100, 700, 50, () => B.weight, v => B.weight = v);\n    knob(\'模糊 px · soft\', 0, 4, .02, () => B.soft, v => B.soft = v);\n    knob(\'实心度 · solid\', 0, 1, .02, () => B.solid, v => B.solid = v);\n    knob(\'内发光 em · glow\', 0, 3, .01, () => B.glow, v => B.glow = v);\n    knob(\'外发光 px · bloom\', 0, 40, .1, () => B.bloom, v => B.bloom = v);\n    box.appendChild($(\'div\', {class: \'hint\', text:\n      \'其余字号由此算出。下面两个是阶梯的斜率：每大 1px，字距和行距各收回多少。\'}));\n    knob(\'字距斜率 · TRACK\', 0, .04, .0005, () => D.track, v => D.track = v);\n    knob(\'行距斜率 · LEAD\', 0, .06, .0005, () => D.lead, v => D.lead = v);\n  }\n\n  // The backlight. Radii in em, so the base\'s numbers are the whole ramp.\n  [[\'基准 背光\', D.baseBack], [\'mark 背光\', D.markBack]].forEach(([title, b]) => {\n    panel.appendChild($(\'h3\', {text: title}));\n    const box = $(\'section\');\n    panel.appendChild(box);\n    const knob = (label, min, max, step, read, write) => {\n      const n = field(box, label, num(read(), min, max, step));\n      const r = slider(box, read(), min, max, step);\n      const set = v => { write(+v); n.value = v; r.value = v; redraw(); };\n      n.oninput = e => set(e.target.value);\n      r.oninput = e => set(e.target.value);\n    };\n    knob(\'实色不透明\', 0, 1, .02, () => b.slab, v => b.slab = v);\n    knob(\'晕色不透明\', 0, 1, .02, () => b.glow, v => b.glow = v);\n    knob(\'外扩 em · dilate\', 0, .4, .005, () => b.dilate, v => b.dilate = v);\n    knob(\'合并 em · merge\', 0, .3, .005, () => b.merge, v => b.merge = v);\n    knob(\'晕开 em · halo\', 0, .8, .005, () => b.halo, v => b.halo = v);\n    knob(\'叠加次数 · stack\', 1, 24, 1, () => b.stack, v => b.stack = v);\n    knob(\'切边硬度 · hard\', .5, 12, .1, () => b.hard, v => b.hard = v);\n  });\n\n  // ONE colour, for every backlight on the page. Per-step would only ever\n  // produce four shades of almost-the-same-yellow lit side by side.\n  {\n    panel.appendChild($(\'h3\', {text: \'背光颜色 · 全局\'}));\n    const box = $(\'section\');\n    panel.appendChild(box);\n    field(box, \'颜色\', colour(D.blc, v => { D.blc = v; redraw(); }));\n    box.appendChild($(\'div\', {class: \'hint\', text:\n      \'整页所有背光共用这一个颜色。浓淡分别在上面两节的不透明度里调。\'}));\n  }\n\n  {\n    panel.appendChild($(\'h3\', {text: \'mark · 字号档\'}));\n    const box = $(\'section\');\n    panel.appendChild(box);\n    const knob = (label, min, max, step, read, write) => {\n      const n = field(box, label, num(read(), min, max, step));\n      const r = slider(box, read(), min, max, step);\n      const set = v => { write(+v); n.value = v; r.value = v; redraw(); };\n      n.oninput = e => set(e.target.value);\n      r.oninput = e => set(e.target.value);\n    };\n    const S = D.markStep, T = D.markType;\n    knob(\'字号 px\', 8, 200, .5, () => S.size[0], v => S.size[0] = v);\n    knob(\'字距 em · ls\', -.12, .3, .005, () => T.ls, v => T.ls = v);\n    knob(\'行距 · lh\', .6, 2, .01, () => T.lh, v => T.lh = v);\n    knob(\'字重\', 100, 700, 50, () => T.weight, v => T.weight = v);\n    knob(\'模糊 px · soft\', 0, 4, .02, () => S.soft, v => S.soft = v);\n    knob(\'实心度 · solid\', 0, 1, .02, () => S.solid, v => S.solid = v);\n    knob(\'内发光 em · glow\', 0, 3, .01, () => S.glow, v => S.glow = v);\n    knob(\'外发光 px · bloom\', 0, 40, .1, () => S.bloom, v => S.bloom = v);\n  }\n\n  // The two gaps that belong to the lecture blocks rather than to any one role.\n  panel.appendChild($(\'h3\', {text: \'讲座间距\'}));\n  {\n    const box = $(\'section\');\n    panel.appendChild(box);\n    const lecs = document.querySelector(\'.lecs\');\n    const pxKnob = (label, prop, min, max, step) => {\n      const cur = parseFloat(getComputedStyle(lecs).getPropertyValue(prop)) || 0;\n      const n = field(box, label, num(cur, min, max, step));\n      const r = slider(box, cur, min, max, step);\n      const set = v => { lecs.style.setProperty(prop, v + \'px\'); n.value = v; r.value = v; dump(); };\n      n.oninput = e => set(e.target.value);\n      r.oninput = e => set(e.target.value);\n    };\n    pxKnob(\'行距 --lec-lead\', \'--lec-lead\', 0, 60, 1);\n    pxKnob(\'离脊柱 --lec-gap\', \'--lec-gap\', 0, 200, 2);\n  }\n\n  panel.appendChild($(\'h3\', {text: \'页边距\'}));\n  {\n    const box = $(\'section\');\n    panel.appendChild(box);\n    const cur = parseInt(getComputedStyle(document.documentElement).getPropertyValue(\'--pad\'));\n    const p = field(box, \'--pad px\', num(cur, 8, 96, 2));\n    const pr = slider(box, cur, 8, 96, 2);\n    const setPad = v => {\n      document.documentElement.style.setProperty(\'--pad\', v + \'px\');\n      p.value = v; pr.value = v; dump();\n    };\n    p.oninput = e => setPad(e.target.value);\n    pr.oninput = e => setPad(e.target.value);\n  }\n\n  panel.appendChild($(\'h3\', {text: \'导出 · 贴回 build.py\'}));\n  const out = $(\'textarea\', {readonly: \'\', spellcheck: \'false\'});\n  {\n    const box = $(\'section\');\n    panel.appendChild(box);\n    box.appendChild(out);\n    box.appendChild($(\'div\', {class: \'hint\', text:\n      \'面板只改这一页，刷新就回到 build.py 里的值。\' +\n      \'导出的是手调的那些数，不是它们算出来的阶梯。\'}));\n  }\n\n  function dump() {\n    const q = s => "\'" + s + "\'";\n    const row = (role, withAt) => {\n      const r = D.all[role];\n      const bits = [];\n      if (withAt) bits.push(\'at=\' + q(r.at));\n      bits.push(\'step=\' + q(r.step), \'set=\' + q(r.set));\n      if (r.gap) bits.push(\'gap=\' + r.gap);\n      if (r.width) bits.push(\'width=\' + r.width);\n      if (r.ls != null) bits.push(\'ls=\' + r.ls);\n      if (r.lh != null) bits.push(\'lh=\' + r.lh);\n      return \'    \' + role + \'=dict(\' + bits.join(\', \') + \'),\';\n    };\n    const py = s => "\'" + s.replace(/\\\\/g, \'\\\\\\\\\').replace(/\'/g, "\\\\\'")\n      .replace(/\\n/g, \'\\\\n\') + "\'";\n    const copy = Object.keys(D.copy).map(k => \'    \' + k + \'=\' + py(D.copy[k]) + \',\');\n    // Only the hand-set numbers come back out. The ramp is a rule, and printing\n    // the five sizes it produces would invite pasting them back as five tables.\n    const B = D.base, S = D.markStep, T = D.markType;\n    const dict = (name, pairs) => name + \' = dict(\' + pairs.join(\', \') + \')\';\n    const bk = (name, b) => dict(name, [\'dilate=\' + b.dilate, \'merge=\' + b.merge,\n      \'hard=\' + b.hard, \'halo=\' + b.halo, \'stack=\' + Math.round(b.stack),\n      \'slab=\' + b.slab, \'glow=\' + b.glow]);\n    const lecs = getComputedStyle(document.querySelector(\'.lecs\'));\n    out.value =\n        dict(\'BASE\', [\'soft=\' + B.soft, \'glow=\' + B.glow, \'bloom=\' + B.bloom,\n                      \'solid=\' + B.solid, \'weight=\' + B.weight,\n                      \'ls=\' + B.ls, \'lh=\' + B.lh]) + \'\\n\'\n      + \'TRACK = \' + D.track + \'\\n\'\n      + \'LEAD = \' + D.lead + \'\\n\\n\'\n      + dict(\'MARK_STEP\', [\'size=(\' + S.size[0] + \', \' + S.size[1] + \')\',\n                           \'soft=\' + S.soft, \'glow=\' + S.glow, \'bloom=\' + S.bloom,\n                           \'solid=\' + S.solid]) + \'\\n\'\n      + dict(\'MARK_TYPE\', [\'weight=\' + T.weight, \'ls=\' + T.ls, \'lh=\' + T.lh]) + \'\\n\\n\'\n      + "BACKLIGHT_COLOUR = \'" + D.blc + "\'\\n"\n      + bk(\'BASE_BACK\', D.baseBack) + \'\\n\'\n      + bk(\'MARK_BACK\', D.markBack) + \'\\n\\n\'\n      + \'ROLES = dict(\\n\' + Object.keys(D.roles).map(r => row(r, true)).join(\'\\n\') + \'\\n)\\n\\n\'\n      + \'TEXT = dict(\\n\' + Object.keys(D.text).map(r => row(r, false)).join(\'\\n\') + \'\\n)\\n\\n\'\n      + \'COPY = dict(\\n\' + copy.join(\'\\n\') + \'\\n)\\n\\n\'\n      + \'--pad: \' + getComputedStyle(document.documentElement).getPropertyValue(\'--pad\').trim()\n      + \'\\n--lec-lead: \' + lecs.getPropertyValue(\'--lec-lead\').trim()\n      + \'\\n--lec-gap: \' + lecs.getPropertyValue(\'--lec-gap\').trim();\n  }\n\n  apply(); dump();\n})();\n'
 
 
 def tools_panel():
@@ -960,10 +1332,10 @@ def tools_panel():
     the poster itself should not ship a dev panel. It edits the same three tables
     the build reads, and prints ROLES back as Python to paste into this file."""
     data = json.dumps(dict(roles=ROLES, text=TEXT, sets=COLOUR_SETS,
-                           base=BASE, baseSize=BASE_SIZE, track=TRACK, lead=LEAD,
+                           base=BASE, baseSize=BASE_SIZE, walkStop=WALK_STOP, track=TRACK, lead=LEAD,
                            sizes=TEXT_SIZES, markStep=MARK_STEP, markType=MARK_TYPE,
                            baseBack=BASE_BACK, markBack=MARK_BACK, blc=BACKLIGHT_COLOUR,
-                           corners=list(CORNERS), copy=COPY, tag=ROLE_TAG),
+                           corners=list(CORNERS), copy=COPY, tag=ROLE_TAG, links=LINKS),
                       ensure_ascii=False)
     return ('<aside class="tools" id="tools"></aside>\n<script>'
             + PANEL_JS.replace('__DATA__', data) + '</script>')
@@ -981,8 +1353,13 @@ def page(inline, spine=None, cols=None, rows=None, tools=False):
                 .replace('__LECCSS__', LEC_CSS)
                 .replace('__GRAINURL__', grain).replace('__GRAINA__', str(GRAIN['opacity']))
                 .replace('__GRAINSIZE__', f"{GRAIN['cell'] * 40:g}px")
+                .replace('__CELL__', ramp(CELL * SPINE_SMALL, CELL))
+                .replace('__LENS__', ramp(LENS * SPINE_SMALL, LENS))
+                .replace('__FEATHER__', ramp(FEATHER * SPINE_SMALL, FEATHER))
+                .replace('__MARKFS__', ramp(MARK_STEP['size'][1], MARK_STEP['size'][0]))
+                .replace('__NARROW__', str(NARROW)).replace('__MID__', str((NARROW + WIDE) // 2))
                 .replace('__COLS__', f'{cols:g}').replace('__ROWS__', str(rows))
-            + BODY.replace('__SPINE__', spine).replace('__LECS__', lectures_html()).replace('__CORNERS__', corners()).replace('__BACKLIGHT__', backlight_defs())
+            + BODY.replace('__NARROW__', str(NARROW)).replace('__SPINE__', spine).replace('__LECS__', lectures_html()).replace('__CORNERS__', corners()).replace('__BACKLIGHT__', backlight_defs())
             + (tools_panel() if tools else ''))
 
 
