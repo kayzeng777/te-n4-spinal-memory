@@ -375,48 +375,54 @@
   /* The phone's close button; beside the spine a click elsewhere does it. */
   .lec-close{display:none}
   /* On a phone the open lecture takes the panel at the foot of the screen, the
-     one the information sits in the rest of the time: its when and who and
-     title across the top with Sign Up and the close beside them, and the
-     description under them; the panel scrolls as a whole. .more and its inner
-     box step out of the way (display:contents) so the pieces inside them can
-     be laid out on the panel's own grid. */
+     one the information sits in the rest of the time. Sign up and the close
+     are a bar across its top that stays put; everything else -- when, who,
+     the title, the language, the description -- scrolls under it. The script
+     moves the pieces into .lec-bar and .lec-body while the screen is narrow
+     (and back when it is not); .more and its inner box step out of the way
+     (display:contents) so what is inside them stacks in the body. */
   @media (max-width:760px){
-    /* Laid out as the information's panel is: the first line --lec-top
-       under the top of the solid ground, the box reaching up past it so a
-       line scrolled up has the whole --halo to fade over. */
+    /* --lec-top is the room between the top of the solid ground and the bar.
+       The panel itself is not masked: the bar's glow would be faded with it,
+       which is what made the close look off centre. Only the body fades. */
     .lec{--lec-top:6px;
       position:fixed;left:0;right:0;top:auto;bottom:0;width:auto;
       height:calc(var(--lec-panel) + var(--halo) - var(--lec-top));margin:0;
-      padding:var(--halo) var(--pad) var(--pad);
-      overflow-y:auto;scrollbar-width:none;overscroll-behavior:contain;
+      padding:var(--halo) 0 0;overflow:hidden;
       /* no pointer-events here: all eight panels are stacked on the screen,
          seven of them unseen, and only the open one (.lec.open, above) may
          take a tap -- the rest would swallow every tap on the spine behind */
-      -webkit-mask-image:linear-gradient(to bottom,transparent,#000 var(--halo));
-      mask-image:linear-gradient(to bottom,transparent,#000 var(--halo));
-      display:grid;grid-template-columns:1fr auto auto;
-      grid-template-rows:auto auto auto auto auto;align-content:start;column-gap:12px;align-items:start}
+      display:flex;flex-direction:column}
     /* The panel changes in one frame. It used to rise and fade in, but the
        one it replaced -- the information, or the last lecture -- went at once,
        so every tap left the panel's ground empty for a quarter of a second:
        a flash between the two. */
     .lec,.lec.on{transform:none;transition:none}
-    .lec::-webkit-scrollbar{display:none}
     /* over the segment numbers, which come later in the page and would
        otherwise show through */
     .lec.open{z-index:3}
+    /* Sign up on the left, the close on the right */
+    .lec-bar{flex:none;position:relative;z-index:2;display:flex;justify-content:space-between;
+      align-items:center;column-gap:16px;padding:0 var(--pad)}
+    .lec-bar>*{margin:0}
+    /* It starts right under the bar, never under it: a line scrolled up
+       fades out over --under, the room above the first line, before it
+       reaches Sign up. */
+    .lec-body{--under:16px;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+      scrollbar-width:none;padding:var(--under) var(--pad) var(--pad);
+      -webkit-mask-image:linear-gradient(transparent,#000 var(--under));
+      mask-image:linear-gradient(transparent,#000 var(--under))}
+    .lec-body::-webkit-scrollbar{display:none}
     .lec .more,.lec .more-in{display:contents}
-    .lec>.t-lecd{grid-area:1/1}
-    .lec>.t-lecw{grid-area:2/1}
-    .lec>.t-lect{grid-area:3/1/4/-1}   /* the title takes the full width */
-    /* both span the date's row and the speaker's, so their height does not
-       open the gap between the two */
-    .lec .signup{grid-area:1/2/3/3;margin:0}
-    .lec-close{grid-area:1/3/3/4;display:block;margin:0;padding:0 2px;border:0;
-      background:none;cursor:pointer}
-    .lec-close .t-lecx{--fs:26px;--lh:.8;--slabF:url(#bl-t20-s)}
-    .lec .t-lecl{grid-area:4/1/5/-1}
-    .lec .scroll{grid-area:5/1/6/-1;margin-top:var(--lec-lead)}
+    .lec-body>*+*,.lec .more-in>*+*{margin-top:calc(var(--lec-lead) + var(--gap,0px))}
+    /* the language chip stands apart: 12px under the title, and 6px more
+       than the date-to-speaker gap over the description */
+    .lec .more-in>.t-lecl{margin-top:12px}
+    .lec .more-in>.scroll{margin-top:calc(var(--lec-lead) + 10px + 6px)}
+    .lec .more-in>.scroll>:first-child{margin-top:0}
+    .lec-close{display:block;padding:0 2px;border:0;background:none;cursor:pointer;
+      line-height:0}
+    .lec-close .t-lecx{--fs:24px;--lh:1;--w:300;--slabF:url(#bl-t20-s)}
   }
   :root{--pad:24px}
   /* --tools is the width the side panel takes when it is open, so the stage
@@ -516,8 +522,11 @@
        head and the panel's words (main is below the poster; an open lecture
        is lifted over them inside main). */
     /* Two heights: the information's panel, and an open lecture's. --panel
-       is whichever is up, so the ground behind it follows. */
-    :root{--info-panel:200px;--lec-panel:440px;--panel:var(--info-panel);
+       is whichever is up, so the ground behind it follows. An open lecture's
+       is 440px on a phone as tall as the ones it was tuned on (about 812),
+       and the same share of the screen on a shorter one, so the spine keeps
+       its room above it. */
+    :root{--info-panel:200px;--lec-panel:min(440px, 54svh);--panel:var(--info-panel);
       --halo:26px;--panel-fade:26px}
     body:has(.lec.open){--panel:var(--lec-panel)}
     main{padding-bottom:calc(var(--info-panel) + 24px + var(--post, 0px))}
@@ -779,7 +788,28 @@
     // .sheet, out of main (see .sheet).
     const home=document.querySelector('.lecs'),sheet=document.querySelector('.sheet');
     function house(){const box=narrow.matches?sheet:home;
-      lecs.forEach(l=>{if(l&&l.parentNode!==box)box.appendChild(l);});}
+      lecs.forEach(l=>{if(!l)return;
+        if(l.parentNode!==box)box.appendChild(l);
+        dress(l,narrow.matches);});}
+    // On a phone Sign up and the close are a bar that stays put while the
+    // rest of the block scrolls under it (see the phone's .lec rules). The
+    // pieces are moved into .lec-bar and .lec-body while the screen is
+    // narrow, and put back exactly where they were when it is not.
+    function dress(l,on){
+      if(on===!!l.__bar)return;
+      if(on){
+        const bar=document.createElement('div'),body=document.createElement('div');
+        bar.className='lec-bar';body.className='lec-body';
+        const su=l.querySelector('.signup'),x=l.querySelector('.lec-close');
+        l.__home=[su.parentNode,su.nextSibling];
+        [...l.children].forEach(c=>{if(c!==x)body.appendChild(c);});
+        bar.append(su,x);l.append(bar,body);l.__bar=bar;l.__body=body;
+      }else{
+        const bar=l.__bar,body=l.__body,[p,n]=l.__home;
+        const su=bar.querySelector('.signup'),x=bar.querySelector('.lec-close');
+        [...body.children].forEach(c=>l.insertBefore(c,bar));
+        p.insertBefore(su,n);l.appendChild(x);
+        bar.remove();body.remove();l.__bar=l.__body=null;}}
     house();narrow.addEventListener('change',house);
     // The open block is fixed to the screen (see LEC_CSS), and takes its left
     // edge from where .lecs ends. The page does not scroll sideways, so this
@@ -837,14 +867,20 @@
         const k=Math.min(1,(now-t0)/GLIDE),e=1-EASE(k);
         setRoom(Math.round(p0*e),Math.round(q0*e));
         if(k<1)requestAnimationFrame(step);})(t0);}
+    // A custom property holding a length reads back as its text ("min(440px,
+    // 54svh)"), not as px; a probe laid out at that height gives the number.
+    const probe=document.createElement('div');
+    probe.style.cssText='position:absolute;visibility:hidden;pointer-events:none;width:0';
+    document.body.appendChild(probe);
+    function cssPx(name){
+      probe.style.height=getComputedStyle(root).getPropertyValue(name);
+      return probe.offsetHeight;}
     function glide(g,l){
       const b=g.getBoundingClientRect();
-      // on a phone the head is stuck over the top of the screen and the block
-      // is the panel over the foot, so the segment goes to the middle of what
-      // is left between them
-      const top=narrow.matches?poster.offsetHeight:0;
-      const at=top+(viewH()-top-(narrow.matches?
-        parseFloat(getComputedStyle(root).getPropertyValue('--lec-panel'))||0:0))/2;
+      // on a phone the block is the panel over the foot of the screen, so the
+      // segment goes to the middle of everything above it -- the logo floats
+      // over the top of that and does not count
+      const at=(viewH()-(narrow.matches?cssPx('--lec-panel'):0))/2;
       lend(g,at);
       const c=g.getBoundingClientRect();
       const to=Math.max(0,Math.min(getY()+(c.top+c.bottom)/2-at,maxY()));
