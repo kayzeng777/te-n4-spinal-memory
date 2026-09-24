@@ -62,7 +62,8 @@ WALK_STOP = 26  # px past which tracking and leading stop tightening
 # poster size -> the size at NARROW, the ramp's own .857
 TEXT_SIZES = dict(t32=(32, 27.4), t26=(26, 22.3), t20=(20, 17.1), t18=(18, 15.4), t16=(16, 13.7),
                   t14=(14, 12), t12=(12, 10.3),
-                  no=(16, 14))   # the segment numbers: 14 on a phone, not the ramp's 13.7
+                  no=(16, 14),   # the segment numbers: 14 on a phone, not the ramp's 13.7
+                  su=(18, 14))   # Sign up: 18 beside the spine, 14 on a phone
 MARK_STEP = dict(size=(100, 84), soft=1.92, glow=.04, bloom=9, solid=.76)
 MARK_TYPE = dict(weight=400, ls=-.055, lh=.8)
 
@@ -220,12 +221,13 @@ ROLES = dict(
 # four-layer machinery, same steps and colour sets as the poster roles — the
 # only difference is that nothing places them, the spine does.
 TEXT = dict(
-    lecn=dict(step='t14', set='a'),
+    lecd=dict(step='t14', set='a'),              # the date and time
+    lecw=dict(step='t16', set='a', gap=2),       # who: over the date, under the title
     lect=dict(step='t20', set='a'),
     lecno=dict(step='no', set='a'),
     lecl=dict(step='t12', set='a', gap=12),
     lecb=dict(step='t14', set='a', gap=6, width=38),
-    lecs=dict(step='t16', set='a', gap=14),
+    lecs=dict(step='su', set='a', gap=14),
 )
 
 # Where each lecture's Sign Up button goes. One link for the series unless a
@@ -367,8 +369,17 @@ TYPE_CSS = '''.t{--fit:var(--col-fit, calc(100vw - 2 * var(--pad) - var(--tools,
      colour on every layer, so it takes the same glow as the words. */
   .t>*>*+.chip{margin-top:1.5em}
   .t>*>.chip+p{margin-top:.4em}
+  /* Centred on the letters themselves, not on the line box: text-box trims
+     the box to the cap height above and the baseline below, so equal padding
+     is equal space round the capitals at every size. Padding the line box
+     instead could only be tuned by eye, and what was right at one size was a
+     pixel out at the other. Where text-box is not supported, the old uneven
+     padding stands in. */
   .t .chip>span{display:inline-block;font-size:.78em;line-height:1;
-    padding:.2em .6em .25em;border:1px solid currentColor;border-radius:999px}
+    padding:.3em .6em .16em;border:1px solid currentColor;border-radius:999px}
+  @supports (text-box:trim-both cap alphabetic){
+    .t .chip>span{text-box:trim-both cap alphabetic;padding:.38em .6em}
+  }
   .t a{color:inherit;text-decoration:none}
   .t a::after{content:"\\2009\\2197"}
   /* Five copies of every word, stacked. Only the top one takes a selection, so
@@ -463,8 +474,9 @@ HEAD = '''<title>te online lecture</title>
   .grain{position:fixed;inset:0 var(--tools,0) 0 0;z-index:4;pointer-events:none;
     mix-blend-mode:overlay;opacity:__GRAINA__;
     background-size:__GRAINSIZE__ __GRAINSIZE__;background-image:__GRAINURL__}
+  :root{--grid-img:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'><path d='M0 0H1M0 0V1' fill='none' stroke='%23cccccc' stroke-width='.05' stroke-dasharray='.14 .1'/></svg>")}
   .grid{position:absolute;inset:0;pointer-events:none;z-index:0;
-    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'><path d='M0 0H1M0 0V1' fill='none' stroke='%23cccccc' stroke-width='.05' stroke-dasharray='.14 .1'/></svg>");
+    background-image:var(--grid-img);
     background-size:var(--cell) var(--cell);
     background-position:calc(50% + var(--cell) / 2)
       calc(var(--poster-h, 0px) + var(--main-top) + var(--pre, 0px));}
@@ -599,7 +611,7 @@ HEAD = '''<title>te online lecture</title>
        is lifted over them inside main). */
     /* Two heights: the information's panel, and an open lecture's. --panel
        is whichever is up, so the ground behind it follows. */
-    :root{--info-panel:200px;--lec-panel:360px;--panel:var(--info-panel);
+    :root{--info-panel:200px;--lec-panel:440px;--panel:var(--info-panel);
       --halo:26px;--panel-fade:26px}
     body:has(.lec.open){--panel:var(--lec-panel)}
     main{padding-bottom:calc(var(--info-panel) + 24px + var(--post, 0px))}
@@ -651,10 +663,29 @@ HEAD = '''<title>te online lecture</title>
     .poster .info>:first-child{margin-top:0}
     .poster .info>.t{--maxw:100%}
     body:has(.lec.open) .poster .info{visibility:hidden}
-    /* The spine starts up in the head, level with the logo, just under the
-       subtitle. Padding cannot go negative, so here the lift is a margin. */
+    /* The page itself does not scroll on a phone: the spine scrolls in main,
+       which covers the screen, and the panel scrolls on its own beside it.
+       When the page scrolled, the browser's bars came and went with it and
+       the screen changed height under the panel; and with the panel's
+       scroller inside the page's, a swipe on the panel just after a swipe on
+       the spine was often taken as more of the page. Two scrollers side by
+       side leave nothing to decide: a finger scrolls what it is on.
+
+       The grid goes with the spine, so it is drawn on main and scrolls with
+       its content (background-attachment:local). The spine starts up in the
+       head, level with the logo, just under the subtitle. */
     :root{--main-top:-8px}
-    main{margin-top:var(--main-top);padding-top:var(--pre, 0px)}
+    html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+    .grid{display:none}
+    main{position:fixed;inset:0;margin:0;overflow-y:auto;overscroll-behavior:contain;
+      scrollbar-width:none;
+      padding-top:calc(var(--poster-h, 0px) + var(--main-top) + var(--pre, 0px));
+      background-image:var(--grid-img);background-size:var(--cell) var(--cell);
+      background-attachment:local;
+      background-position:calc(50% + var(--cell) / 2)
+        calc(var(--poster-h, 0px) + var(--main-top) + var(--pre, 0px))}
+    main::-webkit-scrollbar{display:none}
+    .poster .info{overscroll-behavior:contain}
   }
   @media (max-width:__MID__px){
     __TYPECSS_SMALL__
@@ -766,9 +797,10 @@ LEC_CSS = '''/* The lecture blocks. One per segment of the spine, parked at the 
   .lec>*,.lec .more-in>*,.lec .scroll>*{position:relative}
   .lec .scroll>:nth-child(1){z-index:2}
   .lec .scroll>:nth-child(2){z-index:1}
-  .lec>:nth-child(1){z-index:3}
-  .lec>:nth-child(2){z-index:2}
-  .lec>:nth-child(3){z-index:1}
+  .lec>:nth-child(1){z-index:4}
+  .lec>:nth-child(2){z-index:3}
+  .lec>:nth-child(3){z-index:2}
+  .lec>:nth-child(4){z-index:1}
   .lec .more-in>:nth-child(1){z-index:2}
   .lec .more-in>:nth-child(2){z-index:1}
   .lec>*+*{margin-top:calc(var(--lec-lead) + var(--gap,0px))}
@@ -787,11 +819,10 @@ LEC_CSS = '''/* The lecture blocks. One per segment of the spine, parked at the 
      takes the pointer. A hovered one does not: it goes the moment the pointer
      leaves its segment, and it would only ever be caught half way. */
   .lec.open{pointer-events:auto}
-  .lec .signup{display:block;width:max-content;text-decoration:none;
-    padding:.3em .75em .4em;border:1.5px solid #f28030;border-radius:999px;
-    box-shadow:0 0 10px #fdf48a,inset 0 0 6px #fdf48a;
-    transition:background-color .15s ease}
-  .lec .signup:hover{background-color:rgba(253,244,138,.45)}
+  /* A link, not a button: the words underlined, the arrow after them not. */
+  .lec .signup{display:block;width:max-content;color:inherit;text-decoration:none}
+  .lec .signup .u{text-decoration:underline;text-decoration-thickness:1px;
+    text-underline-offset:.18em}
   .lec .signup:focus-visible{outline:2px solid #f28030;outline-offset:3px}
   /* Once the column narrows, an open block's detail runs long enough to reach
      its neighbours, and a hovered neighbour lands on it. Whichever it lands
@@ -811,16 +842,21 @@ LEC_CSS = '''/* The lecture blocks. One per segment of the spine, parked at the 
      box step out of the way (display:contents) so the pieces inside them can
      be laid out on the panel's own grid. */
   @media (max-width:__NARROW__px){
-    .lec{position:fixed;left:0;right:0;top:auto;bottom:0;width:auto;
-      height:var(--lec-panel);margin:0;padding:calc(var(--halo) + 14px) var(--pad) var(--pad);
-      overflow-y:auto;scrollbar-width:none;
+    /* Laid out as the information's panel is: the first line --lec-top
+       under the top of the solid ground, the box reaching up past it so a
+       line scrolled up has the whole --halo to fade over. */
+    .lec{--lec-top:6px;
+      position:fixed;left:0;right:0;top:auto;bottom:0;width:auto;
+      height:calc(var(--lec-panel) + var(--halo) - var(--lec-top));margin:0;
+      padding:var(--halo) var(--pad) var(--pad);
+      overflow-y:auto;scrollbar-width:none;overscroll-behavior:contain;
       /* no pointer-events here: all eight panels are stacked on the screen,
          seven of them unseen, and only the open one (.lec.open, above) may
          take a tap -- the rest would swallow every tap on the spine behind */
       -webkit-mask-image:linear-gradient(to bottom,transparent,#000 var(--halo));
       mask-image:linear-gradient(to bottom,transparent,#000 var(--halo));
       display:grid;grid-template-columns:1fr auto auto;
-      grid-template-rows:auto auto auto;align-content:start;column-gap:12px;align-items:start}
+      grid-template-rows:auto auto auto auto;align-content:start;column-gap:12px;align-items:start}
     /* The panel changes in one frame. It used to rise and fade in, but the
        one it replaced -- the information, or the last lecture -- went at once,
        so every tap left the panel's ground empty for a quarter of a second:
@@ -831,13 +867,16 @@ LEC_CSS = '''/* The lecture blocks. One per segment of the spine, parked at the 
        otherwise show through */
     .lec.open{z-index:3}
     .lec .more,.lec .more-in{display:contents}
-    .lec>.t-lecn{grid-area:1/1}
-    .lec>.t-lect{grid-area:2/1}
-    .lec .signup{grid-area:1/2;margin:0}
-    .lec-close{grid-area:1/3;display:block;margin:0;padding:0 2px;border:0;
+    .lec>.t-lecd{grid-area:1/1}
+    .lec>.t-lecw{grid-area:2/1}
+    .lec>.t-lect{grid-area:3/1/4/-1}   /* the title takes the full width */
+    /* both span the date's row and the speaker's, so their height does not
+       open the gap between the two */
+    .lec .signup{grid-area:1/2/3/3;margin:0}
+    .lec-close{grid-area:1/3/3/4;display:block;margin:0;padding:0 2px;border:0;
       background:none;color:#f28030;font:300 26px/.8 var(--font-sans);cursor:pointer;
       text-shadow:0 0 6px #fdf48a}
-    .lec .scroll{grid-area:3/1/4/-1;margin-top:var(--lec-lead)}
+    .lec .scroll{grid-area:4/1/5/-1;margin-top:var(--lec-lead)}
   }'''
 
 
@@ -931,17 +970,27 @@ __LECS__
     // open block hangs past the end of main, and counting what hangs there as
     // room already made lends the last segment too little to reach the middle.
     const main=document.getElementById('content');
+    // On a phone the page does not scroll; main does (see the phone's CSS).
+    // Every scroll here goes through these. main covers the screen, so a
+    // point on the screen is a point in main's box either way.
+    const inMain=()=>narrow.matches;
+    const getY=()=>inMain()?main.scrollTop:scrollY;
+    const setY=y=>{if(inMain())main.scrollTop=y;else scrollTo(0,y);};
+    const viewH=()=>inMain()?main.clientHeight:innerHeight;
+    const endY=()=>inMain()?main.scrollHeight:scrollY+main.getBoundingClientRect().bottom;
+    const maxY=()=>inMain()?main.scrollHeight-main.clientHeight
+                           :document.documentElement.scrollHeight-innerHeight;
     // `at` is where on the screen the segment's centre is to land.
     function lend(g,at){
       const b=g.getBoundingClientRect();
-      const y=scrollY+(b.top+b.bottom)/2-pre;      // the centre, with nothing lent
-      const end=scrollY+main.getBoundingClientRect().bottom-pre-post;
+      const y=getY()+(b.top+b.bottom)/2-pre;      // the centre, with nothing lent
+      const end=endY()-pre-post;
       const p=Math.max(0,Math.round(at-y));
-      const q=Math.max(0,Math.round(y-at+innerHeight-end));
+      const q=Math.max(0,Math.round(y-at+viewH()-end));
       want=[p,q];
       if(p<=pre&&q<=post)return;
       setRoom(Math.max(p,pre),Math.max(q,post));
-      scrollTo(0,scrollY+g.getBoundingClientRect().top-b.top);}
+      setY(getY()+g.getBoundingClientRect().top-b.top);}
     // Taken back only as far as it is out of sight -- above the top of the
     // screen for the room above, below the bottom for the room below -- and
     // never below what the open segment still needs, so the page never moves
@@ -949,42 +998,41 @@ __LECS__
     function reclaim(){
       if(tween||(!pre&&!post))return;
       const [wp,wq]=open===-1?[0,0]:want;
-      const y=Math.floor(scrollY);
+      const y=Math.floor(getY());
       const p=Math.max(wp,pre-Math.max(0,y));
-      const q=Math.max(wq,post-Math.max(0,
-        Math.floor(main.getBoundingClientRect().bottom-innerHeight)));
+      const q=Math.max(wq,post-Math.max(0,Math.floor(endY()-getY()-viewH())));
       if(p===pre&&q===post)return;
       const dy=p-pre;
-      setRoom(p,q);if(dy)scrollTo(0,scrollY+dy);}
+      setRoom(p,q);if(dy)setY(getY()+dy);}
     addEventListener('scrollend',reclaim,{passive:true});
+    main.addEventListener('scrollend',reclaim,{passive:true});
     function glide(g,l){
       const b=g.getBoundingClientRect();
       // on a phone the head is stuck over the top of the screen and the block
       // is the panel over the foot, so the segment goes to the middle of what
       // is left between them
       const top=narrow.matches?poster.offsetHeight:0;
-      const at=top+(innerHeight-top-(narrow.matches?
+      const at=top+(viewH()-top-(narrow.matches?
         parseFloat(getComputedStyle(root).getPropertyValue('--lec-panel'))||0:0))/2;
       lend(g,at);
       const c=g.getBoundingClientRect();
-      const to=Math.max(0,Math.min(scrollY+(c.top+c.bottom)/2-at,
-                                   document.documentElement.scrollHeight-innerHeight));
-      const from=scrollY,d=to-from;
+      const to=Math.max(0,Math.min(getY()+(c.top+c.bottom)/2-at,maxY()));
+      const from=getY(),d=to-from;
       if(Math.abs(d)<DEAD)return false;   // nothing moved, so nothing to hold
-      if(still.matches){scrollTo(0,to);return true;}
+      if(still.matches){setY(to);return true;}
       // The tween below is a main-thread scroll: every frame the whole paint
       // pipeline has to finish inside that frame, and it is moving about 32px
       // a frame across 9,300 elements. The browser's own smooth scroll runs on
       // the compositor, which can move tiles it has already rasterised -- at
       // the price of the duration and the curve, which it does not let you set.
       if(/[?&]nativeglide/.test(location.search)){
-        scrollTo({top:to,behavior:'smooth'});return true;}
+        (inMain()?main:window).scrollTo({top:to,behavior:'smooth'});return true;}
       const t0=performance.now(),id={};tween=id;dir=Math.sign(d);
       coast=t0-lastWheel<GAP;             // clicked mid-coast
       (function step(now){
         if(tween!==id)return;               // the reader took the scroll back
         const k=Math.min(1,(now-t0)/GLIDE);
-        scrollTo(0,from+d*EASE(k));
+        setY(from+d*EASE(k));
         if(k<1)requestAnimationFrame(step);else{tween=null;reclaim();}})(t0);
       return true;
     }
@@ -1266,7 +1314,7 @@ COPY = dict(
 LINKS = {'Digital Reading Room': '#'}
 
 ROLE_TAG = dict(logo='div', title='h1', tag='p', info='p', desc='div', facts='div',
-                lecn='p', lect='p', lecl='p', lecb='div', lecno='p', lecs='p')
+                lecd='p', lecw='p', lect='p', lecl='p', lecb='div', lecno='p', lecs='p')
 
 
 def copy_html(role, text):
@@ -1332,20 +1380,22 @@ def lectures_html():
         cy = bands[i] / height
         out.append(layers('p', 'lecno', f'{i + 1:02d}', **{
             'data-lec': i, 'style': f'--nx:{cx:.4f};--ny:{cy:.4f}'}))
-        # A hover is worth the three things that tell you which lecture this is;
+        # A hover is worth the four things that tell you which lecture this is;
         # everything else waits inside .more, which only an open segment shows.
         # The number is not here — it sits on the segment, up in its own corner.
         out.append(
             f'<div class="lec" data-lec="{i}" style="--y:{cy:.4f}">'
-            + layers('p', 'lecn', copy_html('lecn', lec['when'] + '\u2003'
-                                            + lec.get('time', TIME) + '\n' + lec['who']))
+            + layers('p', 'lecd', copy_html('lecd', lec['when'] + '\u2003'
+                                            + lec.get('time', TIME)))
+            + layers('p', 'lecw', copy_html('lecw', lec['who']))
             + layers('p', 'lect', copy_html('lect', lec['what']))
             + '<div class="more"><div class="more-in"><div class="scroll">'
             + layers('p', 'lecl', copy_html('lecl', lec['lang']))
             + layers('div', 'lecb', copy_html('lecb', lec['about']))
             + '</div>'
             + f'<a class="signup" href="{lec.get("signup", SIGNUP)}" target="_blank" '
-              f'rel="noopener">' + layers('p', 'lecs', 'Sign Up') + '</a>'
+              f'rel="noopener">'
+              + layers('p', 'lecs', '<span class="u">Sign up</span>\u2009\u2197') + '</a>'
             + '</div></div>'
             + '<button class="lec-close" type="button" aria-label="Close">\u00d7</button>'
             + '</div>')
