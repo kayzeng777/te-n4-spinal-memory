@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>te online lecture · 4:5</title>
+<style>
+  html,body{margin:0;height:100%;background:#000;overflow:hidden;overscroll-behavior:none}
+  body{display:grid;place-items:center}
+  /* The poster is laid out at one size, 1080 x 1350 at .6, and scaled to
+     the screen: as wide as it, or as tall, whichever runs out first. Every
+     phone then records the same composition, to the pixel. */
+  .fit{width:calc(648px * var(--k,1));height:calc(810px * var(--k,1));overflow:hidden}
+  iframe{display:block;border:0;width:648px;height:810px;
+    transform:scale(var(--k,1));transform-origin:0 0}
+</style>
+</head>
+<body><div class="fit"><iframe src="poster.html" title="te online lecture"></iframe></div>
+<script>
+  const f=document.querySelector('iframe');
+  const fit=()=>{const k=Math.min(innerWidth/648, innerHeight/810);
+    document.documentElement.style.setProperty('--k',k);
+    try{f.contentDocument.documentElement.style.setProperty('--k',k);}catch(e){}};
+  fit();addEventListener('resize',fit);f.addEventListener('load',fit);
+</script>
+</body>
+</html>

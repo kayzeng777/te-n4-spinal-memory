@@ -1306,7 +1306,8 @@ __LECS__
       return g?segs.indexOf(g):-1;};
     // a hit test per pointermove is a hit test per mouse report; once a frame is
     // as often as it can be seen.
-    function look(){queued=false;if(PINNED&&open!==-1)return;
+    // the social cut lights segments from its fixed lens, not the pointer
+    function look(){queued=false;if(window.__social||(PINNED&&open!==-1))return;
       const i=at(px,py);if(i!==hot){hot=i;sync();}}
     addEventListener('pointermove',e=>{
       // a finger is never hovering: its moves are a scroll, and a block that
@@ -1808,41 +1809,48 @@ print(f'index.html {len(repo_doc)//1024} KB ({SPINE_COLS:g}x{SPINE_ROWS}) · '
 # posted as 4:5. The frame is an iframe, so the poster's own viewport IS the
 # 4:5 box and every vw, svh and breakpoint in it answers to that and not to
 # the phone round it -- the layout is the phone's, only shorter. social.html is
-# the frame, social-poster.html what it holds.
+# the frame, social-poster.html what it holds. Both are published under
+# social-media-poster/, as index.html and poster.html; the poster's fonts and
+# images are the site's, one level up, which its <base> points at.
 #
-# Against the site: the title block is set larger, its chip names the issue,
-# and the empty corner opposite the logo says when and where to find it.
-LINK_ICON = ('<svg class="link-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" '
-             'stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'
-             '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>'
-             '<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>')
-TEXT_SIZES.update(t30=(30, 30), t18p=(18, 18), t16p=(16, 16))
-STEPS, TYPE = steps(), types()
-ROLES.update(
-    edition=dict(ROLES['edition'], step='t18p'),
-    title=dict(ROLES['title'], step='t30', gap=8),
-    tag=dict(ROLES['tag'], step='t16p', gap=6),
-    when=dict(at='head-r', step='t18p', set='a'),
-)
-ROLE_TAG['when'] = 'div'
-COPY.update(edition='[Issue 4]',
-            when='Online Lectures\nOct 10 – Nov 8\n\n[Link in bio @ICON@]')
+# Against the site: no type of its own. The words are two pieces of lettering
+# drawn in Figma on the 1080x1350 frame, glow and all, and exported as SVGs
+# the size of their own corner of it: each is pinned to that corner of the
+# canvas at canvas-width / 1080, which is where they sat in the drawing.
+# Everything the site sets in type is left out.
+ROLES.clear()
+LETTERING = dict(tr=('top-right.svg', 793), bl=('bottom-left.svg', 643))
+LETTERING_HTML = ''.join(
+    f'<img class="lettering {k}" src="social-media-poster/{f}" alt="" '
+    f'style="width:calc({w} / 1080 * 100vw)">' for k, (f, w) in LETTERING.items())
+GRAIN_PX = 50   # the tile, in screen px; the site draws its own at 76
 SOCIAL_CSS = '''
   @media (max-width:__NARROW__px){
-    /* opposite the logo, set right, over the spine like the logo is */
-    .poster>.head-r{display:flex;grid-column:3;grid-row:1 / span 2;justify-self:end;
-      align-items:flex-end;text-align:right;padding:var(--pad) var(--pad) 0 0}
-    .poster .t-title{--gap:8px}
-    /* the panel holds the bigger title block and still shows the Intro's head */
-    :root{--info-panel:210px}
+    :root{--pad:24px}
+    /* the xray: the lens, large and still, in the middle of the frame */
+    .lens{display:block !important;--lens:25vw !important;--feather:2vw !important;
+      transform:translate(50vw,50svh) translate(-50%,-50%) !important}
+    /* nothing at the foot; the spine narrower than the site's */
+    :root{--info-panel:0px;
+      --cell:calc((100vw - 2 * var(--pad)) * .5 / __COLS__)}
+    /* no ground laid over the spine at the top or the foot: it runs clean
+       off both edges of the frame */
+    main::before,main::after{display:none}
   }
+  /* over the grain: the drawings carry their own */
+  .lettering{position:fixed;z-index:5;display:block;height:auto;pointer-events:none}
+  .lettering.tr{top:0;right:0}
+  .lettering.bl{bottom:0;left:0}
   .loop-copy{position:relative;pointer-events:none;flex-shrink:0}
   .loop-copy .spine.anim,.loop-copy .spine.pics{position:absolute;left:0;top:0}
-  .t-when .chip{margin-top:.7em}
-  .t-when .link-icon{width:.95em;height:.95em;vertical-align:-.12em;display:inline-block}
-  .t-when .slab .link-icon{stroke:#000}
-'''.replace('__NARROW__', str(NARROW))
-social = page(False).replace('@ICON@', LINK_ICON)
+  /* The grain is drawn in screen pixels, not the poster's: the frame hands
+     down how far it scales the poster (--k) and the tile is sized against it,
+     so the grain is as fine on a phone as on a monitor -- and finer than the
+     site's: a tile of GRAIN_PX on screen. */
+  .grain{background-size:calc(__GRAIN_PX__px / var(--k,1)) calc(__GRAIN_PX__px / var(--k,1))}
+'''.replace('__NARROW__', str(NARROW)).replace('__COLS__', f'{SPINE_COLS:g}')\
+   .replace('__GRAIN_PX__', str(GRAIN_PX))
+social = page(False).replace('<style>', '<script>window.__social=1</script>\n<style>', 1)
 # its own sheet, after the phone rules it overrides: the main one ends inside
 # an unclosed block, which would swallow anything appended to it
 social = social.replace('</style>', '</style>\n<style>' + SOCIAL_CSS + '</style>', 1)
@@ -1852,22 +1860,28 @@ social = social.replace('</style>', '</style>\n<style>' + SOCIAL_CSS + '</style>
 # step is the frame before it, so the loop has no seam. The animals are copied
 # across as they change, or the step would swap one set for another. A touch,
 # a wheel or an open lecture stops it; it picks up again SOCIAL_IDLE ms after.
-# ?speed= in px a second, 0 to leave it still.
+# One round takes 12s; ?loop= sets the seconds, ?speed= px a second instead,
+# and ?speed=0 leaves it still.
 SOCIAL_JS = """<script>(function(){
   const main=document.getElementById('content'),stage=main&&main.querySelector('.stage');
   if(!stage)return;
-  const q=/[?&]speed=([\\d.]+)/.exec(location.search), SPEED=q?+q[1]:22, IDLE=2500, GAP=4;
+  // one round of the spine in LOOP seconds, whatever size it is drawn at
+  const q=/[?&]speed=([\\d.]+)/.exec(location.search), l=/[?&]loop=([\\d.]+)/.exec(location.search),
+        LOOP=l?+l[1]:12, IDLE=2500, GAP=4;
   const copy=document.createElement('div');
   copy.className='loop-copy';copy.setAttribute('aria-hidden','true');
-  stage.querySelectorAll(':scope>svg').forEach(sv=>{const c=sv.cloneNode(true);
-    c.querySelectorAll('[id]').forEach(e=>e.removeAttribute('id'));c.removeAttribute('aria-label');
-    copy.appendChild(c);});
+  const c=stage.cloneNode(true);
+  c.querySelectorAll('.lec').forEach(e=>e.remove());
+  c.querySelectorAll('[id]').forEach(e=>e.removeAttribute('id'));
+  c.querySelectorAll('[aria-label]').forEach(e=>e.removeAttribute('aria-label'));
+  c.classList.remove('stage');copy.appendChild(c);
   stage.after(copy);
   const src=stage.querySelector('.spine.anim .glyphs'),dst=copy.querySelector('.spine.anim .glyphs');
   if(src&&dst)new MutationObserver(()=>{dst.innerHTML=src.innerHTML;})
     .observe(src,{subtree:true,childList:true,attributes:true,characterData:true});
   const cell=()=>stage.offsetWidth/"""+f"{SPINE_COLS:g}"+""";
-  const place=()=>{copy.style.marginTop=(GAP*cell()-(stage.offsetHeight-stage.querySelector('svg').getBoundingClientRect().height))+'px';};
+  const place=()=>{copy.style.marginTop=(GAP*cell()-(stage.offsetHeight-stage.querySelector('svg').getBoundingClientRect().height))+'px';
+    c.style.cssText='position:relative;width:'+stage.offsetWidth+'px';};
   place();addEventListener('resize',place);
   const period=()=>copy.getBoundingClientRect().top-stage.getBoundingClientRect().top;
   let y=main.scrollTop,last=performance.now(),held=0,down=false;
@@ -1876,20 +1890,47 @@ SOCIAL_JS = """<script>(function(){
   ['pointerup','pointercancel','touchend'].forEach(e=>addEventListener(e,()=>{down=false;hold();},{passive:true}));
   main.addEventListener('scroll',()=>{const P=period();
     if(P>0&&main.scrollTop>=P){main.scrollTop-=P;y-=P;}},{passive:true});
-  (function tick(now){
+  // the lens lights whichever number is at its middle, in the drawing or its copy
+  const sets=[stage,c].map(root=>{
+    const pics=[...root.querySelectorAll('.pic')];
+    return [...root.querySelectorAll('.t-lecno')].map(n=>
+      ({n,p:pics.find(g=>g.dataset.seg===n.dataset.lec)}));});
+  const all=sets.flat();let lit=null;
+  function light(){
+    if(document.querySelector('.lec.open'))return;
+    const cy=innerHeight/2,R=innerWidth*.25/2*.8;let best=null,bd=R;
+    all.forEach(o=>{const r=o.n.getBoundingClientRect(),d=Math.abs(r.top+r.height/2-cy);
+      if(d<bd){bd=d;best=o;}});
+    if(best===lit)return;
+    [lit,best].forEach(o=>{if(o){o.n.classList.toggle('on',o===best);
+      if(o.p)o.p.classList.toggle('on',o===best);}});
+    lit=best;}
+  // It starts with the whole of 01 just under the lens, on its way up into
+  // it. The copy's 01 is the one used: the real one is already in the lens
+  // at the top of the page, and a scroll cannot go further up than that.
+  function start(){
+    const g=c.querySelector('.seg');if(!g)return;
+    const want=innerHeight/2+innerWidth*.25/2+8;
+    main.scrollTop+=g.getBoundingClientRect().top-want;y=main.scrollTop;}
+  if(document.readyState==='complete')setTimeout(start,0);
+  else addEventListener('load',()=>setTimeout(start,0));
+  (function tick(now){light();
     const dt=Math.min(now-last,100);last=now;
-    const busy=down||document.querySelector('.lec.open,.lec.on')||now-held<IDLE;
-    if(!busy&&SPEED>0){const P=period();
+    const busy=down||document.querySelector('.lec.open')||now-held<IDLE;
+    const P=period(),SPEED=q?+q[1]:P/LOOP;
+    if(!busy&&SPEED>0){
       y+=SPEED*dt/1000;if(P>0&&y>=P)y-=P;main.scrollTop=y;}
     else y=main.scrollTop;
     requestAnimationFrame(tick);})(last);
 })();</script>
 """
-open(os.path.join(REPO, 'social-poster.html'), 'w').write(
-    '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
+SOCIAL_DIR = os.path.join(REPO, 'social-media-poster')
+os.makedirs(SOCIAL_DIR, exist_ok=True)
+open(os.path.join(SOCIAL_DIR, 'poster.html'), 'w').write(
+    '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<base href="../">\n'
     '<meta name="viewport" content="width=device-width,initial-scale=1">\n'
-    + social.replace('</style>', '</style>\n</head>\n<body>', 1) + SOCIAL_JS + '</body>\n</html>\n')
-open(os.path.join(REPO, 'social.html'), 'w').write('''<!doctype html>
+    + social.replace('</style>', '</style>\n</head>\n<body>', 1) + LETTERING_HTML + SOCIAL_JS + '</body>\n</html>\n')
+open(os.path.join(SOCIAL_DIR, 'index.html'), 'w').write('''<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -1898,11 +1939,23 @@ open(os.path.join(REPO, 'social.html'), 'w').write('''<!doctype html>
 <style>
   html,body{margin:0;height:100%;background:#000;overflow:hidden;overscroll-behavior:none}
   body{display:grid;place-items:center}
-  /* 1080 x 1350: as wide as the screen, or as tall, whichever runs out first */
-  iframe{display:block;border:0;width:min(100vw, 80svh);aspect-ratio:1080/1350}
+  /* The poster is laid out at one size, 1080 x 1350 at .6, and scaled to
+     the screen: as wide as it, or as tall, whichever runs out first. Every
+     phone then records the same composition, to the pixel. */
+  .fit{width:calc(648px * var(--k,1));height:calc(810px * var(--k,1));overflow:hidden}
+  iframe{display:block;border:0;width:648px;height:810px;
+    transform:scale(var(--k,1));transform-origin:0 0}
 </style>
 </head>
-<body><iframe src="social-poster.html" title="te online lecture"></iframe></body>
+<body><div class="fit"><iframe src="poster.html" title="te online lecture"></iframe></div>
+<script>
+  const f=document.querySelector('iframe');
+  const fit=()=>{const k=Math.min(innerWidth/648, innerHeight/810);
+    document.documentElement.style.setProperty('--k',k);
+    try{f.contentDocument.documentElement.style.setProperty('--k',k);}catch(e){}};
+  fit();addEventListener('resize',fit);f.addEventListener('load',fit);
+</script>
+</body>
 </html>
 ''')
-print('social.html + social-poster.html')
+print('social-media-poster/index.html + poster.html')
