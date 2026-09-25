@@ -1829,6 +1829,11 @@ def swatches(script=True):
           'bs.forEach(b=>b.addEventListener("click",()=>{const t=b.dataset.t;'
           'if(t===D)delete h.dataset.theme;else h.dataset.theme=t;'
           'try{localStorage.setItem(K,t);}catch(e){}'
+          # and still the logo's light could hold the last palette's, square at
+          # the edge, between green and paper most of all. Put back in its
+          # place, a block is drawn from nothing: every piece of type is, once,
+          # so no light painted in the last palette is left to reuse.
+          'document.querySelectorAll(".t").forEach(e=>e.parentNode.insertBefore(e,e.nextSibling));'
           'mark();dispatchEvent(new Event("themechange"));}));'
           'mark();})();</script>')
     return (f'<div class="themes" role="group" aria-label="colours">{btn}</div>'
