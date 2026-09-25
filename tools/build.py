@@ -772,6 +772,9 @@ HEAD = '''<title>te online lecture</title>
     /* tighter on a phone: te editions to the title, the subtitle to Intro */
     .poster .t-title{--gap:4px}
     .poster .t-desc{--gap:20px}
+    /* the reading on a phone, the information's and a lecture's alike: a
+       touch more open than the ramp's */
+    .poster :is(.t-desc,.t-facts),.lec :is(.t-lecb,.t-lecbio){--lh:1.06}
     body:has(.lec.open) .poster .info{visibility:hidden}
     /* The page itself does not scroll on a phone: the spine scrolls in main,
        which covers the screen, and the panel scrolls on its own beside it.
