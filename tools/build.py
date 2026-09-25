@@ -217,10 +217,12 @@ def theme_css():
                      for i, t in enumerate(THEMES.values())
                      for c, f in zip(t['swatch'], (.2, .8)))
     out.append(f'.themes{{display:flex;--gap:16px;background:linear-gradient(90deg,{stops})}}')
-    out.append('.themes button{position:relative;width:22px;height:22px;border:0;border-radius:0;'
+    # sized on the same slide as the type, so a narrower window has a smaller band
+    sq, dot = ramp(15, 22), ramp(5, 7)
+    out.append(f'.themes button{{position:relative;width:{sq};height:{sq};border:0;border-radius:0;'
                'padding:0;background:none;cursor:pointer}')
     out.append('.themes button[aria-pressed=true]::after{content:"";position:absolute;'
-               'left:50%;top:50%;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;'
+               f'left:50%;top:50%;width:{dot};height:{dot};transform:translate(-50%,-50%);border-radius:50%;'
                'background:#fff}')
     # a taller target than the square; the squares already meet side to side
     out.append('.themes button::before{content:"";position:absolute;inset:-5px 0}')
@@ -234,7 +236,7 @@ def theme_css():
                f'flex-direction:column;background:linear-gradient(180deg,{stops})}}'
                'body:has(.lec.open) .themes{opacity:0;pointer-events:none}'
                '.themes button{width:15px;height:15px}'
-               '.themes button[aria-pressed=true]::after{width:4px;height:4px;margin:-2px 0 0 -2px}}')
+               '.themes button[aria-pressed=true]::after{width:4px;height:4px}}')
     return '\n  '.join(out)
 
 
@@ -293,7 +295,7 @@ def backlight_defs():
         if small != big:
             out.append(bl_filter(f'bl-{step}-s', step, small))
     out.append(PEEK_GROUND)
-    return ('<svg width="0" height="0" aria-hidden="true" '
+    return ('<svg class="bl-defs" width="0" height="0" aria-hidden="true" '
             'style="position:absolute"><defs>' + ''.join(out) + '</defs></svg>')
 
 
@@ -1790,6 +1792,11 @@ def swatches(script=True):
           'bs.forEach(b=>b.addEventListener("click",()=>{const t=b.dataset.t;'
           'if(t===D)delete h.dataset.theme;else h.dataset.theme=t;'
           'try{localStorage.setItem(K,t);}catch(e){}'
+          # WebKit (every browser on iOS) does not repaint what a filter is
+          # drawn with when only the filter's flood colour changes in CSS: the
+          # logo kept the last palette's light until a reload. A fresh copy of
+          # the filters makes everything that uses them look them up again.
+          'const d=document.querySelector(".bl-defs");if(d)d.replaceWith(d.cloneNode(true));'
           'mark();dispatchEvent(new Event("themechange"));}));'
           'mark();})();</script>')
     return (f'<div class="themes" role="group" aria-label="colours">{btn}</div>'
