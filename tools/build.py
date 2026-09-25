@@ -41,6 +41,7 @@ SPINE, SPINE_COLS, SPINE_ROWS = load_spine('spine.seg.part')
 COLOUR_SETS = dict(
     a=dict(ink='#f28030', glow='#fdf48a', bloom='#fdf48a'),
     b=dict(ink='#277c3c', glow='#fdf48a', bloom='#fdf48a'),
+    c=dict(ink='#277c3c', glow='#e6e6e6', bloom='#e6e6e6'),   # the phone's hints
 )
 
 # The type scale, from one step. BASE is the only text size anyone sets: every
@@ -227,8 +228,11 @@ PEEK_GROUND = (
 # can place them as one: on a phone, `info` is the panel at the foot.
 CORNERS = ('head', 'head-r', 'foot', 'foot-r')
 ISSUE_URL = 'https://te-editions.com/issue-4'
+# The series' own sign-up, in the top right; each lecture keeps its own too.
+SERIES_SIGNUP = '#'
 ROLES = dict(
     logo=dict(at='head', step='mark', set='a'),
+    join=dict(at='head-r', step='su', set='a', href=SERIES_SIGNUP),
     # The te editions chip, the title and the subtitle head the written
     # column, over the Intro, and are one link to the issue: roles that name
     # the same `href` are wrapped in one <a>. No widths: the column's measure
@@ -254,7 +258,8 @@ TEXT = dict(
     lecb=dict(step='t14', set='a', gap=6),
     lecbio=dict(step='t14', set='a'),           # a speaker's bio, beside their portrait
     lecs=dict(step='t16', set='a', gap=30),
-    lecx=dict(step='t20', set='a'),              # the close; its size is set in LEC_CSS      # Sign up, the size of the speaker's name
+    lecx=dict(step='t20', set='a'),              # the close; its size is set in LEC_CSS
+    cue=dict(step='t12', set='c', lh=1),         # the phone's two hints, in the other colours      # Sign up, the size of the speaker's name
 )
 
 # Where each lecture's Sign Up button goes. One link for the series unless a
@@ -612,10 +617,11 @@ HEAD = '''<title>te online lecture</title>
     .poster{--col-fit:var(--col)}
     main{align-items:flex-start;margin-left:var(--spine-x)}
     .grid{background-position-x:var(--spine-x)}
-    /* The right-hand corners share their side with the lecture blocks, so they step
-       aside while one is up. */
+    /* The right-hand corners share their side with the open lecture, which
+       covers it top to bottom, so they step aside while one is open. A
+       hovered block does not reach them and leaves them be. */
     .head-r,.foot-r{transition:opacity var(--lec-in,.24s) ease}
-    body:has(.lec.on) :is(.head-r,.foot-r){opacity:0;pointer-events:none;transition-duration:var(--lec-off,0s)}
+    body:has(.lec.open) :is(.head-r,.foot-r){opacity:0;pointer-events:none;transition-duration:var(--lec-off,0s)}
     /* The bottom-left column is longer than some screens are tall. It stays
        on the bottom margin while it fits; when it does not, it stops under the
        logo and scrolls on its own. The first child's auto margin is what does
@@ -655,6 +661,13 @@ HEAD = '''<title>te online lecture</title>
     color:inherit;text-decoration:none}
   .poster .role-link>:first-child{margin-top:0}
   .poster .role-link:focus-visible{outline:2px solid #f28030;outline-offset:6px}
+  /* Sign up, top right: set as a lecture's is, the words underlined and the
+     arrow after them not (an inline-block is not given its parent's line) */
+  .t-join>*{text-decoration:underline;text-decoration-thickness:1px;
+    text-underline-offset:.18em}
+  .t-join>*::after{content:"\\2197";display:inline-block;margin-left:.12em}
+  /* The phone's hints (cues()); nowhere else. */
+  .cue{display:none}
   /* A block stays in the corner it was placed in at every width. The measures
      are in ch and capped against --fit, which is what keeps the two bottom
      corners from meeting. */
@@ -713,7 +726,28 @@ HEAD = '''<title>te online lecture</title>
     .poster>.head{grid-row:1 / span 2}
     .t-logo{--fs:56px}
     .poster>.foot{display:contents}
-    .head-r,.foot-r{display:none}
+    /* The two hints, centred: one at the foot of the spine, just over the
+       panel; one at the panel's own foot, on a little ground of its colour
+       so the words under it do not show through. They fade out for good
+       once what they point at has been scrolled, and stand aside while a
+       lecture is open. */
+    .cue{display:flex;justify-content:center;text-align:center;position:fixed;
+      left:0;right:0;z-index:3;pointer-events:none;transition:opacity .4s ease}
+    .cue.gone,body:has(.lec.open) .cue{opacity:0}
+    .cue .t-cue{--glowR:3.4em;--bloomR:10px}   /* a wider light than the text's */
+    /* up on the spine's tail, where a thumb would go to scroll it -- not
+       down at the information, which a thumb there would scroll instead; on
+       a soft patch of the ground, so it reads over the spine */
+    .cue-spine{bottom:calc(var(--info-panel) + 40px)}
+    .cue-spine::before{content:"";position:absolute;z-index:-1;left:50%;top:50%;
+      width:220px;height:64px;transform:translate(-50%,-50%);
+      background:radial-gradient(closest-side,rgb(139 200 136 / .85),rgb(139 200 136 / 0))}
+    .cue-more{bottom:0;padding:14px 0 8px}
+    .cue-more::before{content:"";position:absolute;inset:0;z-index:-1;
+      background:linear-gradient(rgb(104 192 141 / 0),rgb(108 193 140 / .9) 75%)}
+    /* the series' Sign up in the top right, level with the logo */
+    .poster>.head-r{grid-column:3;grid-row:1;justify-self:end}
+    .foot-r{display:none}
     /* A line scrolled up fades over --info-fade; the first line sits
        --info-lead under the top of the solid ground. The fade is the longer,
        so the box reaches up past the solid ground by the difference, and
@@ -1047,6 +1081,7 @@ __CORNERS__
 </div>
 <div class="grain"></div>
 <div class="sheet"></div>
+__CUES__
 <main id="content">
 <div class="stage">
 __SPINE__
@@ -1533,6 +1568,7 @@ __LECS__
 # line break — one rule, so the tools panel can hand the same text back and the
 # export pastes straight in here.
 COPY = dict(
+    join='Sign up',                # underlined, with its arrow, by .t-join
     edition='[te editions\u2009\u2197]',
     title='Spinal Memory',
     tag='Research and Practice on Non-Human Animals',
@@ -1579,9 +1615,9 @@ LINKS = {'Digital Reading Room': '#',
          'Institute of Critical Zoologists': 'https://www.criticalzoologists.org/main.html',
          'Interspecies Library': 'https://interspecieslibrary.com/'}
 
-ROLE_TAG = dict(logo='div', edition='div', title='h1', tag='p', info='p', desc='div', facts='div',
+ROLE_TAG = dict(logo='div', join='p', edition='div', title='h1', tag='p', info='p', desc='div', facts='div',
                 lecd='p', lecw='p', lect='p', lecl='div', lecb='div', lecbio='div',
-                lecno='p', lecs='p', lecx='span')
+                lecno='p', lecs='p', lecx='span', cue='p')
 
 
 def copy_html(role, text):
@@ -1701,6 +1737,22 @@ def lec_extra(lec):
     return out
 
 
+def cues():
+    """The phone's two first-visit hints: one at the foot of the spine, one at
+    the foot of the information's panel. Each goes for good the first time
+    the thing it points at is scrolled."""
+    return ('<div class="cue cue-spine" aria-hidden="true">'
+            + layers('p', 'cue', copy_html('cue', 'scroll & tap to explore\n\u2193')) + '</div>'
+            + '<div class="cue cue-more" aria-hidden="true">'
+            + layers('p', 'cue', copy_html('cue', 'scroll to see more\n\u2193')) + '</div>'
+            + '<script>addEventListener("DOMContentLoaded",()=>{'
+            'const off=(sel,src)=>{const c=document.querySelector(sel);if(!c||!src)return;'
+            'const f=()=>{c.classList.add("gone");src.removeEventListener("scroll",f);};'
+            'src.addEventListener("scroll",f,{passive:true});};'
+            'off(".cue-spine",document.getElementById("content"));'
+            'off(".cue-more",document.querySelector(".poster .info"));});</script>')
+
+
 def lectures_html():
     """One block per segment, parked at the middle of its own segment's band.
 
@@ -1789,7 +1841,7 @@ def page(inline, spine=None, cols=None, rows=None, tools=False):
                 .replace('__MARKFS__', ramp(MARK_STEP['size'][1], MARK_STEP['size'][0]))
                 .replace('__NARROW__', str(NARROW)).replace('__MID__', str((NARROW + WIDE) // 2))
                 .replace('__COLS__', f'{cols:g}').replace('__ROWS__', str(rows))
-            + BODY.replace('__NARROW__', str(NARROW)).replace('__SPINE__', spine).replace('__LECS__', lectures_html()).replace('__CORNERS__', corners()).replace('__BACKLIGHT__', backlight_defs())
+            + BODY.replace('__NARROW__', str(NARROW)).replace('__SPINE__', spine).replace('__LECS__', lectures_html()).replace('__CUES__', cues()).replace('__CORNERS__', corners()).replace('__BACKLIGHT__', backlight_defs())
             + (tools_panel() if tools else ''))
 
 
@@ -1846,6 +1898,8 @@ SOCIAL_CSS = '''
     /* no ground laid over the spine at the top or the foot: it runs clean
        off both edges of the frame */
     main::before,main::after{display:none}
+    /* the site's hints and its Sign up are for a visit, not a recording */
+    .cue,.poster>.head-r{display:none !important}
   }
   /* over the grain: the drawings carry their own */
   .lettering{position:fixed;z-index:5;display:block;height:auto;pointer-events:none}

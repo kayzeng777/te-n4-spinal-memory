@@ -162,6 +162,7 @@
   .t-lecbio{--ink:#f28030;--glow:#fdf48a;--bloom:#fdf48a;--solid:0.84;--fs:clamp(12px, calc(12px + 0.00294 * (100vw - 760px)), 14px);--soft:0.9px;--glowR:2.22em;--bloomR:5.2px;--slabF:url(#bl-t14);--w:400;--ls:0.035em;--lh:0.98}
   .t-lecs{--ink:#f28030;--glow:#fdf48a;--bloom:#fdf48a;--solid:0.84;--fs:clamp(13.7px, calc(13.7px + 0.00338 * (100vw - 760px)), 16px);--soft:0.9px;--glowR:2.22em;--bloomR:5.2px;--slabF:url(#bl-t16);--w:400;--ls:0.0168em;--lh:0.947;--gap:30px}
   .t-lecx{--ink:#f28030;--glow:#fdf48a;--bloom:#fdf48a;--solid:0.84;--fs:clamp(17.1px, calc(17.1px + 0.00426 * (100vw - 760px)), 20px);--soft:0.9px;--glowR:2.22em;--bloomR:5.2px;--slabF:url(#bl-t20);--w:400;--ls:-0.0196em;--lh:0.882}
+  .t-cue{--ink:#277c3c;--glow:#e6e6e6;--bloom:#e6e6e6;--solid:0.84;--fs:clamp(10.3px, calc(10.3px + 0.00250 * (100vw - 760px)), 12px);--soft:0.9px;--glowR:2.22em;--bloomR:5.2px;--slabF:url(#bl-t12);--w:400;--ls:0.0532em;--lh:1}
   .peek-flood{flood-color:var(--peek-green,#80C58A)}
   /* The lecture blocks. One per segment of the spine, parked at the middle of
      its own segment and laid alongside it. Nothing about them is in the spine:
@@ -433,10 +434,11 @@
     .poster{--col-fit:var(--col)}
     main{align-items:flex-start;margin-left:var(--spine-x)}
     .grid{background-position-x:var(--spine-x)}
-    /* The right-hand corners share their side with the lecture blocks, so they step
-       aside while one is up. */
+    /* The right-hand corners share their side with the open lecture, which
+       covers it top to bottom, so they step aside while one is open. A
+       hovered block does not reach them and leaves them be. */
     .head-r,.foot-r{transition:opacity var(--lec-in,.24s) ease}
-    body:has(.lec.on) :is(.head-r,.foot-r){opacity:0;pointer-events:none;transition-duration:var(--lec-off,0s)}
+    body:has(.lec.open) :is(.head-r,.foot-r){opacity:0;pointer-events:none;transition-duration:var(--lec-off,0s)}
     /* The bottom-left column is longer than some screens are tall. It stays
        on the bottom margin while it fits; when it does not, it stops under the
        logo and scrolls on its own. The first child's auto margin is what does
@@ -476,6 +478,13 @@
     color:inherit;text-decoration:none}
   .poster .role-link>:first-child{margin-top:0}
   .poster .role-link:focus-visible{outline:2px solid #f28030;outline-offset:6px}
+  /* Sign up, top right: set as a lecture's is, the words underlined and the
+     arrow after them not (an inline-block is not given its parent's line) */
+  .t-join>*{text-decoration:underline;text-decoration-thickness:1px;
+    text-underline-offset:.18em}
+  .t-join>*::after{content:"\2197";display:inline-block;margin-left:.12em}
+  /* The phone's hints (cues()); nowhere else. */
+  .cue{display:none}
   /* A block stays in the corner it was placed in at every width. The measures
      are in ch and capped against --fit, which is what keeps the two bottom
      corners from meeting. */
@@ -534,7 +543,28 @@
     .poster>.head{grid-row:1 / span 2}
     .t-logo{--fs:56px}
     .poster>.foot{display:contents}
-    .head-r,.foot-r{display:none}
+    /* The two hints, centred: one at the foot of the spine, just over the
+       panel; one at the panel's own foot, on a little ground of its colour
+       so the words under it do not show through. They fade out for good
+       once what they point at has been scrolled, and stand aside while a
+       lecture is open. */
+    .cue{display:flex;justify-content:center;text-align:center;position:fixed;
+      left:0;right:0;z-index:3;pointer-events:none;transition:opacity .4s ease}
+    .cue.gone,body:has(.lec.open) .cue{opacity:0}
+    .cue .t-cue{--glowR:3.4em;--bloomR:10px}   /* a wider light than the text's */
+    /* up on the spine's tail, where a thumb would go to scroll it -- not
+       down at the information, which a thumb there would scroll instead; on
+       a soft patch of the ground, so it reads over the spine */
+    .cue-spine{bottom:calc(var(--info-panel) + 40px)}
+    .cue-spine::before{content:"";position:absolute;z-index:-1;left:50%;top:50%;
+      width:220px;height:64px;transform:translate(-50%,-50%);
+      background:radial-gradient(closest-side,rgb(139 200 136 / .85),rgb(139 200 136 / 0))}
+    .cue-more{bottom:0;padding:14px 0 8px}
+    .cue-more::before{content:"";position:absolute;inset:0;z-index:-1;
+      background:linear-gradient(rgb(104 192 141 / 0),rgb(108 193 140 / .9) 75%)}
+    /* the series' Sign up in the top right, level with the logo */
+    .poster>.head-r{grid-column:3;grid-row:1;justify-self:end}
+    .foot-r{display:none}
     /* A line scrolled up fades over --info-fade; the first line sits
        --info-lead under the top of the solid ground. The fade is the longer,
        so the box reaches up past the solid ground by the difference, and
@@ -584,7 +614,7 @@
     .poster .info{overscroll-behavior:contain}
   }
   @media (max-width:1100px){
-    .t-lecd{--slabF:url(#bl-t14-s)}.t-lecw{--slabF:url(#bl-t16-s)}.t-lect{--slabF:url(#bl-t20-s)}.t-lecno{--slabF:url(#bl-no-s)}.t-lecl{--slabF:url(#bl-t14-s)}.t-lecb{--slabF:url(#bl-t14-s)}.t-lecbio{--slabF:url(#bl-t14-s)}.t-lecs{--slabF:url(#bl-t16-s)}.t-lecx{--slabF:url(#bl-t20-s)}
+    .t-lecd{--slabF:url(#bl-t14-s)}.t-lecw{--slabF:url(#bl-t16-s)}.t-lect{--slabF:url(#bl-t20-s)}.t-lecno{--slabF:url(#bl-no-s)}.t-lecl{--slabF:url(#bl-t14-s)}.t-lecb{--slabF:url(#bl-t14-s)}.t-lecbio{--slabF:url(#bl-t14-s)}.t-lecs{--slabF:url(#bl-t16-s)}.t-lecx{--slabF:url(#bl-t20-s)}.t-cue{--slabF:url(#bl-t12-s)}
   }
   /* The lens is read against the spine, so it shrinks with it, on the same
      slide and by the same share -- the feather too, or a smaller lens would
@@ -620,6 +650,8 @@
     /* no ground laid over the spine at the top or the foot: it runs clean
        off both edges of the frame */
     main::before,main::after{display:none}
+    /* the site's hints and its Sign up are for a visit, not a recording */
+    .cue,.poster>.head-r{display:none !important}
   }
   /* over the grain: the drawings carry their own */
   .lettering{position:fixed;z-index:5;display:block;height:auto;pointer-events:none}
@@ -648,6 +680,7 @@
 </div>
 <div class="grain"></div>
 <div class="sheet"></div>
+<div class="cue cue-spine" aria-hidden="true"><div class="t t-cue"><p class="slab" aria-hidden="true">scroll &amp; tap to explore<br>↓</p><p class="bloom" aria-hidden="true">scroll &amp; tap to explore<br>↓</p><p class="tight" aria-hidden="true">scroll &amp; tap to explore<br>↓</p><p class="ink">scroll &amp; tap to explore<br>↓</p><p class="core" aria-hidden="true">scroll &amp; tap to explore<br>↓</p></div></div><div class="cue cue-more" aria-hidden="true"><div class="t t-cue"><p class="slab" aria-hidden="true">scroll to see more<br>↓</p><p class="bloom" aria-hidden="true">scroll to see more<br>↓</p><p class="tight" aria-hidden="true">scroll to see more<br>↓</p><p class="ink">scroll to see more<br>↓</p><p class="core" aria-hidden="true">scroll to see more<br>↓</p></div></div><script>addEventListener("DOMContentLoaded",()=>{const off=(sel,src)=>{const c=document.querySelector(sel);if(!c||!src)return;const f=()=>{c.classList.add("gone");src.removeEventListener("scroll",f);};src.addEventListener("scroll",f,{passive:true});};off(".cue-spine",document.getElementById("content"));off(".cue-more",document.querySelector(".poster .info"));});</script>
 <main id="content">
 <div class="stage">
 <svg data-cx="27.611" class="spine base" viewBox="0 0 56.000 276.8" xmlns="http://www.w3.org/2000/svg" aria-label="spine">
