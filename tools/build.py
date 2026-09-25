@@ -198,6 +198,7 @@ def theme_css():
     out += [f'html[data-theme="{n}"]{{{theme_vars(t)}}}'
             for n, t in THEMES.items() if n != THEME_DEFAULT]
     out.append('html[data-theme] feFlood[data-bl]{flood-color:var(--backlight)}')
+    out.append('html.bl-flip .t .slab{filter:var(--slabF) opacity(1)}')
     # A flat colour behind the type only matches the ground where the gradient
     # is that colour; on a dark page the rest shows as a paler slab, so a
     # palette can go without -- except on the numbers, which sit on the spine
@@ -295,7 +296,7 @@ def backlight_defs():
         if small != big:
             out.append(bl_filter(f'bl-{step}-s', step, small))
     out.append(PEEK_GROUND)
-    return ('<svg class="bl-defs" width="0" height="0" aria-hidden="true" '
+    return ('<svg width="0" height="0" aria-hidden="true" '
             'style="position:absolute"><defs>' + ''.join(out) + '</defs></svg>')
 
 
@@ -1792,11 +1793,19 @@ def swatches(script=True):
           'bs.forEach(b=>b.addEventListener("click",()=>{const t=b.dataset.t;'
           'if(t===D)delete h.dataset.theme;else h.dataset.theme=t;'
           'try{localStorage.setItem(K,t);}catch(e){}'
-          # WebKit (every browser on iOS) does not repaint what a filter is
-          # drawn with when only the filter's flood colour changes in CSS: the
-          # logo kept the last palette's light until a reload. A fresh copy of
-          # the filters makes everything that uses them look them up again.
-          'const d=document.querySelector(".bl-defs");if(d)d.replaceWith(d.cloneNode(true));'
+          # WebKit (every browser on iOS) does not repaint what a filter draws
+          # when only its flood colour changes in CSS: the light behind the
+          # type kept the last palette's until a reload. A changed attribute
+          # it does repaint for -- the tuning panel works the same way -- so
+          # the colour is written onto the floods too. The drawn page's own is
+          # kept, to go back to.
+          'const bl=getComputedStyle(h).getPropertyValue("--backlight").trim();'
+          'document.querySelectorAll("feFlood[data-bl]").forEach(f=>{'
+          'if(!f.dataset.c0)f.dataset.c0=f.getAttribute("flood-color");'
+          'f.setAttribute("flood-color",t===D?f.dataset.c0:bl);});'
+          # and the layer drawn through them is told its filter changed, to a
+          # list that draws the same, so nothing painted before is reused
+          'h.classList.toggle("bl-flip");'
           'mark();dispatchEvent(new Event("themechange"));}));'
           'mark();})();</script>')
     return (f'<div class="themes" role="group" aria-label="colours">{btn}</div>'
