@@ -214,6 +214,21 @@ def theme_css():
             for r in small) + '}')
         out.append(f'@media (max-width:{NARROW}px){{html[data-theme="{n}"] .lec-close .t-lecx'
                    f'{{--slabF:url(#bl-t20-s--{n})}}}}')
+    # The blurred layers have the same trouble another way: a colour change
+    # repaints only the element's own box, and the blur that reaches past it
+    # stays the last palette's -- a square edge round the logo's light until
+    # something else redraws it. Each palette writes these filters its own
+    # way, identical to look at (a trailing opacity(1) or two), so a change of
+    # palette is a change of filter, and that repaints all of what it draws.
+    for i, n in enumerate(n for n in THEMES if n != THEME_DEFAULT):
+        x = ' opacity(1)' * (i + 1)
+        h = f'html[data-theme="{n}"]'
+        out += [f'{h} .t .bloom{{filter:blur(var(--bloomR)){x}}}',
+                f'{h} .t .ink{{filter:blur(var(--soft)){x}}}',
+                f'{h} .t-logo .bloom svg{{filter:blur(var(--bloomR)){x}}}',
+                f'{h} .t-logo .ink svg{{filter:blur(var(--soft)){x}}}',
+                f'{h} .t-logo .tight svg{{filter:drop-shadow(0 0 calc(var(--glowR) * .35) var(--glow)) '
+                f'drop-shadow(0 0 var(--glowR) var(--glow)){x}}}']
     # A flat colour behind the type only matches the ground where the gradient
     # is that colour; on a dark page the rest shows as a paler slab, so a
     # palette can go without -- except on the numbers, which sit on the spine
