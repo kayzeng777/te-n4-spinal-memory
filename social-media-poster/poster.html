@@ -483,6 +483,9 @@
   .t-join>*{text-decoration:underline;text-decoration-thickness:1px;
     text-underline-offset:.18em}
   .t-join>*::after{content:"\2197";display:inline-block;margin-left:.12em}
+  /* The reading -- the information's paragraphs and a lecture's description
+     and bios -- a touch more open than the ramp gives its size. */
+  .poster :is(.t-desc,.t-facts),.lec :is(.t-lecb,.t-lecbio){--lh:1.06}
   /* The phone's hints (cues()); nowhere else. */
   .cue{display:none}
   /* A block stays in the corner it was placed in at every width. The measures
@@ -583,9 +586,6 @@
     /* tighter on a phone: te editions to the title, the subtitle to Intro */
     .poster .t-title{--gap:4px}
     .poster .t-desc{--gap:20px}
-    /* the reading on a phone, the information's and a lecture's alike: a
-       touch more open than the ramp's */
-    .poster :is(.t-desc,.t-facts),.lec :is(.t-lecb,.t-lecbio){--lh:1.06}
     body:has(.lec.open) .poster .info{visibility:hidden}
     /* The page itself does not scroll on a phone: the spine scrolls in main,
        which covers the screen, and the panel scrolls on its own beside it.
