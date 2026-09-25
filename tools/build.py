@@ -237,7 +237,7 @@ def theme_css():
             for n, t in THEMES.items() if t.get('backlit') is False]
     out += [f'html[data-theme] .spine [fill="{c}" i]{{fill:var(--sp-{k})}}'
             for k, c in base['spine'].items()]
-    out.append(f'@media not all and (max-width:{NARROW}px){{.head-r .themes{{display:none}}}}')
+    out.append(f'@media not all and (max-width:{NARROW}px){{.themes.themes-m{{display:none}}}}')
     # One band, not three swatches: each palette's two colours in its own
     # square, ground then ink, and the ink blended on into the next ground.
     # The colours are a palette's `swatch`, a shade off its page's own, or the
@@ -1816,12 +1816,14 @@ THEME_PICK = ('<script>(function(){'
     '})();</script>')
 
 
-def swatches(script=True):
-    """The palettes, as a row of swatches: in the bottom right beside the
-    spine, and under the series' Sign up on a phone, where that corner is
-    gone. Both rows are on the page and CSS shows one; the script, written
-    once with the second, serves both. A choice is remembered on this
-    browser; where storage is refused it lasts the visit."""
+def swatches(script=True, cls='themes'):
+    """The palettes, as a band of swatches: in the bottom right beside the
+    spine, and on a phone, where that corner is gone, a band of its own on
+    the page itself (themes-m) -- not in the fixed head, where iOS drew a
+    ghost of it over the logo and over an open lecture. Both are on the page
+    and CSS shows one; the script, written once with the second, serves both.
+    A choice is remembered on this browser; where storage is refused it
+    lasts the visit."""
     btn = ''.join(f'<button type="button" data-t="{n}" aria-label="{n} colours"></button>'
                   for n in THEMES)
     js = ('<script>(function(){'
@@ -1839,7 +1841,7 @@ def swatches(script=True):
           'document.querySelectorAll(".t").forEach(e=>e.parentNode.insertBefore(e,e.nextSibling));'
           'mark();dispatchEvent(new Event("themechange"));}));'
           'mark();})();</script>')
-    return (f'<div class="themes" role="group" aria-label="colours">{btn}</div>'
+    return (f'<div class="{cls}" role="group" aria-label="colours">{btn}</div>'
             + (js if script else ''))
 
 
@@ -1864,8 +1866,8 @@ def corners():
             inner += (layers(ROLE_TAG[r], r, LOGO, **{'aria-label': 'te'}) if r == 'logo'
                       else layers(ROLE_TAG[r], r, copy_html(r, COPY[r])))
         inner += ('</a>' if href else '') + ('</div>' if box else '')
-        if corner in ('head-r', 'foot-r'):
-            inner += swatches(script=corner == 'foot-r')
+        if corner == 'foot-r':
+            inner += swatches(script=False)
         out.append(f'  <div class="{corner}">{inner}</div>')
     return '\n'.join(out)
 
@@ -2054,7 +2056,7 @@ def page(inline, spine=None, cols=None, rows=None, tools=False):
                 .replace('__MARKFS__', ramp(MARK_STEP['size'][1], MARK_STEP['size'][0]))
                 .replace('__NARROW__', str(NARROW)).replace('__MID__', str((NARROW + WIDE) // 2))
                 .replace('__COLS__', f'{cols:g}').replace('__ROWS__', str(rows))
-            + BODY.replace('__NARROW__', str(NARROW)).replace('__SPINE__', spine).replace('__LECS__', lectures_html()).replace('__CUES__', cues()).replace('__CORNERS__', corners()).replace('__BACKLIGHT__', backlight_defs()).replace('__THEMEPICK__', THEME_PICK).replace('__SPINETONES__', json.dumps({c.upper(): f'--sp-{k}' for k, c in THEMES[THEME_DEFAULT]['spine'].items()}))
+            + BODY.replace('__NARROW__', str(NARROW)).replace('__SPINE__', spine).replace('__LECS__', lectures_html()).replace('__CUES__', cues() + swatches(cls='themes themes-m')).replace('__CORNERS__', corners()).replace('__BACKLIGHT__', backlight_defs()).replace('__THEMEPICK__', THEME_PICK).replace('__SPINETONES__', json.dumps({c.upper(): f'--sp-{k}' for k, c in THEMES[THEME_DEFAULT]['spine'].items()}))
             + (tools_panel() if tools else ''))
 
 
