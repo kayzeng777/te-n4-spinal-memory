@@ -177,7 +177,6 @@ def theme_vars(t):
     v = [f'--bg{i}:{rgb(c)}' for i, c in enumerate(t['bg'])]
     v += [f'--bg-p{i}:{rgb(c)}' for i, c in enumerate(t['panel'])]
     v += [f'--{s}-{k}:{c}' for s, cs in t['sets'].items() for k, c in cs.items()]
-    v += [f'--backlight:{t["backlight"]}']
     v += [f'--sp-{k}:{c}' for k, c in t['spine'].items()]
     v += [f'--grid-line:{t["grid"]}', '--grid-img:url("data:image/svg+xml;utf8,'
           "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'><path d='M0 0H1M0 0V1' "
@@ -188,17 +187,33 @@ def theme_vars(t):
 
 def theme_css():
     """The default palette on :root, every other one on html[data-theme=...].
-    Two things carry their colour on an attribute rather than a property, the
-    backlight's floods and the spine's cells, and a CSS property beats an
-    attribute -- but only once a palette is chosen, so the drawn page matches
-    nine thousand selectors against nothing and the tuning panel's backlight
-    colour still takes."""
+    The spine's cells carry their colour on an attribute, and a CSS property
+    beats an attribute -- but only once a palette is chosen, so the drawn page
+    matches nine thousand selectors against nothing. The backlight is a set of
+    filters per palette, below."""
     base = THEMES[THEME_DEFAULT]
     out = [f':root{{{theme_vars(base)}}}']
     out += [f'html[data-theme="{n}"]{{{theme_vars(t)}}}'
             for n, t in THEMES.items() if n != THEME_DEFAULT]
-    out.append('html[data-theme] feFlood[data-bl]{flood-color:var(--backlight)}')
-    out.append('html.bl-flip .t .slab{filter:var(--slabF) opacity(1)}')
+    # Each palette's backlight is its own set of filters (backlight_defs),
+    # and a chosen palette points the type at them by name. Recolouring one
+    # set in place, from CSS or by attribute, is what WebKit -- every browser
+    # on iOS -- would not reliably repaint: the light behind the type kept the
+    # last palette's until a reload. A filter under another name it has to
+    # draw afresh.
+    roles = {**ROLES, **TEXT}
+    small = [r for r in roles if STEPS[roles[r]['step']]['size'][0] != STEPS[roles[r]['step']]['size'][1]]
+    mid = (NARROW + WIDE) // 2
+    for n in THEMES:
+        if n == THEME_DEFAULT:
+            continue
+        out += [f'html[data-theme="{n}"] .t-{r}{{--slabF:url(#bl-{roles[r]["step"]}--{n})}}'
+                for r in roles]
+        out.append(f'@media (max-width:{mid}px){{' + ''.join(
+            f'html[data-theme="{n}"] .t-{r}{{--slabF:url(#bl-{roles[r]["step"]}-s--{n})}}'
+            for r in small) + '}')
+        out.append(f'@media (max-width:{NARROW}px){{html[data-theme="{n}"] .lec-close .t-lecx'
+                   f'{{--slabF:url(#bl-t20-s--{n})}}}}')
     # A flat colour behind the type only matches the ground where the gradient
     # is that colour; on a dark page the rest shows as a paler slab, so a
     # palette can go without -- except on the numbers, which sit on the spine
@@ -241,10 +256,10 @@ def theme_css():
     return '\n  '.join(out)
 
 
-def backlight(step):
+def backlight(step, colour=BACKLIGHT_COLOUR):
     b = dict(MARK_BACK if step == 'mark' else BASE_BACK)
-    b['slab'] = (BACKLIGHT_COLOUR, b['slab'])
-    b['glow'] = (BACKLIGHT_COLOUR, b['glow'])
+    b['slab'] = (colour, b['slab'])
+    b['glow'] = (colour, b['glow'])
     return b
 
 
@@ -259,8 +274,8 @@ def stack_table(n, steps=64):
     return ' '.join(f'{1 - (1 - k / steps) ** n:.4f}' for k in range(steps + 1))
 
 
-def bl_filter(fid, step, fs):
-    b = backlight(step)
+def bl_filter(fid, step, fs, colour=BACKLIGHT_COLOUR):
+    b = backlight(step, colour)
     k = b['hard']
     d, g, h = b['dilate'] * fs, b['merge'] * fs, b['halo'] * fs
     return (f'<filter id="{fid}" x="-120%" y="-120%" width="340%" height="340%" '
@@ -290,11 +305,15 @@ def backlight_defs():
     the breakpoint — a filter cannot read a custom property, so the small screen
     needs its own radii rather than a scaled variable."""
     out = []
-    for step, st in STEPS.items():
-        big, small = st['size']
-        out.append(bl_filter(f'bl-{step}', step, big))
-        if small != big:
-            out.append(bl_filter(f'bl-{step}-s', step, small))
+    # and a set for each other palette, in its colour, under its own names
+    # (see theme_css): the drawn page's set keeps the plain ones
+    for name, t in THEMES.items():
+        sfx, colour = ('', BACKLIGHT_COLOUR) if name == THEME_DEFAULT else (f'--{name}', t['backlight'])
+        for step, st in STEPS.items():
+            big, small = st['size']
+            out.append(bl_filter(f'bl-{step}{sfx}', step, big, colour))
+            if small != big:
+                out.append(bl_filter(f'bl-{step}-s{sfx}', step, small, colour))
     out.append(PEEK_GROUND)
     return ('<svg width="0" height="0" aria-hidden="true" '
             'style="position:absolute"><defs>' + ''.join(out) + '</defs></svg>')
@@ -1793,19 +1812,6 @@ def swatches(script=True):
           'bs.forEach(b=>b.addEventListener("click",()=>{const t=b.dataset.t;'
           'if(t===D)delete h.dataset.theme;else h.dataset.theme=t;'
           'try{localStorage.setItem(K,t);}catch(e){}'
-          # WebKit (every browser on iOS) does not repaint what a filter draws
-          # when only its flood colour changes in CSS: the light behind the
-          # type kept the last palette's until a reload. A changed attribute
-          # it does repaint for -- the tuning panel works the same way -- so
-          # the colour is written onto the floods too. The drawn page's own is
-          # kept, to go back to.
-          'const bl=getComputedStyle(h).getPropertyValue("--backlight").trim();'
-          'document.querySelectorAll("feFlood[data-bl]").forEach(f=>{'
-          'if(!f.dataset.c0)f.dataset.c0=f.getAttribute("flood-color");'
-          'f.setAttribute("flood-color",t===D?f.dataset.c0:bl);});'
-          # and the layer drawn through them is told its filter changed, to a
-          # list that draws the same, so nothing painted before is reused
-          'h.classList.toggle("bl-flip");'
           'mark();dispatchEvent(new Event("themechange"));}));'
           'mark();})();</script>')
     return (f'<div class="themes" role="group" aria-label="colours">{btn}</div>'
