@@ -229,7 +229,13 @@ PEEK_GROUND = (
 CORNERS = ('head', 'head-r', 'foot', 'foot-r')
 ISSUE_URL = 'https://te-editions.com/issue-4'
 # The series' own sign-up, in the top right; each lecture keeps its own too.
-SERIES_SIGNUP = 'https://luma.com/user/teeditions'
+# Every sign-up link leaving the site says so, so Luma counts it as from here.
+UTM = 'utm_source=lectures-site'
+def tagged(url):
+    if not url.startswith('http'):
+        return url
+    return url + ('&' if '?' in url else '?') + UTM
+SERIES_SIGNUP = tagged('https://luma.com/user/teeditions')
 ROLES = dict(
     logo=dict(at='head', step='mark', set='a'),
     join=dict(at='head-r', step='su', set='a', href=SERIES_SIGNUP),
@@ -1798,7 +1804,7 @@ def lectures_html():
             # stay put while what is below them scrolls
             + '<div class="more"><div class="more-in">'
             + layers('div', 'lecl', copy_html('lecl', f"[{lec['lang']}]"))
-            + f'<a class="signup" href="{lec.get("signup", SIGNUP)}" target="_blank" '
+            + f'<a class="signup" href="{tagged(lec.get("signup", SIGNUP))}" target="_blank" '
               f'rel="noopener">'
               + layers('p', 'lecs', '<span class="u">Sign up</span>\u2009\u2197') + '</a>'
             + '<div class="scroll">'
