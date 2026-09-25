@@ -251,7 +251,9 @@ def theme_css():
     # sized on the same slide as the type, so a narrower window has a smaller band
     sq, dot = ramp(15, 22), ramp(5, 7)
     out.append(f'.themes button{{position:relative;width:{sq};height:{sq};border:0;border-radius:0;'
-               'padding:0;background:none;cursor:pointer}')
+               'padding:0;background:none;cursor:pointer;touch-action:manipulation}')
+    # (manipulation: two quick taps across the band are two choices, not the
+    # double tap iOS zooms the page on -- and Safari keeps that zoom on reload)
     out.append('.themes button[aria-pressed=true]::after{content:"";position:absolute;'
                f'left:50%;top:50%;width:{dot};height:{dot};transform:translate(-50%,-50%);border-radius:50%;'
                'background:#fff}')
