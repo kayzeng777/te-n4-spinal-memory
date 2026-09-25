@@ -1756,7 +1756,8 @@ def cues():
             + layers('p', 'cue', copy_html('cue', 'scroll to see more\n\u2193')) + '</div>'
             # Once scrolled, a hint is gone on this browser for good: the
             # browser remembers (localStorage), and next time it is not shown
-            # at all. Where storage is refused it is shown each visit.
+            # at all. Where storage is refused it is shown each visit. ?cues
+            # forgets what was seen, to show them again.
             # The ones already seen go before the page is first painted (this
             # runs as soon as the hints are parsed); the rest wait for what
             # they point at to exist.
@@ -1764,6 +1765,8 @@ def cues():
             'const seen=k=>{try{return localStorage.getItem(KEY+k)==="1";}catch(e){return false;}};'
             'const mark=k=>{try{localStorage.setItem(KEY+k,"1");}catch(e){}};'
             'const cues={spine:".cue-spine",more:".cue-more"};'
+            # ?cues forgets them, to see them again
+            'if(/[?&]cues\\b/.test(location.search))for(const k in cues)try{localStorage.removeItem(KEY+k);}catch(e){}'
             'for(const k in cues)if(seen(k)){const c=document.querySelector(cues[k]);if(c)c.remove();}'
             'addEventListener("DOMContentLoaded",()=>{'
             'const off=(k,src)=>{const c=document.querySelector(cues[k]);if(!c||!src)return;'
