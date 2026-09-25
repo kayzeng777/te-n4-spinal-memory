@@ -42,6 +42,7 @@ COLOUR_SETS = dict(
     a=dict(ink='#f28030', glow='#fdf48a', bloom='#fdf48a'),
     b=dict(ink='#277c3c', glow='#fdf48a', bloom='#fdf48a'),
     c=dict(ink='#277c3c', glow='#e6e6e6', bloom='#e6e6e6'),   # the phone's hints
+    d=dict(ink='#f28030', glow='#fdf48a', bloom='#fdf48a'),   # the reading: `a` here, not in every palette
 )
 
 # The type scale, from one step. BASE is the only text size anyone sets: every
@@ -139,6 +140,102 @@ BASE_BACK = dict(dilate=.15, merge=.075, hard=6.7, halo=.41, stack=13,
                  slab=.1, glow=.14)     # slab/glow are opacities; see above
 MARK_BACK = dict(dilate=.065, merge=.06, hard=2, halo=.12, stack=4,
                  slab=.66, glow=.72)
+
+# The palettes a reader can switch between, from the swatches under Sign up.
+# The first is the page as it was drawn; the rest restate every colour on it.
+# All of them reach the page as custom properties (theme_css), so a palette is
+# one attribute on <html> and nothing is repainted by hand. `bg` is the page's
+# gradient top, middle and foot; `panel` the two greens under the phone's
+# panel; `spine` the drawing's four tones and the paper under its ▓.
+THEMES = dict(
+    green=dict(bg=('#66BF8C', '#92CA87', '#68C08D'), panel=('#8BC888', '#6CC18C'),
+               sets=COLOUR_SETS, backlight=BACKLIGHT_COLOUR,
+               grid='#cccccc', swatch=('#4FA56E', '#F28030'),
+               spine=dict(orange='#F28532', cream='#F8BC60', yellow='#FDF48E',
+                          hole='#86C689', paper='#FFFFFF')),
+    # Two taken from the book, for reading: its warm paper with grey ink,
+    # and its black pages with gold. One ink to a palette, as on the page as
+    # drawn, and the same soft ink -- but the light round the letters kept
+    # low, a shade off the ground rather than a colour of its own.
+    paper=dict(bg=('#D3C7A9', '#D7CBAE', '#D2C6A8'), panel=('#D6CAAD', '#D3C7A9'),
+               sets={k: dict(ink='#666a70', glow='#e7dec6', bloom='#e2d8bd') for k in 'abcd'},
+               backlight='#e2d8be', grid='#C6BA9C', swatch=('#E6D6A8', '#666A70'),
+               spine=dict(orange='#4A4843', cream='#9A968D', yellow='#E9E2D0',
+                          hole='#CEC2A4', paper='#F2ECDD')),
+    dark=dict(bg=('#1B1A18', '#22211F', '#1A1917'), panel=('#201F1D', '#1A1917'),
+              sets={k: dict(ink='#b3aa90', glow='#2a2823', bloom='#262522') for k in 'abcd'},
+              backlight='#22211f', grid='#353430', backlit=False,
+              swatch=('#3C3A35', '#8E8672'),
+              spine=dict(orange='#D6CBAC', cream='#6E6A61', yellow='#A89E84',
+                         hole='#2E2D2A', paper='#5E5A51')),
+)
+THEME_DEFAULT = 'green'
+
+
+def theme_vars(t):
+    rgb = lambda h: ' '.join(str(int(h.lstrip('#')[i:i + 2], 16)) for i in (0, 2, 4))
+    v = [f'--bg{i}:{rgb(c)}' for i, c in enumerate(t['bg'])]
+    v += [f'--bg-p{i}:{rgb(c)}' for i, c in enumerate(t['panel'])]
+    v += [f'--{s}-{k}:{c}' for s, cs in t['sets'].items() for k, c in cs.items()]
+    v += [f'--backlight:{t["backlight"]}']
+    v += [f'--sp-{k}:{c}' for k, c in t['spine'].items()]
+    v += [f'--grid-line:{t["grid"]}', '--grid-img:url("data:image/svg+xml;utf8,'
+          "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'><path d='M0 0H1M0 0V1' "
+          f"fill='none' stroke='%23{t['grid'][1:]}' stroke-width='.05' "
+          "stroke-dasharray='.14 .1'/></svg>\")"]
+    return ';'.join(v)
+
+
+def theme_css():
+    """The default palette on :root, every other one on html[data-theme=...].
+    Two things carry their colour on an attribute rather than a property, the
+    backlight's floods and the spine's cells, and a CSS property beats an
+    attribute -- but only once a palette is chosen, so the drawn page matches
+    nine thousand selectors against nothing and the tuning panel's backlight
+    colour still takes."""
+    base = THEMES[THEME_DEFAULT]
+    out = [f':root{{{theme_vars(base)}}}']
+    out += [f'html[data-theme="{n}"]{{{theme_vars(t)}}}'
+            for n, t in THEMES.items() if n != THEME_DEFAULT]
+    out.append('html[data-theme] feFlood[data-bl]{flood-color:var(--backlight)}')
+    # A flat colour behind the type only matches the ground where the gradient
+    # is that colour; on a dark page the rest shows as a paler slab, so a
+    # palette can go without -- except on the numbers, which sit on the spine
+    # and need it to be read there.
+    out += [f'html[data-theme="{n}"] .t:not(.t-lecno) .slab{{visibility:hidden}}'
+            for n, t in THEMES.items() if t.get('backlit') is False]
+    out += [f'html[data-theme] .spine [fill="{c}" i]{{fill:var(--sp-{k})}}'
+            for k, c in base['spine'].items()]
+    out.append(f'@media not all and (max-width:{NARROW}px){{.head-r .themes{{display:none}}}}')
+    # One band, not three swatches: each palette's two colours in its own
+    # square, ground then ink, and the ink blended on into the next ground.
+    # The colours are a palette's `swatch`, a shade off its page's own, or the
+    # band would vanish into the page it names. The squares are the band's
+    # thirds with nothing of their own, until one is chosen and takes a dot.
+    n = len(THEMES)
+    stops = ','.join(f'{c} {(i + f) * 100 / n:.2f}%'
+                     for i, t in enumerate(THEMES.values())
+                     for c, f in zip(t['swatch'], (.2, .8)))
+    out.append(f'.themes{{display:flex;--gap:16px;background:linear-gradient(90deg,{stops})}}')
+    out.append('.themes button{position:relative;width:22px;height:22px;border:0;border-radius:0;'
+               'padding:0;background:none;cursor:pointer}')
+    out.append('.themes button[aria-pressed=true]::after{content:"";position:absolute;'
+               'left:50%;top:50%;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;'
+               'background:#fff}')
+    # a taller target than the square; the squares already meet side to side
+    out.append('.themes button::before{content:"";position:absolute;inset:-5px 0}')
+    out.append(f'@media (max-width:{NARROW}px){{.themes button::before{{inset:0 -5px}}}}')
+    out.append('.themes button:focus-visible{outline:2px solid var(--a-ink);outline-offset:3px}')
+    # A phone has no bottom right corner: the band stands upright at the left
+    # margin over the information panel, by the foot of the spine, smaller,
+    # and steps aside while a lecture has the panel.
+    out.append(f'@media (max-width:{NARROW}px){{.themes{{position:fixed;left:var(--pad);'
+               'bottom:calc(var(--info-panel) + 19px);z-index:3;transition:opacity .3s ease;'
+               f'flex-direction:column;background:linear-gradient(180deg,{stops})}}'
+               'body:has(.lec.open) .themes{opacity:0;pointer-events:none}'
+               '.themes button{width:15px;height:15px}'
+               '.themes button[aria-pressed=true]::after{width:4px;height:4px;margin:-2px 0 0 -2px}}')
+    return '\n  '.join(out)
 
 
 def backlight(step):
@@ -247,8 +344,8 @@ ROLES = dict(
     title=dict(at='foot', step='t24', set='a', gap=10, ls=-.035, lh=.88, box='info',
                href=ISSUE_URL),
     tag=dict(at='foot', step='t12', set='a', gap=6, box='info', href=ISSUE_URL),
-    desc=dict(at='foot', step='t14', set='a', gap=32, box='info'),
-    facts=dict(at='foot', step='t14', set='a', gap=21, box='info'),
+    desc=dict(at='foot', step='t14', set='d', gap=32, box='info'),
+    facts=dict(at='foot', step='t14', set='d', gap=21, box='info'),
 )
 
 
@@ -256,13 +353,13 @@ ROLES = dict(
 # four-layer machinery, same steps and colour sets as the poster roles — the
 # only difference is that nothing places them, the spine does.
 TEXT = dict(
-    lecd=dict(step='t14', set='a'),              # the date and time
+    lecd=dict(step='t14', set='d'),              # the date and time
     lecw=dict(step='t16', set='a', gap=10),      # who: under the date, over the title
     lect=dict(step='t20', set='a', gap=-4, lh=1),  # close under who: the two are one thing
     lecno=dict(step='no', set='a'),
     lecl=dict(step='t14', set='a', gap=4),   # a chip, the size of the Intro's
-    lecb=dict(step='t14', set='a', gap=6),
-    lecbio=dict(step='t14', set='a'),           # a speaker's bio, beside their portrait
+    lecb=dict(step='t14', set='d', gap=6),
+    lecbio=dict(step='t14', set='d'),           # a speaker's bio, beside their portrait
     lecs=dict(step='t16', set='a', gap=30),
     lecx=dict(step='t20', set='a'),              # the close; its size is set in LEC_CSS
     cue=dict(step='t12', set='c', lh=1),         # the phone's two hints, in the other colours      # Sign up, the size of the speaker's name
@@ -388,8 +485,8 @@ def type_css():
     the three shared layer rules read."""
     out = []
     for role, r in {**ROLES, **TEXT}.items():
-        c, st = COLOUR_SETS[r['set']], STEPS[r['step']]
-        v = [f"--ink:{c['ink']}", f"--glow:{c['glow']}", f"--bloom:{c['bloom']}",
+        s, st = r['set'], STEPS[r['step']]
+        v = [f"--ink:var(--{s}-ink)", f"--glow:var(--{s}-glow)", f"--bloom:var(--{s}-bloom)",
              f"--solid:{st.get('solid', 1)}",
              f"--fs:{ramp(st['size'][1], st['size'][0])}", f"--soft:{st['soft']}px",
              f"--glowR:{st['glow']}em", f"--bloomR:{st['bloom']}px",
@@ -530,9 +627,9 @@ HEAD = '''<title>te online lecture</title>
   }
   *{box-sizing:border-box}
   html,body{margin:0;min-height:100%}
-  body{min-height:100vh;background:#92CA87;color:var(--ink);position:relative;font-family:var(--font-sans);}
+  body{min-height:100vh;background:rgb(var(--bg1));color:var(--ink);position:relative;font-family:var(--font-sans);}
   .bg{position:fixed;inset:0;z-index:-1;
-    background:linear-gradient(180deg,#66BF8C 0%,#92CA87 70%,#68C08D 100%)}
+    background:linear-gradient(180deg,rgb(var(--bg0)) 0%,rgb(var(--bg1)) 70%,rgb(var(--bg2)) 100%)}
   /* Over everything, including the spine and the type — it is the medium, not a
      property of any one layer. Constant cell size, so it never tracks a font. */
   /* ?scrollgrain lays the grain over the document instead of over the screen.
@@ -574,7 +671,7 @@ HEAD = '''<title>te online lecture</title>
      longer drags the drawing underneath it into the repaint. */
   .spine{width:calc(__COLS__ * var(--cell));height:auto;overflow:visible;display:block}
   .spine.anim,.spine.pics{position:absolute;left:0;top:0;pointer-events:none}
-  .cells rect{stroke:#cccccc;stroke-width:.05;stroke-dasharray:.14 .1;shape-rendering:crispEdges}
+  .cells rect{stroke:var(--grid-line);stroke-width:.05;stroke-dasharray:.14 .1;shape-rendering:crispEdges}
   .glyphs{--gfs:1.57px;--gdy:0.41px}
   .glyphs text{font-family:Menlo,Consolas,"DejaVu Sans Mono",monospace;font-size:var(--gfs);text-anchor:middle;dominant-baseline:auto;transform:translateY(var(--gdy));pointer-events:none}
   .glyphs text.h{font-family:"Noto Sans Egyptian Hieroglyphs",sans-serif;font-size:1.5px;dominant-baseline:central;transform:none}
@@ -595,6 +692,7 @@ HEAD = '''<title>te online lecture</title>
   __TOOLSCSS__
   __TYPECSS__
   __LECCSS__
+  __THEMECSS__
   :root{--pad:24px}
   /* --tools is the width the side panel takes when it is open, so the stage
      gives way and the right-hand corners stay visible. */
@@ -666,7 +764,7 @@ HEAD = '''<title>te online lecture</title>
   .poster .role-link{display:flex;flex-direction:column;align-items:flex-start;
     color:inherit;text-decoration:none}
   .poster .role-link>:first-child{margin-top:0}
-  .poster .role-link:focus-visible{outline:2px solid #f28030;outline-offset:6px}
+  .poster .role-link:focus-visible{outline:2px solid var(--a-ink);outline-offset:6px}
   /* Sign up, top right: set as a lecture's is, the words underlined and the
      arrow after them not (an inline-block is not given its parent's line) */
   .t-join>*{text-decoration:underline;text-decoration-thickness:1px;
@@ -714,9 +812,9 @@ HEAD = '''<title>te online lecture</title>
     main{padding-bottom:calc(var(--info-panel) + 24px + var(--post, 0px))}
     main::before,main::after{content:"";position:fixed;left:0;right:0;z-index:2;
       pointer-events:none}
-    main::before{top:0;height:64px;background:linear-gradient(#66bf8c,rgb(102 191 140 / 0))}
+    main::before{top:0;height:64px;background:linear-gradient(rgb(var(--bg0)),rgb(var(--bg0) / 0))}
     main::after{bottom:0;height:calc(var(--panel) + var(--panel-fade));
-      background:linear-gradient(rgb(139 200 136 / 0),#8bc888 var(--panel-fade),#68c08d)}
+      background:linear-gradient(rgb(var(--bg-p0) / 0),rgb(var(--bg-p0)) var(--panel-fade),rgb(var(--bg2)))}
     /* The top: the logo on the left, the title over the subtitle in the
        middle of the page, each on one line. Two equal outer columns are what
        keep the middle one centred on the page rather than on what is left
@@ -750,10 +848,10 @@ HEAD = '''<title>te online lecture</title>
     .cue-spine{bottom:calc(var(--info-panel) + 40px)}
     .cue-spine::before{content:"";position:absolute;z-index:-1;left:50%;top:50%;
       width:220px;height:64px;transform:translate(-50%,-50%);
-      background:radial-gradient(closest-side,rgb(139 200 136 / .85),rgb(139 200 136 / 0))}
+      background:radial-gradient(closest-side,rgb(var(--bg-p0) / .85),rgb(var(--bg-p0) / 0))}
     .cue-more{bottom:0;padding:14px 0 8px}
     .cue-more::before{content:"";position:absolute;inset:0;z-index:-1;
-      background:linear-gradient(rgb(104 192 141 / 0),rgb(108 193 140 / .9) 75%)}
+      background:linear-gradient(rgb(var(--bg-p1) / 0),rgb(var(--bg-p1) / .9) 75%)}
     /* the series' Sign up in the top right, level with the logo */
     .poster>.head-r{grid-column:3;grid-row:1;justify-self:end}
     .foot-r{display:none}
@@ -963,7 +1061,7 @@ LEC_CSS = '''.peek-flood{flood-color:var(--peek-green,#80C58A)}
   .lec .signup{display:block;width:max-content;color:inherit;text-decoration:none}
   .lec .signup .u{text-decoration:underline;text-decoration-thickness:1px;
     text-underline-offset:.18em}
-  .lec .signup:focus-visible{outline:2px solid #f28030;outline-offset:3px}
+  .lec .signup:focus-visible{outline:2px solid var(--a-ink);outline-offset:3px}
   /* Once the column narrows, an open block's detail runs long enough to reach
      its neighbours, and a hovered neighbour lands on it. Whichever it lands
      on, the hovered one is on top: it is the one just asked for. Left to
@@ -1081,6 +1179,7 @@ BODY = '''
   if('scrollRestoration' in history)history.scrollRestoration='manual';
   scrollTo(0,0);
 </script>
+__THEMEPICK__
 __BACKLIGHT__
 <div class="bg"></div>
 <div class="grid"></div>
@@ -1160,8 +1259,11 @@ __LECS__
       if(pk)ground(lecs[hot]);}
     // The green under a peeking head is the page's own at that height: .bg's
     // gradient, which is fixed to the screen, read off at the head's middle.
-    const BG=[[0,[0x66,0xBF,0x8C]],[.7,[0x92,0xCA,0x87]],[1,[0x68,0xC0,0x8D]]];
+    // Read off the palette each time, which the reader may have changed.
+    const BGV=[[0,'--bg0'],[.7,'--bg1'],[1,'--bg2']];
     function ground(l){if(!l)return;
+      const cs=getComputedStyle(document.documentElement);
+      const BG=BGV.map(([t,v])=>[t,cs.getPropertyValue(v).trim().split(' ').map(Number)]);
       const b=l.parentNode.getBoundingClientRect();
       const t=Math.min(1,Math.max(0,(b.top+l.offsetTop)/innerHeight));
       const k=t<=BG[1][0]?0:1,[t0,c0]=BG[k],[t1,c1]=BG[k+1],f=(t-t0)/(t1-t0);
@@ -1525,7 +1627,12 @@ __LECS__
     // perceived brightness; the cut sits just above the accent orange (156) and
     // below the cream-orange midpoint (196) and the green of the holes (172), so
     // only the darkest tone of the ramp takes white ink.
-    const light=c=>{const n=parseInt(c.slice(1),16);
+    // A chosen palette recolours the cells in CSS, so the tone is looked up
+    // there -- the attribute is always the drawing's own.
+    const TONE=__SPINETONES__;
+    const tone=c=>TONE[c]&&getComputedStyle(document.documentElement)
+      .getPropertyValue(TONE[c]).trim()||c;
+    const light=c=>{c=tone(c);const n=parseInt(c.slice(1),16);
       return !isNaN(n)&&((n>>16&255)*299+(n>>8&255)*587+(n&255)*114)/1000>165;};
     const idx=new Map(cell.map((d,i)=>[d.c+','+d.r,i]));
     const TARGET=Math.round(cell.length*SHARE);
@@ -1655,12 +1762,46 @@ def copy_html(role, text):
     return '<br>'.join(br(p) for p in paras)
 
 
+# The palette a reader chose, put on before anything is painted: from ?theme=
+# first (a link can carry one), then from what this browser remembers. The
+# default is no attribute at all, so the page as drawn is the page untouched.
+THEME_KEY = 'te-theme'
+THEME_PICK = ('<script>(function(){'
+    f'const T={json.dumps([n for n in THEMES if n != THEME_DEFAULT])},K="{THEME_KEY}";'
+    'let t=new URLSearchParams(location.search).get("theme");'
+    'if(!t)try{t=localStorage.getItem(K);}catch(e){}'
+    'if(T.includes(t))document.documentElement.dataset.theme=t;'
+    '})();</script>')
+
+
+def swatches(script=True):
+    """The palettes, as a row of swatches: in the bottom right beside the
+    spine, and under the series' Sign up on a phone, where that corner is
+    gone. Both rows are on the page and CSS shows one; the script, written
+    once with the second, serves both. A choice is remembered on this
+    browser; where storage is refused it lasts the visit."""
+    btn = ''.join(f'<button type="button" data-t="{n}" aria-label="{n} colours"></button>'
+                  for n in THEMES)
+    js = ('<script>(function(){'
+          f'const K="{THEME_KEY}",D="{THEME_DEFAULT}",h=document.documentElement;'
+          'const bs=[...document.querySelectorAll(".themes button")];'
+          'const mark=()=>{const c=h.dataset.theme||D;'
+          'bs.forEach(b=>b.setAttribute("aria-pressed",b.dataset.t===c));};'
+          'bs.forEach(b=>b.addEventListener("click",()=>{const t=b.dataset.t;'
+          'if(t===D)delete h.dataset.theme;else h.dataset.theme=t;'
+          'try{localStorage.setItem(K,t);}catch(e){}'
+          'mark();dispatchEvent(new Event("themechange"));}));'
+          'mark();})();</script>')
+    return (f'<div class="themes" role="group" aria-label="colours">{btn}</div>'
+            + (js if script else ''))
+
+
 def corners():
     """One div per corner that has anything in it, holding its roles in order."""
     out = []
     for corner in CORNERS:
         roles = at_corner(corner)
-        if not roles:
+        if not roles and corner != 'foot-r':
             continue
         inner, box, href = '', None, None
         for r in roles:
@@ -1676,6 +1817,8 @@ def corners():
             inner += (layers(ROLE_TAG[r], r, LOGO, **{'aria-label': 'te'}) if r == 'logo'
                       else layers(ROLE_TAG[r], r, copy_html(r, COPY[r])))
         inner += ('</a>' if href else '') + ('</div>' if box else '')
+        if corner in ('head-r', 'foot-r'):
+            inner += swatches(script=corner == 'foot-r')
         out.append(f'  <div class="{corner}">{inner}</div>')
     return '\n'.join(out)
 
@@ -1852,7 +1995,7 @@ def page(inline, spine=None, cols=None, rows=None, tools=False):
     grain = grain_url()
     return (HEAD.replace('__FONTS__', font_faces(inline))
                 .replace('__TYPEBASE__', TYPE_CSS)
-                .replace('__TOOLSCSS__', TOOLS_CSS if tools else '').replace('__TYPECSS__', type_css())
+                .replace('__TOOLSCSS__', TOOLS_CSS if tools else '').replace('__TYPECSS__', type_css()).replace('__THEMECSS__', theme_css())
                 .replace('__TYPECSS_SMALL__', type_css_small())
                 .replace('__LECCSS__', LEC_CSS.replace('__WHOGAP__', str(TEXT['lecw'].get('gap', 0))))
                 .replace('__CLOSEFS__', ramp(28, 36))
@@ -1864,7 +2007,7 @@ def page(inline, spine=None, cols=None, rows=None, tools=False):
                 .replace('__MARKFS__', ramp(MARK_STEP['size'][1], MARK_STEP['size'][0]))
                 .replace('__NARROW__', str(NARROW)).replace('__MID__', str((NARROW + WIDE) // 2))
                 .replace('__COLS__', f'{cols:g}').replace('__ROWS__', str(rows))
-            + BODY.replace('__NARROW__', str(NARROW)).replace('__SPINE__', spine).replace('__LECS__', lectures_html()).replace('__CUES__', cues()).replace('__CORNERS__', corners()).replace('__BACKLIGHT__', backlight_defs())
+            + BODY.replace('__NARROW__', str(NARROW)).replace('__SPINE__', spine).replace('__LECS__', lectures_html()).replace('__CUES__', cues()).replace('__CORNERS__', corners()).replace('__BACKLIGHT__', backlight_defs()).replace('__THEMEPICK__', THEME_PICK).replace('__SPINETONES__', json.dumps({c.upper(): f'--sp-{k}' for k, c in THEMES[THEME_DEFAULT]['spine'].items()}))
             + (tools_panel() if tools else ''))
 
 
