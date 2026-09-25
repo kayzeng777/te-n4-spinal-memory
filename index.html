@@ -492,7 +492,7 @@
   .themes button::before{content:"";position:absolute;inset:-5px 0}
   @media (max-width:760px){.themes button::before{inset:0 -5px}}
   .themes button:focus-visible{outline:2px solid var(--a-ink);outline-offset:3px}
-  @media (max-width:760px){.themes{position:fixed;left:var(--pad);bottom:calc(var(--info-panel) + 19px);z-index:3;transition:opacity .3s ease;flex-direction:column;background:linear-gradient(180deg,#4FA56E 6.67%,#F28030 26.67%,#E6D6A8 40.00%,#666A70 60.00%,#3C3A35 73.33%,#8E8672 93.33%)}body:has(.lec.open) .themes{opacity:0;pointer-events:none}.themes button{width:15px;height:15px}.themes button[aria-pressed=true]::after{width:4px;height:4px}}
+  @media (max-width:760px){.themes{position:fixed;left:var(--pad);bottom:calc(var(--info-panel) + 19px);z-index:3;transition:opacity .3s ease,visibility 0s;flex-direction:column;background:linear-gradient(180deg,#4FA56E 6.67%,#F28030 26.67%,#E6D6A8 40.00%,#666A70 60.00%,#3C3A35 73.33%,#8E8672 93.33%)}body:has(.lec.open) .themes{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .3s ease,visibility 0s .3s}.themes button{width:15px;height:15px}.themes button[aria-pressed=true]::after{width:4px;height:4px}}
   :root{--pad:24px}
   /* --tools is the width the side panel takes when it is open, so the stage
      gives way and the right-hand corners stay visible. */

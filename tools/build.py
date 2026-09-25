@@ -265,9 +265,12 @@ def theme_css():
     # margin over the information panel, by the foot of the spine, smaller,
     # and steps aside while a lecture has the panel.
     out.append(f'@media (max-width:{NARROW}px){{.themes{{position:fixed;left:var(--pad);'
-               'bottom:calc(var(--info-panel) + 19px);z-index:3;transition:opacity .3s ease;'
+               'bottom:calc(var(--info-panel) + 19px);z-index:3;transition:opacity .3s ease,visibility 0s;'
                f'flex-direction:column;background:linear-gradient(180deg,{stops})}}'
-               'body:has(.lec.open) .themes{opacity:0;pointer-events:none}'
+               # gone, not only clear: iOS left a square of it showing through
+               # the open lecture's date
+               'body:has(.lec.open) .themes{opacity:0;visibility:hidden;pointer-events:none;'
+               'transition:opacity .3s ease,visibility 0s .3s}'
                '.themes button{width:15px;height:15px}'
                '.themes button[aria-pressed=true]::after{width:4px;height:4px}}')
     return '\n  '.join(out)
