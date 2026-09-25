@@ -1839,6 +1839,13 @@ def swatches(script=True, cls='themes'):
           # place, a block is drawn from nothing: every piece of type is, once,
           # so no light painted in the last palette is left to reuse.
           'document.querySelectorAll(".t").forEach(e=>e.parentNode.insertBefore(e,e.nextSibling));'
+          # That was not enough for the logo: the stale light is in the layer
+          # of the fixed head it sits on, outside the logo's own box, and only
+          # a new layer is painted whole. So the head itself goes back in its
+          # place, and the information panel inside it keeps where it was
+          # scrolled to.
+          'const P=document.querySelector(".poster");if(P){const i=P.querySelector(".info"),y=i?i.scrollTop:0;'
+          'P.parentNode.insertBefore(P,P.nextSibling);if(i)i.scrollTop=y;}'
           'mark();dispatchEvent(new Event("themechange"));}));'
           'mark();})();</script>')
     return (f'<div class="{cls}" role="group" aria-label="colours">{btn}</div>'
