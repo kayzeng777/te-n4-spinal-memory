@@ -229,7 +229,7 @@ PEEK_GROUND = (
 CORNERS = ('head', 'head-r', 'foot', 'foot-r')
 ISSUE_URL = 'https://te-editions.com/issue-4'
 # The series' own sign-up, in the top right; each lecture keeps its own too.
-SERIES_SIGNUP = '#'
+SERIES_SIGNUP = 'https://luma.com/user/teeditions'
 ROLES = dict(
     logo=dict(at='head', step='mark', set='a'),
     join=dict(at='head-r', step='su', set='a', href=SERIES_SIGNUP),
@@ -1740,17 +1740,28 @@ def lec_extra(lec):
 def cues():
     """The phone's two first-visit hints: one at the foot of the spine, one at
     the foot of the information's panel. Each goes for good the first time
-    the thing it points at is scrolled."""
+    the thing it points at is scrolled, and stays gone on later visits."""
     return ('<div class="cue cue-spine" aria-hidden="true">'
             + layers('p', 'cue', copy_html('cue', 'scroll & tap to explore\n\u2193')) + '</div>'
             + '<div class="cue cue-more" aria-hidden="true">'
             + layers('p', 'cue', copy_html('cue', 'scroll to see more\n\u2193')) + '</div>'
-            + '<script>addEventListener("DOMContentLoaded",()=>{'
-            'const off=(sel,src)=>{const c=document.querySelector(sel);if(!c||!src)return;'
-            'const f=()=>{c.classList.add("gone");src.removeEventListener("scroll",f);};'
+            # Once scrolled, a hint is gone on this browser for good: the
+            # browser remembers (localStorage), and next time it is not shown
+            # at all. Where storage is refused it is shown each visit.
+            # The ones already seen go before the page is first painted (this
+            # runs as soon as the hints are parsed); the rest wait for what
+            # they point at to exist.
+            + '<script>(()=>{const KEY="te-cue-";'
+            'const seen=k=>{try{return localStorage.getItem(KEY+k)==="1";}catch(e){return false;}};'
+            'const mark=k=>{try{localStorage.setItem(KEY+k,"1");}catch(e){}};'
+            'const cues={spine:".cue-spine",more:".cue-more"};'
+            'for(const k in cues)if(seen(k)){const c=document.querySelector(cues[k]);if(c)c.remove();}'
+            'addEventListener("DOMContentLoaded",()=>{'
+            'const off=(k,src)=>{const c=document.querySelector(cues[k]);if(!c||!src)return;'
+            'const f=()=>{c.classList.add("gone");mark(k);src.removeEventListener("scroll",f);};'
             'src.addEventListener("scroll",f,{passive:true});};'
-            'off(".cue-spine",document.getElementById("content"));'
-            'off(".cue-more",document.querySelector(".poster .info"));});</script>')
+            'off("spine",document.getElementById("content"));'
+            'off("more",document.querySelector(".poster .info"));});})();</script>')
 
 
 def lectures_html():
