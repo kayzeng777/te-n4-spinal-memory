@@ -1965,9 +1965,9 @@ def cues():
     """The hints. They stay up: a spine's "scroll & tap/click to explore" at
     its foot, and a "scroll to see more" at the foot of whatever else scrolls
     -- the information's panel on a phone, the written column beside the
-    spine, and an open lecture (that one lives in each block: cue_lec()). A
-    "see more" goes only while there is no more to see (.end). Which show at
-    which width is CSS."""
+    spine, and an open lecture (that one lives in each block: cue_lec()).
+    Each goes only while what it points at is scrolled to its end (.end).
+    Which show at which width is CSS."""
     cue = lambda cls, text: (f'<div class="cue {cls}" aria-hidden="true">'
                              + layers('p', 'cue', copy_html('cue', text)) + '</div>')
     return (cue('cue-tap cue-soft', 'scroll & tap to explore\n\u2193')
@@ -1987,7 +1987,12 @@ def cues():
             'const fixed=[[document.querySelector(".cue-more"),info],[document.querySelector(".cue-col"),col]];'
             'const lecSc=l=>l.__body||l.querySelector(".scroll");'
             'const lecCue=l=>l.querySelector(":scope>.cue-lec");'
-            'const all=()=>{fixed.forEach(([c,sc])=>end(c,sc));'
+            # the spine's: the page beside the spine, main on a phone
+            f'const main=document.getElementById("content"),narrow=matchMedia("(max-width:{NARROW}px)");'
+            'const spineCues=[document.querySelector(".cue-tap"),document.querySelector(".cue-click")];'
+            'const spine=()=>{const sc=narrow.matches?main:document.scrollingElement;spineCues.forEach(c=>end(c,sc));};'
+            'addEventListener("scroll",spine,{passive:true});if(main)main.addEventListener("scroll",spine,{passive:true});'
+            'const all=()=>{spine();fixed.forEach(([c,sc])=>end(c,sc));'
             'document.querySelectorAll(".lec.open").forEach(l=>end(lecCue(l),lecSc(l)));};'
             'fixed.forEach(([c,sc])=>{if(sc)sc.addEventListener("scroll",()=>end(c,sc),{passive:true});});'
             'document.addEventListener("scroll",e=>{const l=e.target.closest&&e.target.closest(".lec");'
