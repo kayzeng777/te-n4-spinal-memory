@@ -493,6 +493,10 @@
     .cue.cue-click{display:flex;left:0;right:var(--tools,0px);bottom:18px}
     .cue.cue-col{display:flex;left:var(--pad);width:var(--col);bottom:0;padding:18px 0 14px}
     .lec .cue-lec{padding:18px 0 14px}
+    /* In a column, not across the screen: the ground under a "see more"
+       fades out at its sides too, or its edges show as two hard lines. */
+    .cue-foot::before{-webkit-mask-image:linear-gradient(to right,transparent,#000 22%,#000 78%,transparent);
+      mask-image:linear-gradient(to right,transparent,#000 22%,#000 78%,transparent)}
     .head-r,.foot-r{transition:opacity var(--lec-in,.24s) ease}
     body:has(.lec.open) :is(.head-r,.foot-r){opacity:0;pointer-events:none;transition-duration:var(--lec-off,0s)}
     /* The bottom-left column is longer than some screens are tall. It stays
