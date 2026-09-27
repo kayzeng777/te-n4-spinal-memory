@@ -826,6 +826,7 @@ HEAD = '''<title>te online lecture</title>
   .cue{display:none;justify-content:center;text-align:center;position:fixed;z-index:3;
     pointer-events:none;transition:opacity .3s ease}
   .cue.end{opacity:0}
+  .nocues .cue{display:none !important}   /* ?nocues */
   .cue .t-cue{--glowR:3.4em;--bloomR:10px}
   /* over the spine, on a soft patch of the ground so they read there */
   .cue-soft::before{content:"";position:absolute;z-index:-1;left:50%;top:50%;
@@ -899,7 +900,7 @@ HEAD = '''<title>te online lecture</title>
        scroll instead -- over whichever panel is up. The information's is at
        that panel's foot, and stands aside while a lecture's is up. */
     .cue-tap{display:flex;left:0;right:0;bottom:calc(var(--info-panel) + 40px)}
-    body:has(.lec.open) .cue-tap{bottom:calc(var(--lec-panel) + 40px)}
+    body:has(.lec.open) .cue-tap{bottom:calc(var(--lec-panel) + 16px)}
     .cue-more{display:flex;left:0;right:0;bottom:0;padding:14px 0 8px}
     body:has(.lec.open) .cue-more{opacity:0}
     .lec .cue-lec{padding:14px 0 8px}
@@ -1972,7 +1973,10 @@ def cues():
             # .end on a "see more" whose box is at its end, or has no more
             # than fits; checked as each scrolls, on resize and load, and by
             # the lecture script whenever a block opens (window.__cues).
-            + '<script>addEventListener("DOMContentLoaded",()=>{'
+            # ?nocues takes them all off, for a recording.
+            + '<script>if(/[?&]nocues\\b/.test(location.search))'
+            'document.documentElement.classList.add("nocues");'
+            'addEventListener("DOMContentLoaded",()=>{'
             'const end=(c,sc)=>{if(c&&sc)c.classList.toggle("end",'
             'sc.scrollHeight-sc.clientHeight-sc.scrollTop<4);};'
             'const info=document.querySelector(".poster .info"),col=document.querySelector(".poster>.foot");'
