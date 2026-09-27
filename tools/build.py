@@ -766,6 +766,11 @@ HEAD = '''<title>te online lecture</title>
     /* The right-hand corners share their side with the open lecture, which
        covers it top to bottom, so they step aside while one is open. A
        hovered block does not reach them and leaves them be. */
+    /* Beside the spine's hints: the spine's at the foot of the screen under
+       it, the written column's at the column's foot. */
+    .cue.cue-click{display:flex;left:0;right:var(--tools,0px);bottom:18px}
+    .cue.cue-col{display:flex;left:var(--pad);width:var(--col);bottom:0;padding:18px 0 14px}
+    .lec .cue-lec{padding:18px 0 14px}
     .head-r,.foot-r{transition:opacity var(--lec-in,.24s) ease}
     body:has(.lec.open) :is(.head-r,.foot-r){opacity:0;pointer-events:none;transition-duration:var(--lec-off,0s)}
     /* The bottom-left column is longer than some screens are tall. It stays
@@ -815,8 +820,22 @@ HEAD = '''<title>te online lecture</title>
   /* The reading -- the information's paragraphs and a lecture's description
      and bios -- a touch more open than the ramp gives its size. */
   .poster :is(.t-desc,.t-facts),.lec :is(.t-lecb,.t-lecbio){--lh:1.06}
-  /* The phone's hints (cues()); nowhere else. */
-  .cue{display:none}
+  /* The hints (cues()). Each width shows its own, below; they stay up, and a
+     "see more" goes only while there is no more (.end). In green on a wider
+     pale light than the text's. */
+  .cue{display:none;justify-content:center;text-align:center;position:fixed;z-index:3;
+    pointer-events:none;transition:opacity .3s ease}
+  .cue.end{opacity:0}
+  .cue .t-cue{--glowR:3.4em;--bloomR:10px}
+  /* over the spine, on a soft patch of the ground so they read there */
+  .cue-soft::before{content:"";position:absolute;z-index:-1;left:50%;top:50%;
+    width:220px;height:64px;transform:translate(-50%,-50%);
+    background:radial-gradient(closest-side,rgb(var(--bg-p0) / .85),rgb(var(--bg-p0) / 0))}
+  /* at the foot of what scrolls, on a touch of ground */
+  .cue-foot::before{content:"";position:absolute;inset:0;z-index:-1;
+    background:linear-gradient(rgb(var(--bg-p1) / 0),rgb(var(--bg-p1) / .9) 75%)}
+  .lec .cue-lec{position:absolute;left:0;right:0;bottom:0}
+  .lec.open .cue-lec{display:flex;z-index:6}
   /* A block stays in the corner it was placed in at every width. The measures
      are in ch and capped against --fit, which is what keeps the two bottom
      corners from meeting. */
@@ -875,25 +894,15 @@ HEAD = '''<title>te online lecture</title>
     .poster>.head{grid-row:1 / span 2}
     .t-logo{--fs:56px}
     .poster>.foot{display:contents}
-    /* The two hints, centred: one at the foot of the spine, just over the
-       panel; one at the panel's own foot, on a little ground of its colour
-       so the words under it do not show through. They fade out for good
-       once what they point at has been scrolled, and stand aside while a
-       lecture is open. */
-    .cue{display:flex;justify-content:center;text-align:center;position:fixed;
-      left:0;right:0;z-index:3;pointer-events:none;transition:opacity .4s ease}
-    .cue.gone,body:has(.lec.open) .cue{opacity:0}
-    .cue .t-cue{--glowR:3.4em;--bloomR:10px}   /* a wider light than the text's */
-    /* up on the spine's tail, where a thumb would go to scroll it -- not
-       down at the information, which a thumb there would scroll instead; on
-       a soft patch of the ground, so it reads over the spine */
-    .cue-spine{bottom:calc(var(--info-panel) + 40px)}
-    .cue-spine::before{content:"";position:absolute;z-index:-1;left:50%;top:50%;
-      width:220px;height:64px;transform:translate(-50%,-50%);
-      background:radial-gradient(closest-side,rgb(var(--bg-p0) / .85),rgb(var(--bg-p0) / 0))}
-    .cue-more{bottom:0;padding:14px 0 8px}
-    .cue-more::before{content:"";position:absolute;inset:0;z-index:-1;
-      background:linear-gradient(rgb(var(--bg-p1) / 0),rgb(var(--bg-p1) / .9) 75%)}
+    /* The phone's hints. The spine's sits up on its tail, where a thumb would
+       go to scroll it -- not down at the panel, which a thumb there would
+       scroll instead -- over whichever panel is up. The information's is at
+       that panel's foot, and stands aside while a lecture's is up. */
+    .cue-tap{display:flex;left:0;right:0;bottom:calc(var(--info-panel) + 40px)}
+    body:has(.lec.open) .cue-tap{bottom:calc(var(--lec-panel) + 40px)}
+    .cue-more{display:flex;left:0;right:0;bottom:0;padding:14px 0 8px}
+    body:has(.lec.open) .cue-more{opacity:0}
+    .lec .cue-lec{padding:14px 0 8px}
     /* the series' Sign up in the top right, level with the logo */
     .poster>.head-r{grid-column:3;grid-row:1;justify-self:end}
     .foot-r{display:none}
@@ -1285,7 +1294,8 @@ __LECS__
       if(open!==shown){shown=open;
         const l=lecs[open];
         if(l)[l.__body,l.querySelector('.scroll')].forEach(e=>{if(e)e.scrollTop=0;});
-        if(open===-1&&info)info.scrollTop=0;}
+        if(open===-1&&info)info.scrollTop=0;
+        if(window.__cues)window.__cues();}
       segs.forEach((g,i)=>{
       g.classList.toggle('active',i===open);
       g.classList.toggle('hot',i===hot);
@@ -1373,13 +1383,14 @@ __LECS__
         bar.className='lec-bar';body.className='lec-body';
         const su=l.querySelector('.signup'),x=l.querySelector('.lec-close');
         l.__home=[su.parentNode,su.nextSibling];
-        [...l.children].forEach(c=>{if(c!==x)body.appendChild(c);});
+        [...l.children].forEach(c=>{if(c!==x&&!c.classList.contains('cue'))body.appendChild(c);});
         bar.append(su,x);l.append(bar,body);l.__bar=bar;l.__body=body;
       }else{
         const bar=l.__bar,body=l.__body,[p,n]=l.__home;
         const su=bar.querySelector('.signup'),x=bar.querySelector('.lec-close');
         [...body.children].forEach(c=>l.insertBefore(c,bar));
         p.insertBefore(su,n);l.appendChild(x);
+        const cue=l.querySelector(':scope>.cue');if(cue)l.insertBefore(cue,x);
         bar.remove();body.remove();l.__bar=l.__body=null;}}
     house();narrow.addEventListener('change',house);
     // The open block is fixed to the screen (see LEC_CSS), and takes its left
@@ -1946,33 +1957,42 @@ def lec_extra(lec):
 
 
 def cues():
-    """The phone's two first-visit hints: one at the foot of the spine, one at
-    the foot of the information's panel. Each goes for good the first time
-    the thing it points at is scrolled, and stays gone on later visits."""
-    return ('<div class="cue cue-spine" aria-hidden="true">'
-            + layers('p', 'cue', copy_html('cue', 'scroll & tap to explore\n\u2193')) + '</div>'
-            + '<div class="cue cue-more" aria-hidden="true">'
-            + layers('p', 'cue', copy_html('cue', 'scroll to see more\n\u2193')) + '</div>'
-            # Once scrolled, a hint is gone on this browser for good: the
-            # browser remembers (localStorage), and next time it is not shown
-            # at all. Where storage is refused it is shown each visit. ?cues
-            # forgets what was seen, to show them again.
-            # The ones already seen go before the page is first painted (this
-            # runs as soon as the hints are parsed); the rest wait for what
-            # they point at to exist.
-            + '<script>(()=>{const KEY="te-cue-";'
-            'const seen=k=>{try{return localStorage.getItem(KEY+k)==="1";}catch(e){return false;}};'
-            'const mark=k=>{try{localStorage.setItem(KEY+k,"1");}catch(e){}};'
-            'const cues={spine:".cue-spine",more:".cue-more"};'
-            # ?cues forgets them, to see them again
-            'if(/[?&]cues\\b/.test(location.search))for(const k in cues)try{localStorage.removeItem(KEY+k);}catch(e){}'
-            'for(const k in cues)if(seen(k)){const c=document.querySelector(cues[k]);if(c)c.remove();}'
-            'addEventListener("DOMContentLoaded",()=>{'
-            'const off=(k,src)=>{const c=document.querySelector(cues[k]);if(!c||!src)return;'
-            'const f=()=>{c.classList.add("gone");mark(k);src.removeEventListener("scroll",f);};'
-            'src.addEventListener("scroll",f,{passive:true});};'
-            'off("spine",document.getElementById("content"));'
-            'off("more",document.querySelector(".poster .info"));});})();</script>')
+    """The hints. They stay up: a spine's "scroll & tap/click to explore" at
+    its foot, and a "scroll to see more" at the foot of whatever else scrolls
+    -- the information's panel on a phone, the written column beside the
+    spine, and an open lecture (that one lives in each block: cue_lec()). A
+    "see more" goes only while there is no more to see (.end). Which show at
+    which width is CSS."""
+    cue = lambda cls, text: (f'<div class="cue {cls}" aria-hidden="true">'
+                             + layers('p', 'cue', copy_html('cue', text)) + '</div>')
+    return (cue('cue-tap cue-soft', 'scroll & tap to explore\n\u2193')
+            + cue('cue-click cue-soft', 'scroll & click to explore\n\u2193')
+            + cue('cue-more cue-foot', 'scroll to see more\n\u2193')
+            + cue('cue-col cue-foot', 'scroll to see more\n\u2193')
+            # .end on a "see more" whose box is at its end, or has no more
+            # than fits; checked as each scrolls, on resize and load, and by
+            # the lecture script whenever a block opens (window.__cues).
+            + '<script>addEventListener("DOMContentLoaded",()=>{'
+            'const end=(c,sc)=>{if(c&&sc)c.classList.toggle("end",'
+            'sc.scrollHeight-sc.clientHeight-sc.scrollTop<4);};'
+            'const info=document.querySelector(".poster .info"),col=document.querySelector(".poster>.foot");'
+            'const fixed=[[document.querySelector(".cue-more"),info],[document.querySelector(".cue-col"),col]];'
+            'const lecSc=l=>l.__body||l.querySelector(".scroll");'
+            'const lecCue=l=>l.querySelector(":scope>.cue-lec");'
+            'const all=()=>{fixed.forEach(([c,sc])=>end(c,sc));'
+            'document.querySelectorAll(".lec.open").forEach(l=>end(lecCue(l),lecSc(l)));};'
+            'fixed.forEach(([c,sc])=>{if(sc)sc.addEventListener("scroll",()=>end(c,sc),{passive:true});});'
+            'document.addEventListener("scroll",e=>{const l=e.target.closest&&e.target.closest(".lec");'
+            'if(l)end(lecCue(l),lecSc(l));},{capture:true,passive:true});'
+            'addEventListener("resize",all);addEventListener("load",all);'
+            'if(document.fonts)document.fonts.ready.then(all);'
+            'window.__cues=()=>requestAnimationFrame(all);all();});</script>')
+
+
+def cue_lec():
+    """An open lecture's "see more", at the foot of its block."""
+    return ('<div class="cue cue-lec cue-foot" aria-hidden="true">'
+            + layers('p', 'cue', copy_html('cue', 'scroll to see more\n\u2193')) + '</div>')
 
 
 def lectures_html():
@@ -2018,6 +2038,7 @@ def lectures_html():
             + '</div>'
             + '</div></div>'
             # the same five layers as every other word, so it glows as they do
+            + cue_lec()
             + '<button class="lec-close" type="button" aria-label="Close">'
             + layers('span', 'lecx', '\u00d7') + '</button>'
             + '</div>')
