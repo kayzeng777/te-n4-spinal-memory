@@ -826,7 +826,9 @@ HEAD = '''<title>te online lecture</title>
   .head-r .role-link{position:relative}
   .head-r .role-link+.role-link{z-index:2}   /* the link under Sign up sits over it */
   .head-r .role-link+.role-link{margin-top:8px}
-  .head-r .t-joinzh{--ls:.01em;--fs:clamp(9px,calc(9px + .0025 * (100vw - 760px)),10.5px)}
+  .head-r .t-joinzh{--ls:.01em}
+  .head-r .t>*{width:max-content}
+  @media (max-width:760px){.head-r .role-link+.role-link{margin-top:12px}}
   .t-join>*,.t-joinzh>*{text-decoration:underline;text-decoration-thickness:1px;
     text-underline-offset:.18em}
   .t-join>*::after,.t-joinzh>*::after{content:"\\2197";display:inline-block;margin-left:.12em}
@@ -1262,6 +1264,21 @@ __SPINE__
 __LECS__
 </div>
 </div>
+<script>
+  // The Chinese intro link under Sign up is set to Sign up's width, and its
+  // size follows from that: every length on it is in em, so the width is
+  // linear in the size and one measure at a trial size is enough.
+  (function(){
+    const fit=()=>{
+      const a=document.querySelector('.t-join .ink'),b=document.querySelector('.t-joinzh .ink');
+      if(!a||!b)return;
+      const t=b.closest('.t');t.style.setProperty('--fs','10px');
+      const wa=a.getBoundingClientRect().width,wb=b.getBoundingClientRect().width;
+      if(wa&&wb)t.style.setProperty('--fs',(10*wa/wb)+'px');};
+    fit();addEventListener('resize',fit);
+    if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
+  })();
+</script>
 <script>
   // A segment has two states and its lecture block reads both: hovered, and
   // open (clicked, and it stays open until something else is). The script only
