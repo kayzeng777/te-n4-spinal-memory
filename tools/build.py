@@ -380,7 +380,7 @@ SERIES_SIGNUP = tagged('https://luma.com/user/teeditions')
 ROLES = dict(
     logo=dict(at='head', step='mark', set='a'),
     join=dict(at='head-r', step='su', set='a', href=SERIES_SIGNUP),
-    joinzh=dict(at='head-r', step='su', set='a', href=ZH_INTRO),   # under it
+    joinzh=dict(at='head-r', step='t12', set='a', href=ZH_INTRO),   # under it
     # The te editions chip, the title and the subtitle head the written
     # column, over the Intro, and are one link to the issue: roles that name
     # the same `href` are wrapped in one <a>. No widths: the column's measure
@@ -823,7 +823,7 @@ HEAD = '''<title>te online lecture</title>
   .poster .role-link:focus-visible{outline:2px solid var(--a-ink);outline-offset:6px}
   /* Sign up, top right: set as a lecture's is, the words underlined and the
      arrow after them not (an inline-block is not given its parent's line) */
-  .head-r .role-link+.role-link{margin-top:6px}
+  .head-r .role-link+.role-link{margin-top:14px}
   .t-join>*,.t-joinzh>*{text-decoration:underline;text-decoration-thickness:1px;
     text-underline-offset:.18em}
   .t-join>*::after,.t-joinzh>*::after{content:"\\2197";display:inline-block;margin-left:.12em}
