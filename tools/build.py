@@ -410,6 +410,8 @@ TEXT = dict(
 # Where each lecture's Sign Up button goes. One link for the series unless a
 # lecture names its own with `signup=`.
 SIGNUP = '#'
+# The series' introduction in Chinese, on WeChat; one link, under every Sign up.
+ZH_INTRO = 'https://mp.weixin.qq.com/s/3zRWL0-avnhfWiduV4IL3w'
 # The time is its own field, not part of `when`: the series is one time of day,
 # but a lecture that falls on the other side of a clock change is not.
 TIME = 'New York / 9am EDT\nLondon / 2pm BST'
@@ -1388,13 +1390,13 @@ __LECS__
       if(on){
         const bar=document.createElement('div'),body=document.createElement('div');
         bar.className='lec-bar';body.className='lec-body';
-        const su=l.querySelector('.signup'),x=l.querySelector('.lec-close');
+        const su=l.querySelector('.signups'),x=l.querySelector('.lec-close');
         l.__home=[su.parentNode,su.nextSibling];
         [...l.children].forEach(c=>{if(c!==x&&!c.classList.contains('cue'))body.appendChild(c);});
         bar.append(su,x);l.append(bar,body);l.__bar=bar;l.__body=body;
       }else{
         const bar=l.__bar,body=l.__body,[p,n]=l.__home;
-        const su=bar.querySelector('.signup'),x=bar.querySelector('.lec-close');
+        const su=bar.querySelector('.signups'),x=bar.querySelector('.lec-close');
         [...body.children].forEach(c=>l.insertBefore(c,bar));
         p.insertBefore(su,n);l.appendChild(x);
         const cue=l.querySelector(':scope>.cue');if(cue)l.insertBefore(cue,x);
@@ -2044,9 +2046,13 @@ def lectures_html():
             # stay put while what is below them scrolls
             + '<div class="more"><div class="more-in">'
             + layers('div', 'lecl', copy_html('lecl', f"[{lec['lang']}]"))
+            + '<div class="signups">'
             + f'<a class="signup" href="{tagged(lec.get("signup", SIGNUP))}" target="_blank" '
               f'rel="noopener">'
               + layers('p', 'lecs', '<span class="u">Sign up</span>\u2009\u2197') + '</a>'
+            + f'<a class="signup" href="{ZH_INTRO}" target="_blank" rel="noopener">'
+              + layers('p', 'lecs', '<span class="u">公众号中文版介绍</span>\u2009\u2197') + '</a>'
+            + '</div>'
             + '<div class="scroll">'
             + layers('div', 'lecb', copy_html('lecb', lec['about']))
             + lec_extra(lec)
