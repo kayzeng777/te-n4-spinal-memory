@@ -412,7 +412,9 @@ TEXT = dict(
 SIGNUP = '#'
 # The time is its own field, not part of `when`: the series is one time of day,
 # but a lecture that falls on the other side of a clock change is not.
-TIME = '9am EDT / 9pm CST'
+TIME = 'New York / 9am EDT\nLondon / 2pm BST'
+TIME_GMT = 'New York / 9am EDT\nLondon / 1pm GMT'
+TIME_EST = 'New York / 8am EST\nLondon / 1pm GMT'
 
 # One row per segment of the spine, top to bottom: segment 0 is the top vertebra.
 # `when`, `who` and `lang` are one line each; `what` is the title; `about` is prose, and
@@ -454,21 +456,21 @@ LECTURES = [
          pics=['lecture images/4-1.jpg', 'lecture images/4-2.JPG'],
          speakers=[dict(face='speakers portrait/04 Boria Sax.jpg', bio='Boria Sax is the author of 20 books, mostly on animals in human culture, including *Avian Illuminations: A Cultural History of Birds*, *City of Ravens*, and *The Mythical Zoo: Animals in Myth, Legend, and Literature*. His books have been widely translated including eight into either simplified or traditional Chinese. He teaches at Sing Sing prison and in the graduate English program of Mercy University.'),
                    dict(face='speakers portrait/04 Ruoyi Shi.png', bio='Ruoyi Shi is an interdisciplinary artist based in Los Angeles. Inspired by ancient tales and rituals intertwined with language, habits, and societal norms, she combines humor and fiction to construct her poetic narratives. Her work explores the interface between nature and artificial existences, as well as the notion of truth and its fabrications. Studying the linguistic connection between translation and birds, or bird-like creatures, from both nature and mythology, she expands beyond concepts of language into questions of transformation, migration, and belief.')]),
-    dict(when='Oct 25', who='Robert Zhao Renhui',
+    dict(when='Oct 25', time=TIME_GMT, who='Robert Zhao Renhui',
          what='Seeing Forest: Encounters, Evidence and Ways of Knowing',
          lang='English',
          signup='https://luma.com/o544mqdl',
          about='How do we come to know a forest through the encounters we have within it? Similar questions extend across Robert Zhao Renhui’s practice: what can we know from what we observe and document, and how much can such evidence really tell us?\n\nIn this lecture, Robert shares the fieldwork and artistic processes behind his investigations into Singapore’s secondary forests. Moving between the [[Institute of Critical Zoologists]] which he founded in 2018 and his project *Seeing Forest*, he traces how repeated visits, camera observations and found objects become photographs, moving images, installations and publications. Through stories from the field, this lecture reflects on what images reveal, what remains uncertain, and how sustained attention can change our understanding of the lives and histories that make up a place.',
          pics=['lecture images/5-1.jpg', 'lecture images/5-2.jpg'],
          speakers=[dict(face='speakers portrait/05 robert zhao renhui.jpg', bio='Robert Zhao Renhui is a Singaporean artist whose work examines the complex relationships between humans and non-human life. Working across photography, video, installation, and research-based projects, he investigates secondary forests, invasive species, and landscapes shaped by disturbance. His long-term projects explore how animals adapt within environments altered by colonial histories, urban expansion, and industrial development. He is the founder of the Institute of Critical Zoologists and lives and works in Singapore.\n\nZhao represented Singapore at the 60th Venice Biennale (2024) with *Seeing Forest*, a multi-year study of a secondary forest in Singapore. Recent projects include *5 Albizias* (Singapore/Maluku), research on sloth bears in Hampi (India), water deer in the United Kingdom, and urban deer in Tokyo. Through sustained observation and fieldwork, he challenges distinctions between native and invasive, natural and artificial, proposing instead that disturbance itself becomes habitat.')]),
-    dict(when='Oct 31', who='Oscar Salguero',
+    dict(when='Oct 31', time=TIME_GMT, who='Oscar Salguero',
          what='The Rhizomatic Archive: Interspecies Library',
          lang='English',
          signup='https://luma.com/ek6lzccj',
          about='Interspecies Library is an independent archive launched in a Brooklyn apartment in 2019, as an experiment in mapping a growing, species-wide fascination with more-than-human worlds. In this lecture, founder and curator Oscar Salguero traces the story of this living archive, from informal salon-style gatherings to large-scale gallery exhibitions, original book commissions and limited editions, and, more recently, collaborations to develop an itinerant version of the library that brings these works into new environments and cross-pollinating dialogues.\n\nToday, the archive stewards over 500 volumes by international artists and independent presses, documenting how the book, an ancient human technology, continues to serve as a portal to imagining and embodying shared fungal, bacterial, plant, animal, and viral futures.',
          pics=['lecture images/6-1.jpg', 'lecture images/6-2.jpg'],
          speakers=[dict(face='speakers portrait/06 oscarsalguero.jpg', bio="Oscar Salguero is an independent curator and researcher based in Queens, NY. He is the founder of [[Interspecies Library]], the first archive of artists' books exploring alternative interspecies futures. Salguero curated Interspecies Futures [IF] at Center for Book Arts (2021), and NEO MINERALIA at Center for Craft (2023). His latest curatorial work is Journal of Therolinguistics, an exhibition exploring the poetic study of nonhuman languages, which was presented at Descanso Gardens in California from March 25 to July 5, 2026.")]),
-    dict(when='Nov 7', who='许哲瑜 Hsu Che-Yu & 陈琬尹 Chen Wan-Yin',
+    dict(when='Nov 7', time=TIME_EST, who='许哲瑜 Hsu Che-Yu & 陈琬尹 Chen Wan-Yin',
          what='Specimen of Suffering',
          lang='Chinese (with Zoom translated captions)',
          signup='https://luma.com/event/evt-I5aICYx7KZLnxSw',
@@ -476,7 +478,7 @@ LECTURES = [
          pics=['lecture images/7-1.jpg', 'lecture images/7-2.jpg'],
          speakers=[dict(face='speakers portrait/07-Hsu Che-Yu.jpeg', bio='许哲瑜 Hsu Che-Yu is an artist who lives and works in Taipei and Amsterdam. He studied at the Graduate Institute of Plastic Arts at Tainan National University of the Arts, where he received his master’s degree in 2014. He participated in several international postgraduate programs: 2019-2020 at HISK (Higher Institute for Fine Arts) in Ghent; 2020-2022 at Le Fresnoy—Studio national des arts contemporains in Tourcoing; 2022-2024 at the Rijksakademie van Beeldende Kunsten in Amsterdam.\n\nHis practice includes video works, animations, VR works, and installations. A central theme is the intertwining of media, memory, and the body. Typical is his collaboration with forensic 3D scanning teams, whose technologies he transfers into artistic processes in order to renegotiate historical events, political traumas, or biographical narratives. He has been working closely with writer Chen Wan-Yin since 2014.'),
                    dict(face='speakers portrait/07-Chen Wan-Yin.jpeg', bio='陈琬尹 Chen Wan-Yin is a writer whose practice investigates the technological and biopolitical production of memory. She is a key conceptual collaborator in Hsu Che-Yu’s practice and has been shaping its research-driven artistic methodology since 2014. Together they co-authored *aberrant archive 2015-2025* (dmp editions, Taipei), a publication documenting their decade-long artistic alliance examining post-martial law Taiwanese histories through moving images, text and technological reconstructions. She is currently a PhD candidate in Modern and Contemporary Art at Vrije Universiteit Amsterdam.')]),
-    dict(when='Nov 8', who='沙爽 Sha Shuang',
+    dict(when='Nov 8', time=TIME_EST, who='沙爽 Sha Shuang',
          what='Writing a Cow: From Surveillance Data to Fiction',
          lang='Chinese (with Zoom translated captions)',
          signup='https://luma.com/event/evt-nM4qZM7TCLIBj6Z',
@@ -1762,7 +1764,7 @@ COPY = dict(
          'Weaving together text and practice, each speaker unfolds their own way of working, '
          'sometimes out in the open landscapes of pasture and forest, sometimes back at a '
          'worktable or in an archive.',
-    facts='[Cost]\n$10 USD / \u00a566 CNY per lecture'
+    facts='[Price]\nSliding scale\n$1- $20 USD\n(Suggested price: $10)'
          '\n\n'
          '[Duration]\n1.5 hours per lecture (including Q&A)'
          '\n\n'
@@ -2034,7 +2036,7 @@ def lectures_html():
         # The number is not here — it sits on the segment, up in its own corner.
         out.append(
             f'<div class="lec" data-lec="{i}" style="--y:{cy:.4f}">'
-            + layers('p', 'lecd', copy_html('lecd', lec['when'] + '\u2002'
+            + layers('p', 'lecd', copy_html('lecd', lec['when'] + '\n'
                                             + lec.get('time', TIME)))
             + layers('p', 'lecw', copy_html('lecw', lec['who']))
             + layers('p', 'lect', copy_html('lect', lec['what']))
