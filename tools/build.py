@@ -374,10 +374,13 @@ def tagged(url):
     if not url.startswith('http'):
         return url
     return url + ('&' if '?' in url else '?') + UTM
+# The series' introduction in Chinese, on WeChat; under the Sign up, top right.
+ZH_INTRO = 'https://mp.weixin.qq.com/s/3zRWL0-avnhfWiduV4IL3w'
 SERIES_SIGNUP = tagged('https://luma.com/user/teeditions')
 ROLES = dict(
     logo=dict(at='head', step='mark', set='a'),
     join=dict(at='head-r', step='su', set='a', href=SERIES_SIGNUP),
+    joinzh=dict(at='head-r', step='su', set='a', href=ZH_INTRO),   # under it
     # The te editions chip, the title and the subtitle head the written
     # column, over the Intro, and are one link to the issue: roles that name
     # the same `href` are wrapped in one <a>. No widths: the column's measure
@@ -410,8 +413,6 @@ TEXT = dict(
 # Where each lecture's Sign Up button goes. One link for the series unless a
 # lecture names its own with `signup=`.
 SIGNUP = '#'
-# The series' introduction in Chinese, on WeChat; one link, under every Sign up.
-ZH_INTRO = 'https://mp.weixin.qq.com/s/3zRWL0-avnhfWiduV4IL3w'
 # The time is its own field, not part of `when`: the series is one time of day,
 # but a lecture that falls on the other side of a clock change is not.
 TIME = 'New York / 9am EDT\nLondon / 2pm BST'
@@ -822,9 +823,10 @@ HEAD = '''<title>te online lecture</title>
   .poster .role-link:focus-visible{outline:2px solid var(--a-ink);outline-offset:6px}
   /* Sign up, top right: set as a lecture's is, the words underlined and the
      arrow after them not (an inline-block is not given its parent's line) */
-  .t-join>*{text-decoration:underline;text-decoration-thickness:1px;
+  .head-r .role-link+.role-link{margin-top:6px}
+  .t-join>*,.t-joinzh>*{text-decoration:underline;text-decoration-thickness:1px;
     text-underline-offset:.18em}
-  .t-join>*::after{content:"\\2197";display:inline-block;margin-left:.12em}
+  .t-join>*::after,.t-joinzh>*::after{content:"\\2197";display:inline-block;margin-left:.12em}
   /* The reading -- the information's paragraphs and a lecture's description
      and bios -- a touch more open than the ramp gives its size. */
   .poster :is(.t-desc,.t-facts),.lec :is(.t-lecb,.t-lecbio){--lh:1.06}
@@ -1390,13 +1392,13 @@ __LECS__
       if(on){
         const bar=document.createElement('div'),body=document.createElement('div');
         bar.className='lec-bar';body.className='lec-body';
-        const su=l.querySelector('.signups'),x=l.querySelector('.lec-close');
+        const su=l.querySelector('.signup'),x=l.querySelector('.lec-close');
         l.__home=[su.parentNode,su.nextSibling];
         [...l.children].forEach(c=>{if(c!==x&&!c.classList.contains('cue'))body.appendChild(c);});
         bar.append(su,x);l.append(bar,body);l.__bar=bar;l.__body=body;
       }else{
         const bar=l.__bar,body=l.__body,[p,n]=l.__home;
-        const su=bar.querySelector('.signups'),x=bar.querySelector('.lec-close');
+        const su=bar.querySelector('.signup'),x=bar.querySelector('.lec-close');
         [...body.children].forEach(c=>l.insertBefore(c,bar));
         p.insertBefore(su,n);l.appendChild(x);
         const cue=l.querySelector(':scope>.cue');if(cue)l.insertBefore(cue,x);
@@ -1747,6 +1749,7 @@ __LECS__
 # export pastes straight in here.
 COPY = dict(
     join='Sign up',                # underlined, with its arrow, by .t-join
+    joinzh='公众号中文版介绍',        # the same, under it
     edition='[te editions\u2009\u2197]',
     title='Spinal Memory',
     tag='Research and Practice on Non-Human Animals',
@@ -1793,7 +1796,7 @@ LINKS = {'Digital Reading Room': '#',
          'Institute of Critical Zoologists': 'https://www.criticalzoologists.org/main.html',
          'Interspecies Library': 'https://interspecieslibrary.com/'}
 
-ROLE_TAG = dict(logo='div', join='p', edition='div', title='h1', tag='p', info='p', desc='div', facts='div',
+ROLE_TAG = dict(logo='div', join='p', joinzh='p', edition='div', title='h1', tag='p', info='p', desc='div', facts='div',
                 lecd='p', lecw='p', lect='p', lecl='div', lecb='div', lecbio='div',
                 lecno='p', lecs='p', lecx='span', cue='p')
 
@@ -2046,13 +2049,9 @@ def lectures_html():
             # stay put while what is below them scrolls
             + '<div class="more"><div class="more-in">'
             + layers('div', 'lecl', copy_html('lecl', f"[{lec['lang']}]"))
-            + '<div class="signups">'
             + f'<a class="signup" href="{tagged(lec.get("signup", SIGNUP))}" target="_blank" '
               f'rel="noopener">'
               + layers('p', 'lecs', '<span class="u">Sign up</span>\u2009\u2197') + '</a>'
-            + f'<a class="signup" href="{ZH_INTRO}" target="_blank" rel="noopener">'
-              + layers('p', 'lecs', '<span class="u">公众号中文版介绍</span>\u2009\u2197') + '</a>'
-            + '</div>'
             + '<div class="scroll">'
             + layers('div', 'lecb', copy_html('lecb', lec['about']))
             + lec_extra(lec)
