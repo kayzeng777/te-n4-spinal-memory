@@ -823,7 +823,10 @@ HEAD = '''<title>te online lecture</title>
   .poster .role-link:focus-visible{outline:2px solid var(--a-ink);outline-offset:6px}
   /* Sign up, top right: set as a lecture's is, the words underlined and the
      arrow after them not (an inline-block is not given its parent's line) */
-  .head-r .role-link+.role-link{margin-top:14px}
+  .head-r .role-link{position:relative}
+  .head-r .role-link:first-child{z-index:2}   /* Sign up over the link under it */
+  .head-r .role-link+.role-link{margin-top:8px}
+  .head-r .t-joinzh{--ls:.01em}
   .t-join>*,.t-joinzh>*{text-decoration:underline;text-decoration-thickness:1px;
     text-underline-offset:.18em}
   .t-join>*::after,.t-joinzh>*::after{content:"\\2197";display:inline-block;margin-left:.12em}
@@ -1749,7 +1752,7 @@ __LECS__
 # export pastes straight in here.
 COPY = dict(
     join='Sign up',                # underlined, with its arrow, by .t-join
-    joinzh='公众号中文版介绍',        # the same, under it
+    joinzh='中文版介绍',        # the same, under it
     edition='[te editions\u2009\u2197]',
     title='Spinal Memory',
     tag='Research and Practice on Non-Human Animals',
