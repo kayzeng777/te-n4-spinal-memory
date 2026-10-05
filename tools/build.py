@@ -1789,7 +1789,7 @@ COPY = dict(
          'Weaving together text and practice, each speaker unfolds their own way of working, '
          'sometimes out in the open landscapes of pasture and forest, sometimes back at a '
          'worktable or in an archive.',
-    facts='[Price]\nSliding scale\n$1- $20 USD\n(Suggested price: $10)'
+    facts='[Suggested price]\n$10'
          '\n\n'
          '[Duration]\n1.5 hours per lecture (including Q&A)'
          '\n\n'
