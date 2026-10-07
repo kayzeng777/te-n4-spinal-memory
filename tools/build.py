@@ -841,7 +841,8 @@ HEAD = '''<title>te online lecture</title>
   .cue{display:none;justify-content:center;text-align:center;position:fixed;z-index:3;
     pointer-events:none;transition:opacity .3s ease}
   .cue.end{opacity:0}
-  .nocues .cue{display:none !important}   /* ?nocues */
+  .nocues .cue{display:none !important}   /* ?nocues, ?clean */
+  .clean .role-link:has(.t-joinzh),.clean .t-joinzh{display:none !important}   /* ?clean */
   .cue .t-cue{--glowR:3.4em;--bloomR:10px}
   /* over the spine, on a soft patch of the ground so they read there */
   .cue-soft::before{content:"";position:absolute;z-index:-1;left:50%;top:50%;
@@ -2004,9 +2005,12 @@ def cues():
             # .end on a "see more" whose box is at its end, or has no more
             # than fits; checked as each scrolls, on resize and load, and by
             # the lecture script whenever a block opens (window.__cues).
-            # ?nocues takes them all off, for a recording.
-            + '<script>if(/[?&]nocues\\b/.test(location.search))'
+            # ?nocues takes them all off, for a recording; ?clean does that
+            # and takes the Chinese-introduction link off as well.
+            + '<script>if(/[?&](nocues|clean)\\b/.test(location.search))'
             'document.documentElement.classList.add("nocues");'
+            'if(/[?&]clean\\b/.test(location.search))'
+            'document.documentElement.classList.add("clean");'
             'addEventListener("DOMContentLoaded",()=>{'
             'const end=(c,sc)=>{if(c&&sc)c.classList.toggle("end",'
             'sc.scrollHeight-sc.clientHeight-sc.scrollTop<4);};'
