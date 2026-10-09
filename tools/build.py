@@ -381,7 +381,6 @@ ROLES = dict(
     logo=dict(at='head', step='mark', set='a'),
     join=dict(at='head-r', step='su', set='a', href=SERIES_SIGNUP),
     joinzh=dict(at='head-r', step='t12', set='a', href=ZH_INTRO),   # under it
-    sched=dict(at='head-r', step='t12', set='a', href='#schedule'), # and under that: opens the calendar
     # The te editions chip, the title and the subtitle head the written
     # column, over the Intro, and are one link to the issue: roles that name
     # the same `href` are wrapped in one <a>. No widths: the column's measure
@@ -408,7 +407,7 @@ TEXT = dict(
     lecbio=dict(step='t14', set='d'),           # a speaker's bio, beside their portrait
     lecs=dict(step='t16', set='a', gap=30),
     lecx=dict(step='t20', set='a'),              # the close; its size is set in LEC_CSS
-    schedb=dict(step='t14', set='a'),            # the calendar's own line: its name and the way back
+    viewt=dict(step='t14', set='a'),             # the Spine / Calendar switch, top centre
     schedh=dict(step='t12', set='a'),            # SAT / SUN over the columns
     cue=dict(step='t12', set='c', lh=1),         # the phone's two hints, in the other colours      # Sign up, the size of the speaker's name
 )
@@ -835,8 +834,6 @@ HEAD = '''<title>te online lecture</title>
   .t-join>*,.t-joinzh>*{text-decoration:underline;text-decoration-thickness:1px;
     text-underline-offset:.18em}
   .t-join>*::after,.t-joinzh>*::after{content:"\\2197";display:inline-block;margin-left:.12em}
-  .t-sched>*{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.18em}
-  .head-r .t-sched{--ls:.01em}
   /* The reading -- the information's paragraphs and a lecture's description
      and bios -- a touch more open than the ramp gives its size. */
   .poster :is(.t-desc,.t-facts),.lec :is(.t-lecb,.t-lecbio){--lh:1.06}
@@ -847,7 +844,7 @@ HEAD = '''<title>te online lecture</title>
     pointer-events:none;transition:opacity .3s ease}
   .cue.end{opacity:0}
   .nocues .cue{display:none !important}   /* ?nocues, ?clean */
-  .clean .role-link:has(.t-joinzh),.clean .t-joinzh,.clean .role-link:has(.t-sched){display:none !important}   /* ?clean */
+  .clean .role-link:has(.t-joinzh),.clean .t-joinzh,.clean .view{display:none !important}   /* ?clean */
   .cue .t-cue{--glowR:3.4em;--bloomR:10px}
   /* over the spine, on a soft patch of the ground so they read there */
   .cue-soft::before{content:"";position:absolute;z-index:-1;left:50%;top:50%;
@@ -1262,6 +1259,7 @@ __CORNERS__
 </div>
 <div class="grain"></div>
 <div class="sheet"></div>
+__VIEW__
 __CUES__
 <main id="content">
 <div class="stage">
@@ -1279,7 +1277,7 @@ __LECS__
     const fit=()=>{
       const a=document.querySelector('.t-join .ink');
       if(!a)return;
-      ['joinzh','sched'].forEach(r=>{
+      ['joinzh'].forEach(r=>{
         const b=document.querySelector('.t-'+r+' .ink');if(!b)return;
         const t=b.closest('.t');t.style.setProperty('--fs','10px');
         const wa=a.getBoundingClientRect().width,wb=b.getBoundingClientRect().width;
@@ -1788,7 +1786,6 @@ __LECS__
 COPY = dict(
     join='Sign up',                # underlined, with its arrow, by .t-join
     joinzh='中文版介绍',        # the same, under it
-    sched='Calendar view',      # swaps the spine for the calendar (SCHED_CSS), no arrow: it stays on the page
     edition='[te editions\u2009\u2197]',
     title='Spinal Memory',
     tag='Research and Practice on Non-Human Animals',
@@ -1835,9 +1832,9 @@ LINKS = {'Digital Reading Room': '#',
          'Institute of Critical Zoologists': 'https://www.criticalzoologists.org/main.html',
          'Interspecies Library': 'https://interspecieslibrary.com/'}
 
-ROLE_TAG = dict(logo='div', join='p', joinzh='p', sched='p', edition='div', title='h1', tag='p', info='p', desc='div', facts='div',
+ROLE_TAG = dict(logo='div', join='p', joinzh='p', edition='div', title='h1', tag='p', info='p', desc='div', facts='div',
                 lecd='p', lecw='p', lect='p', lecl='div', lecb='div', lecbio='div',
-                lecno='p', lecs='p', lecx='span', cue='p', schedb='span', schedh='span')
+                lecno='p', lecs='p', lecx='span', cue='p', viewt='span', schedh='span')
 
 
 def copy_html(role, text):
@@ -2163,23 +2160,28 @@ def schedule_html():
         rows.append(''.join(cells))
         week += dt.timedelta(days=7)
     head = ''.join(layers('span', 'schedh', n) for n in SCHED_DAYS)
-    return ('<section class="sched" id="schedule" aria-label="Calendar view">'
-            '<div class="sched-bar">' + layers('span', 'schedb', 'Calendar view')
-            + '<button class="sched-back" type="button">' + layers('span', 'schedb', 'Back to spine')
-            + '</button></div>'
+    return ('<section class="sched" aria-label="Calendar view">'
             f'<div class="sched-head" aria-hidden="true">{head}</div>'
             f'<div class="sched-grid">{"".join(rows)}</div>'
-            '</section>\n'
+            '</section>\n')
+
+
+def view_html():
+    """The switch between the two ways in, top centre: Spine / Calendar."""
+    b = lambda k, t: (f'<button class="view-b" type="button" data-view="{k}">'
+                      + layers('span', 'viewt', t) + '</button>')
+    return ('<div class="view" role="group" aria-label="View">' + b('spine', 'Spine')
+            + layers('span', 'viewt', '/') + b('sched', 'Calendar') + '</div>\n'
             '<script>(function(){\n'
-            '  const h=document.documentElement;\n'
-            '  const toggle=on=>{h.classList.toggle("sched-on",on);\n'
+            '  const h=document.documentElement,bs=[...document.querySelectorAll(".view-b")];\n'
+            '  const show=on=>{h.classList.toggle("sched-on",on);\n'
+            '    bs.forEach(b=>b.setAttribute("aria-pressed",(b.dataset.view==="sched")===on));\n'
             '    const main=document.getElementById("content");\n'
             '    scrollTo(0,0);if(main)main.scrollTop=0;};\n'
-            '  document.addEventListener("click",e=>{\n'
-            '    if(e.target.closest(\'a[href="#schedule"]\')){e.preventDefault();\n'
-            '      toggle(!h.classList.contains("sched-on"));}\n'
-            '    else if(e.target.closest(".sched-back"))toggle(false);});\n'
-            '  if(location.hash==="#schedule")toggle(true);\n'
+            '  bs.forEach(b=>b.addEventListener("click",()=>{\n'
+            '    const on=b.dataset.view==="sched";\n'
+            '    if(on!==h.classList.contains("sched-on"))show(on);}));\n'
+            '  show(location.hash==="#schedule");\n'
             '})();</script>')
 
 
@@ -2200,11 +2202,18 @@ SCHED_CSS = '''
   html.sched-on .stage>.spine,html.sched-on .t-lecno,html.sched-on .grid,
   html.sched-on .cue-tap,html.sched-on .cue-click{display:none !important}
   html.sched-on main{background-image:none !important}
-  /* type is the poster's own (TEXT: schedb, schedh) */
-  .sched-bar{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
-  .sched-back{border:0;background:none;padding:0;margin:0;font:inherit;cursor:pointer;line-height:0}
-  .sched-back .t>*{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.18em}
-  .sched-back:focus-visible,.sc:focus-visible{outline:2px solid var(--a-ink);outline-offset:2px}
+  /* The switch, fixed top centre of the page's own column (the tools panel,
+     when up, takes its width off the right). The one that is showing is
+     underlined; the other is a little back. Type is the poster's (TEXT). */
+  .view{position:fixed;z-index:3;top:var(--pad);left:calc((100vw - var(--tools,0px)) / 2);
+    transform:translateX(-50%);display:flex;align-items:baseline;gap:.5em;white-space:nowrap}
+  .view-b{border:0;background:none;padding:0;margin:0;font:inherit;cursor:pointer;line-height:0;
+    opacity:.6;transition:opacity .2s ease}
+  .view-b:focus-visible{outline:2px solid var(--a-ink);outline-offset:3px}
+  html:not(.sched-on) .view-b[data-view=spine],html.sched-on .view-b[data-view=sched]{opacity:1}
+  html:not(.sched-on) .view-b[data-view=spine] .t>*,html.sched-on .view-b[data-view=sched] .t>*{
+    text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.18em}
+  .sc:focus-visible{outline:2px solid var(--a-ink);outline-offset:2px}
   .sched-head,.sched-grid{display:grid;grid-template-columns:1fr 1fr}
   .sched-head{margin-bottom:4px;justify-items:center}
   .sched-grid{border-top:1px solid var(--sched-line);border-left:1px solid var(--sched-line)}
@@ -2263,7 +2272,7 @@ def page(inline, spine=None, cols=None, rows=None, tools=False):
                 .replace('__MARKFS__', ramp(MARK_STEP['size'][1], MARK_STEP['size'][0]))
                 .replace('__NARROW__', str(NARROW)).replace('__MID__', str((NARROW + WIDE) // 2))
                 .replace('__COLS__', f'{cols:g}').replace('__ROWS__', str(rows))
-            + BODY.replace('__NARROW__', str(NARROW)).replace('__SPINE__', spine).replace('__SCHED__', schedule_html()).replace('__LECS__', lectures_html()).replace('__CUES__', cues() + swatches(cls='themes themes-m')).replace('__CORNERS__', corners()).replace('__BACKLIGHT__', backlight_defs()).replace('__THEMEPICK__', THEME_PICK).replace('__SPINETONES__', json.dumps({c.upper(): f'--sp-{k}' for k, c in THEMES[THEME_DEFAULT]['spine'].items()}))
+            + BODY.replace('__NARROW__', str(NARROW)).replace('__SPINE__', spine).replace('__SCHED__', schedule_html()).replace('__VIEW__', view_html()).replace('__LECS__', lectures_html()).replace('__CUES__', cues() + swatches(cls='themes themes-m')).replace('__CORNERS__', corners()).replace('__BACKLIGHT__', backlight_defs()).replace('__THEMEPICK__', THEME_PICK).replace('__SPINETONES__', json.dumps({c.upper(): f'--sp-{k}' for k, c in THEMES[THEME_DEFAULT]['spine'].items()}))
             + (tools_panel() if tools else ''))
 
 
