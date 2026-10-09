@@ -2170,8 +2170,8 @@ def view_html():
     """The switch between the two ways in, top centre: Spine / Calendar."""
     b = lambda k, t: (f'<button class="view-b" type="button" data-view="{k}">'
                       + layers('span', 'viewt', t) + '</button>')
-    return ('<div class="view" role="group" aria-label="View">' + b('spine', 'Spine')
-            + layers('span', 'viewt', '/') + b('sched', 'Calendar') + '</div>\n'
+    return ('<div class="view" role="group" aria-label="View"><span class="view-ind"></span>'
+            + b('spine', 'Spine') + b('sched', 'Calendar') + '</div>\n'
             '<script>(function(){\n'
             '  const h=document.documentElement,bs=[...document.querySelectorAll(".view-b")];\n'
             '  const show=on=>{h.classList.toggle("sched-on",on);\n'
@@ -2203,17 +2203,22 @@ SCHED_CSS = '''
   html.sched-on .cue-tap,html.sched-on .cue-click{display:none !important}
   html.sched-on main{background-image:none !important}
   /* The switch, fixed top centre of the page's own column (the tools panel,
-     when up, takes its width off the right). The one that is showing is
-     underlined; the other is a little back. Type is the poster's (TEXT). */
+     when up, takes its width off the right): an outlined pill in two halves,
+     and the chosen one is ringed by a second pill that slides across. Its
+     type is the poster's (TEXT). */
   .view{position:fixed;z-index:3;top:var(--pad);left:calc((100vw - var(--tools,0px)) / 2);
-    transform:translateX(-50%);display:flex;align-items:baseline;gap:.5em;white-space:nowrap}
-  .view-b{border:0;background:none;padding:0;margin:0;font:inherit;cursor:pointer;line-height:0;
+    transform:translateX(-50%);display:grid;grid-template-columns:1fr 1fr;
+    border:1.5px solid var(--a-ink);border-radius:999px}
+  .view-ind{position:absolute;top:-1.5px;bottom:-1.5px;left:-1.5px;width:calc(50% + 8px);
+    border:1.5px solid var(--a-ink);border-radius:999px;pointer-events:none;
+    transition:transform .3s cubic-bezier(.3,0,.2,1)}
+  html.sched-on .view-ind{transform:translateX(calc(100% - 13px))}
+  .view-b{position:relative;display:flex;justify-content:center;border:0;background:none;
+    padding:7px 16px;margin:0;font:inherit;cursor:pointer;line-height:0;border-radius:999px;
     opacity:.6;transition:opacity .2s ease}
   .view-b:focus-visible{outline:2px solid var(--a-ink);outline-offset:3px}
   html:not(.sched-on) .view-b[data-view=spine],html.sched-on .view-b[data-view=sched]{opacity:1}
-  html:not(.sched-on) .view-b[data-view=spine] .t>*,html.sched-on .view-b[data-view=sched] .t>*{
-    text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.18em}
-  .sc:focus-visible{outline:2px solid var(--a-ink);outline-offset:2px}
+  @media (max-width:__NARROW__px){.view-b{padding:6px 12px}}
   .sched-head,.sched-grid{display:grid;grid-template-columns:1fr 1fr}
   .sched-head{margin-bottom:4px;justify-items:center}
   .sched-grid{border-top:1px solid var(--sched-line);border-left:1px solid var(--sched-line)}
