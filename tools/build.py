@@ -2136,7 +2136,19 @@ def sched_who(who):
     esc = lambda t: t.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
     who = re.sub(r'[㐀-鿿]+\s*', '', who).strip()
     m = re.match(r'^(.*?)\s*(\(.*\))$', who)
-    return (esc(m.group(1)) + f' <small>{esc(m.group(2))}</small>') if m else esc(who)
+    name, rest = (m.group(1), m.group(2)) if m else (who, '')
+    # The name is broken here, not by the browser: words are packed onto lines
+    # of at most 13 characters, and a line is never broken inside a word, so a
+    # long surname is a line of its own and nothing is clipped at the card's edge.
+    lines, cur = [], ''
+    for w in name.split():
+        if cur and len(cur) + 1 + len(w) > 13:
+            lines.append(cur)
+            cur = w
+        else:
+            cur = f'{cur} {w}'.strip()
+    lines.append(cur)
+    return '<br>'.join(esc(l) for l in lines) + (f' <small>{esc(rest)}</small>' if rest else '')
 
 
 def schedule_html():
@@ -2274,10 +2286,9 @@ SCHED_CSS = '''
   .sc{color:#fff}
   .sc>span{position:absolute;font-weight:400;letter-spacing:.004em;text-wrap:balance}
   .sc-d{left:3cqw;top:2cqw;font-size:6.9cqw;line-height:1;letter-spacing:-.02em}
-  /* the speaker is as large as the title and breaks narrow -- 44% of the card,
-     or the longest word if that is wider -- a name to a line */
-  .sc-w{right:3cqw;top:2.2cqw;width:min-content;min-width:44%;text-align:right;font-size:6.6cqw;line-height:1.02}
-  .sc-w small{display:block;font-size:.76em;line-height:1.04}
+  /* the speaker is as large as the title and breaks narrow, as sched_who sets it */
+  .sc-w{right:3cqw;top:2.2cqw;width:max-content;white-space:nowrap;text-align:right;font-size:6.6cqw;line-height:1.02}
+  .sc-w small{display:block;font-size:.76em;line-height:1.04;white-space:normal;width:max-content;max-width:48cqw;margin-left:auto}
   .sc-t{left:3cqw;max-width:86%;bottom:3cqw;font-size:6.9cqw;line-height:1}
   @media (max-width:__NARROW__px){
     /* the whole width */
