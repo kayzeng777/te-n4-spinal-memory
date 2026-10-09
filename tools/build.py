@@ -2272,11 +2272,13 @@ SCHED_CSS = '''
   /* the words on a card are plain white, no effect, so they stay sharp over
      a photograph. SAT / SUN above are the poster's type. */
   .sc{color:#fff}
-  .sc>span{position:absolute;font-weight:400;letter-spacing:-.02em}
-  .sc-d{left:3cqw;top:2cqw;font-size:6.9cqw;line-height:1;letter-spacing:-.04em}
-  .sc-w{right:3cqw;top:2.6cqw;width:56%;text-align:right;font-size:5.6cqw;line-height:1.05}
-  .sc-w small{display:block;font-size:.8em;line-height:1.05}
-  .sc-t{left:3cqw;right:3cqw;bottom:3cqw;font-size:6.9cqw;line-height:1}
+  .sc>span{position:absolute;font-weight:400;letter-spacing:.004em;text-wrap:balance}
+  .sc-d{left:3cqw;top:2cqw;font-size:6.9cqw;line-height:1;letter-spacing:-.02em}
+  /* the speaker is as large as the title and breaks narrow -- 44% of the card,
+     or the longest word if that is wider -- a name to a line */
+  .sc-w{right:3cqw;top:2.2cqw;width:min-content;min-width:44%;text-align:right;font-size:6.6cqw;line-height:1.02}
+  .sc-w small{display:block;font-size:.76em;line-height:1.04}
+  .sc-t{left:3cqw;max-width:86%;bottom:3cqw;font-size:6.9cqw;line-height:1}
   @media (max-width:__NARROW__px){
     /* the whole width */
     html.sched-on .stage{width:calc(100vw - 2 * var(--pad))}
