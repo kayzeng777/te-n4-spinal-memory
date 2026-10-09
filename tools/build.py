@@ -2183,6 +2183,13 @@ def view_html():
             '    bs.forEach(b=>b.setAttribute("aria-pressed",(b.dataset.view==="sched")===on));\n'
             '    const main=document.getElementById("content");\n'
             '    scrollTo(0,0);if(main)main.scrollTop=0;};\n'
+            '  const fit=()=>{const v=document.querySelector(".view"),tg=v&&v.querySelector(".core .tg");\n'
+            '    if(!tg)return;const t=tg.getBoundingClientRect(),c=tg.clientLeft;\n'
+            '    tg.querySelectorAll(".tg-o").forEach((o,i)=>{const r=o.getBoundingClientRect();\n'
+            '      v.style.setProperty("--l"+(i+1),(r.left-t.left-c)+"px");\n'
+            '      v.style.setProperty("--w"+(i+1),r.width+"px");});};\n'
+            '  fit();addEventListener("resize",fit);\n'
+            '  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);\n'
             '  bs.forEach(b=>b.addEventListener("click",()=>{\n'
             '    const on=b.dataset.view==="sched";\n'
             '    if(on!==h.classList.contains("sched-on"))show(on);}));\n'
@@ -2216,14 +2223,14 @@ SCHED_CSS = '''
   .view{--vfs:__VIEWFS__;position:fixed;z-index:3;top:var(--pad);
     left:calc((100vw - var(--tools,0px)) / 2);transform:translateX(-50%);width:max-content}
   .view .t{--fs:var(--vfs)}
-  .tg{display:inline-grid;grid-template-columns:1fr 1fr;white-space:nowrap;
+  .tg{display:inline-flex;white-space:nowrap;
     border:1px solid currentColor;border-radius:999px;position:relative}
   /* the ring sits on the outer line: a negative margin takes it over it, and
      it is its own element so that it can slide from one half to the other */
-  .tg-ring{position:absolute;top:-1px;bottom:-1px;left:-1px;width:calc(50% + 2px);
+  .tg-ring{position:absolute;top:-1px;bottom:-1px;left:var(--l1,-1px);width:var(--w1,50%);
     border:1px solid currentColor;border-radius:999px;background:currentColor;
-    transition:transform .3s cubic-bezier(.3,0,.2,1)}
-  html.sched-on .tg-ring{transform:translateX(calc(100% - 2px))}
+    transition:left .3s cubic-bezier(.3,0,.2,1),width .3s cubic-bezier(.3,0,.2,1)}
+  html.sched-on .tg-ring{left:var(--l2,50%);width:var(--w2,50%)}
   .tg-o{position:relative;z-index:1;display:block;text-align:center;margin:-1px;
     padding:.3em .6em .16em;border:1px solid transparent;border-radius:999px;
     transition:color .3s ease}
@@ -2235,9 +2242,9 @@ SCHED_CSS = '''
     .tg-o{text-box:trim-both cap alphabetic;padding:.38em .6em}
   }
   .view .t{pointer-events:none}
-  .view-b{position:absolute;z-index:2;top:0;bottom:0;width:50%;margin:0;padding:0;border:0;
+  .view-b{position:absolute;z-index:2;top:0;bottom:0;margin:0;padding:0;border:0;
     background:none;cursor:pointer;border-radius:999px;opacity:0}
-  .view-l{left:0}.view-r{right:0}
+  .view-l{left:0;width:var(--w1,50%)}.view-r{right:0;width:var(--w2,50%)}
   .view-b:focus-visible{opacity:1;outline:2px solid var(--a-ink);outline-offset:2px}
   .sched-head,.sched-grid{display:grid;grid-template-columns:1fr 1fr}
   .sched-head{margin-bottom:4px;justify-items:center}
