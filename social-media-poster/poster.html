@@ -438,11 +438,16 @@
   /* the ring sits on the outer line: a negative margin takes it over it, and
      it is its own element so that it can slide from one half to the other */
   .tg-ring{position:absolute;top:-1px;bottom:-1px;left:-1px;width:calc(50% + 2px);
-    border:1px solid currentColor;border-radius:999px;
+    border:1px solid currentColor;border-radius:999px;background:currentColor;
     transition:transform .3s cubic-bezier(.3,0,.2,1)}
   html.sched-on .tg-ring{transform:translateX(calc(100% - 2px))}
-  .tg-o{display:block;text-align:center;margin:-1px;padding:.3em .6em .16em;
-    border:1px solid transparent;border-radius:999px}
+  .tg-o{position:relative;z-index:1;display:block;text-align:center;margin:-1px;
+    padding:.3em .6em .16em;border:1px solid transparent;border-radius:999px;
+    transition:color .3s ease}
+  /* the chosen half is filled with the ink and its word goes to the glow's
+     yellow -- on the two crisp layers; the others keep the halo's own colours */
+  html:not(.sched-on) .view :is(.ink,.core) .tg-o:first-child,
+  html.sched-on .view :is(.ink,.core) .tg-o:nth-child(2){color:var(--glow)}
   @supports (text-box:trim-both cap alphabetic){
     .tg-o{text-box:trim-both cap alphabetic;padding:.38em .6em}
   }
