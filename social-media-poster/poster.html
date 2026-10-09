@@ -406,9 +406,11 @@
       line-height:0}
     .lec-close .t-lecx{--fs:24px;--lh:1;--w:300;--slabF:url(#bl-t20-s)}
   }
-  /* The full schedule, in the spine's place and as wide as it. Switched on
+  /* The calendar view, in the spine's place. Switched on
      by html.sched-on; the spine, its numbers, its grid and its hint go. */
-  .sched{display:none;width:100%;color:var(--a-ink)}
+  .sched{display:none;width:min(100%,380px);margin:0 auto;color:var(--a-ink);
+    --sched-line:#f3eca0}   /* pale yellow on the green; the other palettes keep their own grid */
+  html[data-theme] .sched{--sched-line:var(--grid-line)}
   html.sched-on .sched{display:block}
   html.sched-on .stage>.spine,html.sched-on .t-lecno,html.sched-on .grid,
   html.sched-on .cue-tap,html.sched-on .cue-click{display:none !important}
@@ -419,14 +421,12 @@
     text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.18em;
     text-shadow:inherit}
   .sched-back:focus-visible,.sc:focus-visible{outline:2px solid var(--a-ink);outline-offset:2px}
-  .sched-head,.sched-grid{display:grid;grid-template-columns:repeat(5,.16fr) 1fr 1fr}
+  .sched-head,.sched-grid{display:grid;grid-template-columns:1fr 1fr}
   .sched-head{margin-bottom:6px;font-size:10px;line-height:1;letter-spacing:.03em;text-align:center;
     text-shadow:0 0 8px var(--a-glow)}
-  .sched-grid{border-top:1px solid var(--grid-line);border-left:1px solid var(--grid-line)}
-  /* Mon to Fri are drawn only to hold the shape; a row is as tall as its Saturday */
+  .sched-grid{border-top:1px solid var(--sched-line);border-left:1px solid var(--sched-line)}
   .sd{position:relative;display:block;min-width:0;aspect-ratio:1.3;
-    border-right:1px solid var(--grid-line);border-bottom:1px solid var(--grid-line)}
-  .sd-wk{aspect-ratio:auto}
+    border-right:1px solid var(--sched-line);border-bottom:1px solid var(--sched-line)}
   .sc{margin:0;padding:0;border-top:0;border-left:0;font:inherit;text-align:left;cursor:pointer;
     overflow:hidden;color:#f4efe0;container-type:inline-size;background:#33362f;
     -webkit-appearance:none;appearance:none}
@@ -440,12 +440,10 @@
   .sc-w small{display:block;font-size:.8em;line-height:1.05}
   .sc-t{left:3cqw;right:3cqw;bottom:3cqw;font-size:6.9cqw;line-height:1}
   @media (max-width:760px){
-    /* the whole width, and two columns: Monday to Friday would be slivers */
+    /* the whole width */
     html.sched-on .stage{width:calc(100vw - 2 * var(--pad))}
     /* under the logo and the links, which the spine's own empty top clears */
-    .sched{margin-top:48px}
-    .sched-head,.sched-grid{grid-template-columns:1fr 1fr}
-    .sh-wk,.sd-wk{display:none}
+    .sched{width:100%;margin-top:48px}
     .sched-head{font-size:11px}
     .sched-bar{font-size:13px}
   }
@@ -817,7 +815,7 @@
 <svg data-cx="27.611" class="spine anim" viewBox="0 0 56.000 276.8" xmlns="http://www.w3.org/2000/svg" aria-label="spine"><g class="glyphs"></g></svg>
 <svg data-cx="27.611" class="spine pics" viewBox="0 0 56.000 276.8" xmlns="http://www.w3.org/2000/svg" aria-label="spine"><g class="pic" data-seg="0" clip-path="url(#segclip-0)"><rect x="8" y="3.2" width="37" height="36.8" fill="#822D00"/><image href="images/web/01.jpg" x="8" y="3.2" width="37" height="36.8" preserveAspectRatio="xMidYMid slice"/></g><g class="pic" data-seg="1" clip-path="url(#segclip-1)"><rect x="9" y="40" width="37" height="33.6" fill="#F38530"/><image href="images/web/02.jpg" x="9" y="40" width="37" height="33.6" preserveAspectRatio="xMidYMid slice"/></g><g class="pic" data-seg="2" clip-path="url(#segclip-2)"><rect x="11" y="73.6" width="33" height="36.8" fill="#FDF48E"/><image href="images/web/03.jpg" x="11" y="73.6" width="33" height="36.8" preserveAspectRatio="xMidYMid slice"/></g><g class="pic" data-seg="3" clip-path="url(#segclip-3)"><rect x="11" y="110.4" width="32" height="38.4" fill="#D4F724"/><image href="images/web/04.jpg" x="11" y="110.4" width="32" height="38.4" preserveAspectRatio="xMidYMid slice"/></g><g class="pic" data-seg="4" clip-path="url(#segclip-4)"><rect x="9" y="148.8" width="38" height="35.2" fill="#822D00"/><image href="images/web/05.jpg" x="9" y="148.8" width="38" height="35.2" preserveAspectRatio="xMidYMid slice"/></g><g class="pic" data-seg="5" clip-path="url(#segclip-5)"><rect x="5" y="184" width="44" height="32" fill="#F38530"/><image href="images/web/06.jpg" x="5" y="184" width="44" height="32" preserveAspectRatio="xMidYMid slice"/></g><g class="pic" data-seg="6" clip-path="url(#segclip-6)"><rect x="2" y="216" width="52" height="24" fill="#FDF48E"/><image href="images/web/07.jpg" x="2" y="216" width="52" height="24" preserveAspectRatio="xMidYMid slice"/></g><g class="pic" data-seg="7" clip-path="url(#segclip-7)"><rect x="5" y="240" width="46" height="33.6" fill="#D4F724"/><image href="images/web/08.jpg" x="5" y="240" width="46" height="33.6" preserveAspectRatio="xMidYMid slice"/></g></svg>
 
-<section class="sched" id="schedule" aria-label="Full schedule"><div class="sched-bar"><span>Full schedule</span><button class="sched-back" type="button">Back to spine</button></div><div class="sched-head" aria-hidden="true"><span class="sh-wk">MON</span><span class="sh-wk">TUE</span><span class="sh-wk">WED</span><span class="sh-wk">THU</span><span class="sh-wk">FRI</span><span class="">SAT</span><span class="">SUN</span></div><div class="sched-grid"><div class="sd sd-wk"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><button class="sd sc" type="button" data-lec="0"><img src="images/lectures/web/lecture-images-1-1.jpg" width="1400" height="933" alt="" loading="lazy" decoding="async" class="sc-img"><span class="sc-d">10.10</span><span class="sc-w">Victoria Soyan Peemot</span><span class="sc-t">Horses and Songs: Multispecies Rhythm and Voice in Inner Asia</span></button><button class="sd sc" type="button" data-lec="1"><img src="images/lectures/web/lecture-images-2-1.jpg" width="1400" height="788" alt="" loading="lazy" decoding="async" class="sc-img"><span class="sc-d">10.11</span><span class="sc-w">Wantanee Siripattananuntakul</span><span class="sc-t">If There’s No Reply, Is That Silence Still Love?</span></button><div class="sd sd-wk"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><button class="sd sc" type="button" data-lec="2"><img src="images/lectures/web/lecture-images-3-1.jpg" width="1400" height="991" alt="" loading="lazy" decoding="async" class="sc-img"><span class="sc-d">10.17</span><span class="sc-w">Terezie Štindlová</span><span class="sc-t">Do We Need Zoos?</span></button><div class="sd"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><button class="sd sc" type="button" data-lec="3"><img src="images/lectures/web/lecture-images-4-1.jpg" width="1400" height="1099" alt="" loading="lazy" decoding="async" class="sc-img"><span class="sc-d">10.24</span><span class="sc-w">Boria Sax <small>(Guest Moderator: Ruoyi Shi)</small></span><span class="sc-t">Stories, Poetry, and Birdsong</span></button><button class="sd sc" type="button" data-lec="4"><img src="images/lectures/web/lecture-images-5-1.jpg" width="1400" height="788" alt="" loading="lazy" decoding="async" class="sc-img"><span class="sc-d">10.25</span><span class="sc-w">Robert Zhao Renhui</span><span class="sc-t">Seeing Forest: Encounters, Evidence and Ways of Knowing</span></button><div class="sd sd-wk"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><button class="sd sc" type="button" data-lec="5"><img src="images/lectures/web/lecture-images-6-1.jpg" width="1400" height="934" alt="" loading="lazy" decoding="async" class="sc-img"><span class="sc-d">10.31</span><span class="sc-w">Oscar Salguero</span><span class="sc-t">The Rhizomatic Archive: Interspecies Library</span></button><div class="sd"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><button class="sd sc" type="button" data-lec="6"><img src="images/lectures/web/lecture-images-7-1.jpg" width="1400" height="788" alt="" loading="lazy" decoding="async" class="sc-img"><span class="sc-d">11.07</span><span class="sc-w">Hsu Che-Yu &amp; Chen Wan-Yin</span><span class="sc-t">Specimen of Suffering</span></button><button class="sd sc" type="button" data-lec="7"><img src="images/lectures/web/lecture-images-8-1.jpg" width="1400" height="783" alt="" loading="lazy" decoding="async" class="sc-img"><span class="sc-d">11.08</span><span class="sc-w">Sha Shuang</span><span class="sc-t">Writing a Cow: From Surveillance Data to Fiction</span></button></div></section>
+<section class="sched" id="schedule" aria-label="Calendar view"><div class="sched-bar"><span>Calendar view</span><button class="sched-back" type="button">Back to spine</button></div><div class="sched-head" aria-hidden="true"><span>SAT</span><span>SUN</span></div><div class="sched-grid"><button class="sd sc" type="button" data-lec="0"><img src="images/lectures/web/lecture-images-1-1.jpg" width="1400" height="933" alt="" loading="lazy" decoding="async" class="sc-img"><span class="sc-d">10.10</span><span class="sc-w">Victoria Soyan Peemot</span><span class="sc-t">Horses and Songs: Multispecies Rhythm and Voice in Inner Asia</span></button><button class="sd sc" type="button" data-lec="1"><img src="images/lectures/web/lecture-images-2-1.jpg" width="1400" height="788" alt="" loading="lazy" decoding="async" class="sc-img"><span class="sc-d">10.11</span><span class="sc-w">Wantanee Siripattananuntakul</span><span class="sc-t">If There’s No Reply, Is That Silence Still Love?</span></button><button class="sd sc" type="button" data-lec="2"><img src="images/lectures/web/lecture-images-3-1.jpg" width="1400" height="991" alt="" loading="lazy" decoding="async" class="sc-img"><span class="sc-d">10.17</span><span class="sc-w">Terezie Štindlová</span><span class="sc-t">Do We Need Zoos?</span></button><div class="sd"></div><button class="sd sc" type="button" data-lec="3"><img src="images/lectures/web/lecture-images-4-1.jpg" width="1400" height="1099" alt="" loading="lazy" decoding="async" class="sc-img"><span class="sc-d">10.24</span><span class="sc-w">Boria Sax <small>(Guest Moderator: Ruoyi Shi)</small></span><span class="sc-t">Stories, Poetry, and Birdsong</span></button><button class="sd sc" type="button" data-lec="4"><img src="images/lectures/web/lecture-images-5-1.jpg" width="1400" height="788" alt="" loading="lazy" decoding="async" class="sc-img"><span class="sc-d">10.25</span><span class="sc-w">Robert Zhao Renhui</span><span class="sc-t">Seeing Forest: Encounters, Evidence and Ways of Knowing</span></button><button class="sd sc" type="button" data-lec="5"><img src="images/lectures/web/lecture-images-6-1.jpg" width="1400" height="934" alt="" loading="lazy" decoding="async" class="sc-img"><span class="sc-d">10.31</span><span class="sc-w">Oscar Salguero</span><span class="sc-t">The Rhizomatic Archive: Interspecies Library</span></button><div class="sd"></div><button class="sd sc" type="button" data-lec="6"><img src="images/lectures/web/lecture-images-7-1.jpg" width="1400" height="788" alt="" loading="lazy" decoding="async" class="sc-img"><span class="sc-d">11.07</span><span class="sc-w">Hsu Che-Yu &amp; Chen Wan-Yin</span><span class="sc-t">Specimen of Suffering</span></button><button class="sd sc" type="button" data-lec="7"><img src="images/lectures/web/lecture-images-8-1.jpg" width="1400" height="783" alt="" loading="lazy" decoding="async" class="sc-img"><span class="sc-d">11.08</span><span class="sc-w">Sha Shuang</span><span class="sc-t">Writing a Cow: From Surveillance Data to Fiction</span></button></div></section>
 <script>(function(){
   const h=document.documentElement;
   const toggle=on=>{h.classList.toggle("sched-on",on);
@@ -1167,7 +1165,7 @@
         else release();
         e.stopPropagation();});
     });
-    // The full schedule's cards open the same blocks, from a button instead of
+    // The calendar view's cards open the same blocks, from a button instead of
     // a segment: no hover, no glide (the calendar is short and stays put).
     document.querySelectorAll('.sc').forEach(c=>{const i=+c.dataset.lec;
       c.addEventListener('click',e=>{open=(open===i?-1:i);hot=-1;

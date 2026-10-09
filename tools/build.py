@@ -1588,7 +1588,7 @@ __LECS__
         else release();
         e.stopPropagation();});
     });
-    // The full schedule's cards open the same blocks, from a button instead of
+    // The calendar view's cards open the same blocks, from a button instead of
     // a segment: no hover, no glide (the calendar is short and stays put).
     document.querySelectorAll('.sc').forEach(c=>{const i=+c.dataset.lec;
       c.addEventListener('click',e=>{open=(open===i?-1:i);hot=-1;
@@ -1786,7 +1786,7 @@ __LECS__
 COPY = dict(
     join='Sign up',                # underlined, with its arrow, by .t-join
     joinzh='中文版介绍',        # the same, under it
-    sched='Full schedule',      # opens the calendar (SCHED_CSS), no arrow: it stays on the page
+    sched='Calendar view',      # swaps the spine for the calendar (SCHED_CSS), no arrow: it stays on the page
     edition='[te editions\u2009\u2197]',
     title='Spinal Memory',
     tag='Research and Practice on Non-Human Animals',
@@ -2112,14 +2112,14 @@ PANEL_JS = '(function(){\n  if(!/[?&]tools/.test(location.search)) return;\n  co
 
 
 # ---------------------------------------------------------------------------
-# The full schedule: the same eight lectures as the spine, laid out as a
+# The calendar view: the same eight lectures as the spine, laid out as a
 # week-by-week calendar in the spine's own place. The link in the top right
 # swaps one for the other (html.sched-on); a click on a card opens the same
 # block a click on a segment does, in the column on the right. Rows are
 # weeks, Monday to Sunday, built from the dates in LECTURES -- a new lecture
 # is a row, not a new rule. There is no hover here: a card is a button.
 SCHED_YEAR = 2026
-SCHED_DAYS = ('MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN')
+SCHED_DAYS = ('SAT', 'SUN')
 
 
 def sched_who(who):
@@ -2144,11 +2144,11 @@ def schedule_html():
     rows = []
     while week <= last:
         cells = []
-        for k in range(7):
+        for k in (5, 6):
             day = week + dt.timedelta(days=k)
             hit = next(((i, l) for d, i, l in days if d == day), None)
             if hit is None:
-                cells.append(f'<div class="sd{" sd-wk" if k < 5 else ""}"></div>')
+                cells.append('<div class="sd"></div>')
                 continue
             i, lec = hit
             pic = next((p for p in (lec_img(n, **{'class': 'sc-img'}) for n in lec.get('pics', [])) if p), None)
@@ -2160,9 +2160,9 @@ def schedule_html():
                 + f'<span class="sc-t">{esc(lec["what"])}</span></button>')
         rows.append(''.join(cells))
         week += dt.timedelta(days=7)
-    head = ''.join(f'<span class="{"sh-wk" if k < 5 else ""}">{n}</span>' for k, n in enumerate(SCHED_DAYS))
-    return ('<section class="sched" id="schedule" aria-label="Full schedule">'
-            '<div class="sched-bar"><span>Full schedule</span>'
+    head = ''.join(f'<span>{n}</span>' for n in SCHED_DAYS)
+    return ('<section class="sched" id="schedule" aria-label="Calendar view">'
+            '<div class="sched-bar"><span>Calendar view</span>'
             '<button class="sched-back" type="button">Back to spine</button></div>'
             f'<div class="sched-head" aria-hidden="true">{head}</div>'
             f'<div class="sched-grid">{"".join(rows)}</div>'
@@ -2181,9 +2181,11 @@ def schedule_html():
 
 
 SCHED_CSS = '''
-  /* The full schedule, in the spine's place and as wide as it. Switched on
+  /* The calendar view, in the spine's place. Switched on
      by html.sched-on; the spine, its numbers, its grid and its hint go. */
-  .sched{display:none;width:100%;color:var(--a-ink)}
+  .sched{display:none;width:min(100%,380px);margin:0 auto;color:var(--a-ink);
+    --sched-line:#f3eca0}   /* pale yellow on the green; the other palettes keep their own grid */
+  html[data-theme] .sched{--sched-line:var(--grid-line)}
   html.sched-on .sched{display:block}
   html.sched-on .stage>.spine,html.sched-on .t-lecno,html.sched-on .grid,
   html.sched-on .cue-tap,html.sched-on .cue-click{display:none !important}
@@ -2194,14 +2196,12 @@ SCHED_CSS = '''
     text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.18em;
     text-shadow:inherit}
   .sched-back:focus-visible,.sc:focus-visible{outline:2px solid var(--a-ink);outline-offset:2px}
-  .sched-head,.sched-grid{display:grid;grid-template-columns:repeat(5,.16fr) 1fr 1fr}
+  .sched-head,.sched-grid{display:grid;grid-template-columns:1fr 1fr}
   .sched-head{margin-bottom:6px;font-size:10px;line-height:1;letter-spacing:.03em;text-align:center;
     text-shadow:0 0 8px var(--a-glow)}
-  .sched-grid{border-top:1px solid var(--grid-line);border-left:1px solid var(--grid-line)}
-  /* Mon to Fri are drawn only to hold the shape; a row is as tall as its Saturday */
+  .sched-grid{border-top:1px solid var(--sched-line);border-left:1px solid var(--sched-line)}
   .sd{position:relative;display:block;min-width:0;aspect-ratio:1.3;
-    border-right:1px solid var(--grid-line);border-bottom:1px solid var(--grid-line)}
-  .sd-wk{aspect-ratio:auto}
+    border-right:1px solid var(--sched-line);border-bottom:1px solid var(--sched-line)}
   .sc{margin:0;padding:0;border-top:0;border-left:0;font:inherit;text-align:left;cursor:pointer;
     overflow:hidden;color:#f4efe0;container-type:inline-size;background:#33362f;
     -webkit-appearance:none;appearance:none}
@@ -2215,12 +2215,10 @@ SCHED_CSS = '''
   .sc-w small{display:block;font-size:.8em;line-height:1.05}
   .sc-t{left:3cqw;right:3cqw;bottom:3cqw;font-size:6.9cqw;line-height:1}
   @media (max-width:__NARROW__px){
-    /* the whole width, and two columns: Monday to Friday would be slivers */
+    /* the whole width */
     html.sched-on .stage{width:calc(100vw - 2 * var(--pad))}
     /* under the logo and the links, which the spine's own empty top clears */
-    .sched{margin-top:48px}
-    .sched-head,.sched-grid{grid-template-columns:1fr 1fr}
-    .sh-wk,.sd-wk{display:none}
+    .sched{width:100%;margin-top:48px}
     .sched-head{font-size:11px}
     .sched-bar{font-size:13px}
   }'''
