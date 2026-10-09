@@ -486,9 +486,8 @@
   .sc{margin:0;padding:0;border-top:0;border-left:0;font:inherit;text-align:left;cursor:pointer;
     overflow:hidden;container-type:inline-size;background:#33362f;
     -webkit-appearance:none;appearance:none}
-  /* a little darker than the file, so the white words hold over a bright one */
-  .sc-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
-    filter:brightness(.72) saturate(.9)}
+  /* the cover is shown as it was made: any darkening or tint is in the file */
+  .sc-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
   .sc.active::after{content:"";position:absolute;inset:0;border:2px solid #f4efe0;pointer-events:none}
   /* the words on a card are plain white, no effect, so they stay sharp over
      a photograph. SAT / SUN above are the poster's type. */
