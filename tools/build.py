@@ -2273,7 +2273,7 @@ SCHED_CSS = '''
      a photograph. SAT / SUN above are the poster's type. */
   .sc{color:#fff}
   .sc>span{position:absolute;font-weight:400;letter-spacing:-.02em}
-  .sc-d{left:3cqw;top:2cqw;font-size:8.6cqw;line-height:1;letter-spacing:-.04em}
+  .sc-d{left:3cqw;top:2cqw;font-size:6.9cqw;line-height:1;letter-spacing:-.04em}
   .sc-w{right:3cqw;top:2.6cqw;width:56%;text-align:right;font-size:5.6cqw;line-height:1.05}
   .sc-w small{display:block;font-size:.8em;line-height:1.05}
   .sc-t{left:3cqw;right:3cqw;bottom:3cqw;font-size:6.9cqw;line-height:1}
