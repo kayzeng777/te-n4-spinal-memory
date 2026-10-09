@@ -2167,11 +2167,16 @@ def schedule_html():
 
 
 def view_html():
-    """The switch between the two ways in, top centre: Spine / Calendar."""
-    b = lambda k, t: (f'<button class="view-b" type="button" data-view="{k}">'
-                      + layers('span', 'viewt', t) + '</button>')
-    return ('<div class="view" role="group" aria-label="View"><span class="view-ind"></span>'
-            + b('spine', 'Spine') + b('sched', 'Calendar') + '</div>\n'
+    """The switch between the two ways in, top centre: Spine / Calendar. The
+    drawn pill is type, set in the five layers like a chip, so its line takes
+    the glow the words do; the two buttons over it are only the hit areas."""
+    pill = ('<span class="tg"><span class="tg-o">Spine</span>'
+            '<span class="tg-o">Calendar</span></span>')
+    b = lambda k, t, side: (f'<button class="view-b view-{side}" type="button" '
+                            f'data-view="{k}" aria-label="{t}"></button>')
+    return ('<div class="view" role="group" aria-label="View">'
+            + layers('span', 'viewt', pill, **{'aria-hidden': 'true'})
+            + b('spine', 'Spine', 'l') + b('sched', 'Calendar', 'r') + '</div>\n'
             '<script>(function(){\n'
             '  const h=document.documentElement,bs=[...document.querySelectorAll(".view-b")];\n'
             '  const show=on=>{h.classList.toggle("sched-on",on);\n'
@@ -2203,25 +2208,26 @@ SCHED_CSS = '''
   html.sched-on .cue-tap,html.sched-on .cue-click{display:none !important}
   html.sched-on main{background-image:none !important}
   /* The switch, fixed top centre of the page's own column (the tools panel,
-     when up, takes its width off the right): an outlined pill in two halves,
-     and the chosen one is ringed by a second pill. Set as the poster's chips
-     are -- the same size, the same 1px line, the same padding round the
-     capitals -- and in the poster's type (TEXT). */
+     when up, takes its width off the right). It is set as a chip is -- the
+     same size, line and padding round the capitals, drawn inside the type's
+     layers so the line glows with the words -- as an outlined pill of two
+     halves, the chosen one ringed again. The buttons are only hit areas. */
   .view{--vfs:__VIEWFS__;position:fixed;z-index:3;top:var(--pad);
-    left:calc((100vw - var(--tools,0px)) / 2);transform:translateX(-50%);
-    display:grid;grid-template-columns:1fr 1fr;font-size:var(--vfs);
-    border:1px solid var(--a-ink);border-radius:999px}
+    left:calc((100vw - var(--tools,0px)) / 2);transform:translateX(-50%);width:max-content}
   .view .t{--fs:var(--vfs)}
-  .view-ind{position:absolute;top:-1px;bottom:-1px;left:-1px;width:calc(50% + 6px);
-    border:1px solid var(--a-ink);border-radius:999px;pointer-events:none}
-  html.sched-on .view-ind{left:auto;right:-1px}
-  .view-b{position:relative;display:flex;justify-content:center;border:0;background:none;
-    padding:.2em .9em .1em;margin:0;font:inherit;cursor:pointer;border-radius:999px}
+  .tg{display:inline-grid;grid-template-columns:1fr 1fr;white-space:nowrap;
+    border:1px solid currentColor;border-radius:999px}
+  /* the ring sits on the outer line: a negative margin takes it over it */
+  .tg-o{display:block;text-align:center;margin:-1px;padding:.3em .6em .16em;
+    border:1px solid transparent;border-radius:999px}
   @supports (text-box:trim-both cap alphabetic){
-    .view-b{padding:.2em .9em}
-    .view-b .t>*{text-box:trim-both cap alphabetic}
+    .tg-o{text-box:trim-both cap alphabetic;padding:.38em .6em}
   }
-  .view-b:focus-visible{outline:2px solid var(--a-ink);outline-offset:3px}
+  html:not(.sched-on) .tg-o:first-child,html.sched-on .tg-o:last-child{border-color:currentColor}
+  .view-b{position:absolute;top:0;bottom:0;width:50%;margin:0;padding:0;border:0;
+    background:none;cursor:pointer;border-radius:999px;opacity:0}
+  .view-l{left:0}.view-r{right:0}
+  .view-b:focus-visible{opacity:1;outline:2px solid var(--a-ink);outline-offset:2px}
   .sched-head,.sched-grid{display:grid;grid-template-columns:1fr 1fr}
   .sched-head{margin-bottom:4px;justify-items:center}
   .sched-grid{border-top:1px solid var(--sched-line);border-left:1px solid var(--sched-line)}
