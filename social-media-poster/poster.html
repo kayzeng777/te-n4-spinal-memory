@@ -434,14 +434,18 @@
     left:calc((100vw - var(--tools,0px)) / 2);transform:translateX(-50%);width:max-content}
   .view .t{--fs:var(--vfs)}
   .tg{display:inline-grid;grid-template-columns:1fr 1fr;white-space:nowrap;
-    border:1px solid currentColor;border-radius:999px}
-  /* the ring sits on the outer line: a negative margin takes it over it */
+    border:1px solid currentColor;border-radius:999px;position:relative}
+  /* the ring sits on the outer line: a negative margin takes it over it, and
+     it is its own element so that it can slide from one half to the other */
+  .tg-ring{position:absolute;top:-1px;bottom:-1px;left:-1px;width:calc(50% + 2px);
+    border:1px solid currentColor;border-radius:999px;
+    transition:transform .3s cubic-bezier(.3,0,.2,1)}
+  html.sched-on .tg-ring{transform:translateX(calc(100% - 2px))}
   .tg-o{display:block;text-align:center;margin:-1px;padding:.3em .6em .16em;
-    border:1px solid transparent;border-radius:999px;transition:border-color .25s ease}
+    border:1px solid transparent;border-radius:999px}
   @supports (text-box:trim-both cap alphabetic){
     .tg-o{text-box:trim-both cap alphabetic;padding:.38em .6em}
   }
-  html:not(.sched-on) .tg-o:first-child,html.sched-on .tg-o:last-child{border-color:currentColor}
   .view-b{position:absolute;top:0;bottom:0;width:50%;margin:0;padding:0;border:0;
     background:none;cursor:pointer;border-radius:999px;opacity:0}
   .view-l{left:0}.view-r{right:0}
@@ -823,7 +827,7 @@
 </div>
 <div class="grain"></div>
 <div class="sheet"></div>
-<div class="view" role="group" aria-label="View"><div class="t t-viewt" aria-hidden="true"><span class="slab" aria-hidden="true"><span class="tg"><span class="tg-o">Spine</span><span class="tg-o">Calendar</span></span></span><span class="bloom" aria-hidden="true"><span class="tg"><span class="tg-o">Spine</span><span class="tg-o">Calendar</span></span></span><span class="tight" aria-hidden="true"><span class="tg"><span class="tg-o">Spine</span><span class="tg-o">Calendar</span></span></span><span class="ink"><span class="tg"><span class="tg-o">Spine</span><span class="tg-o">Calendar</span></span></span><span class="core" aria-hidden="true"><span class="tg"><span class="tg-o">Spine</span><span class="tg-o">Calendar</span></span></span></div><button class="view-b view-l" type="button" data-view="spine" aria-label="Spine"></button><button class="view-b view-r" type="button" data-view="sched" aria-label="Calendar"></button></div>
+<div class="view" role="group" aria-label="View"><div class="t t-viewt" aria-hidden="true"><span class="slab" aria-hidden="true"><span class="tg"><span class="tg-o">Spine</span><span class="tg-o">Calendar</span><span class="tg-ring"></span></span></span><span class="bloom" aria-hidden="true"><span class="tg"><span class="tg-o">Spine</span><span class="tg-o">Calendar</span><span class="tg-ring"></span></span></span><span class="tight" aria-hidden="true"><span class="tg"><span class="tg-o">Spine</span><span class="tg-o">Calendar</span><span class="tg-ring"></span></span></span><span class="ink"><span class="tg"><span class="tg-o">Spine</span><span class="tg-o">Calendar</span><span class="tg-ring"></span></span></span><span class="core" aria-hidden="true"><span class="tg"><span class="tg-o">Spine</span><span class="tg-o">Calendar</span><span class="tg-ring"></span></span></span></div><button class="view-b view-l" type="button" data-view="spine" aria-label="Spine"></button><button class="view-b view-r" type="button" data-view="sched" aria-label="Calendar"></button></div>
 <script>(function(){
   const h=document.documentElement,bs=[...document.querySelectorAll(".view-b")];
   const show=on=>{h.classList.toggle("sched-on",on);

@@ -2171,7 +2171,7 @@ def view_html():
     drawn pill is type, set in the five layers like a chip, so its line takes
     the glow the words do; the two buttons over it are only the hit areas."""
     pill = ('<span class="tg"><span class="tg-o">Spine</span>'
-            '<span class="tg-o">Calendar</span></span>')
+            '<span class="tg-o">Calendar</span><span class="tg-ring"></span></span>')
     b = lambda k, t, side: (f'<button class="view-b view-{side}" type="button" '
                             f'data-view="{k}" aria-label="{t}"></button>')
     return ('<div class="view" role="group" aria-label="View">'
@@ -2217,14 +2217,18 @@ SCHED_CSS = '''
     left:calc((100vw - var(--tools,0px)) / 2);transform:translateX(-50%);width:max-content}
   .view .t{--fs:var(--vfs)}
   .tg{display:inline-grid;grid-template-columns:1fr 1fr;white-space:nowrap;
-    border:1px solid currentColor;border-radius:999px}
-  /* the ring sits on the outer line: a negative margin takes it over it */
+    border:1px solid currentColor;border-radius:999px;position:relative}
+  /* the ring sits on the outer line: a negative margin takes it over it, and
+     it is its own element so that it can slide from one half to the other */
+  .tg-ring{position:absolute;top:-1px;bottom:-1px;left:-1px;width:calc(50% + 2px);
+    border:1px solid currentColor;border-radius:999px;
+    transition:transform .3s cubic-bezier(.3,0,.2,1)}
+  html.sched-on .tg-ring{transform:translateX(calc(100% - 2px))}
   .tg-o{display:block;text-align:center;margin:-1px;padding:.3em .6em .16em;
-    border:1px solid transparent;border-radius:999px;transition:border-color .25s ease}
+    border:1px solid transparent;border-radius:999px}
   @supports (text-box:trim-both cap alphabetic){
     .tg-o{text-box:trim-both cap alphabetic;padding:.38em .6em}
   }
-  html:not(.sched-on) .tg-o:first-child,html.sched-on .tg-o:last-child{border-color:currentColor}
   .view-b{position:absolute;top:0;bottom:0;width:50%;margin:0;padding:0;border:0;
     background:none;cursor:pointer;border-radius:999px;opacity:0}
   .view-l{left:0}.view-r{right:0}
