@@ -408,7 +408,7 @@ TEXT = dict(
     lecs=dict(step='t16', set='a', gap=30),
     lecx=dict(step='t20', set='a'),              # the close; its size is set in LEC_CSS
     viewt=dict(step='t14', set='a'),             # the Spine / Calendar switch, top centre
-    schedh=dict(step='t16', set='a'),            # SAT / SUN over the columns
+    schedh=dict(step='t14', set='a'),            # SAT / SUN over the columns
     cue=dict(step='t12', set='c', lh=1),         # the phone's two hints, in the other colours      # Sign up, the size of the speaker's name
 )
 
@@ -2182,7 +2182,8 @@ def view_html():
             '  const show=on=>{h.classList.toggle("sched-on",on);\n'
             '    bs.forEach(b=>b.setAttribute("aria-pressed",(b.dataset.view==="sched")===on));\n'
             '    const main=document.getElementById("content");\n'
-            '    scrollTo(0,0);if(main)main.scrollTop=0;};\n'
+            '    scrollTo(0,0);if(main)main.scrollTop=0;\n'
+            '    if(window.__cues)window.__cues();};\n'
             '  const fit=()=>{const v=document.querySelector(".view"),tg=v&&v.querySelector(".core .tg");\n'
             '    if(!tg)return;const t=tg.getBoundingClientRect(),c=tg.clientLeft;\n'
             '    tg.querySelectorAll(".tg-o").forEach((o,i)=>{const r=o.getBoundingClientRect();\n'
@@ -2210,10 +2211,9 @@ SCHED_CSS = '''
      640px, where the cards' type would be larger than the poster's. */
   @media not all and (max-width:__NARROW__px){
     .sched{--sw:max(100%, min(calc(100vw - var(--tools,0px) - 2 * (var(--col) + var(--pad) + 40px)), 640px));
-      width:var(--sw);margin-left:calc((100% - var(--sw)) / 2)}
+      width:var(--sw);margin-left:calc((100% - var(--sw)) / 2);margin-top:14px}
   }
-  html.sched-on .stage>.spine,html.sched-on .t-lecno,html.sched-on .grid,
-  html.sched-on .cue-tap,html.sched-on .cue-click{display:none !important}
+  html.sched-on .stage>.spine,html.sched-on .t-lecno,html.sched-on .grid{display:none !important}
   html.sched-on main{background-image:none !important}
   /* The switch, fixed top centre of the page's own column (the tools panel,
      when up, takes its width off the right). It is set as a chip is -- the

@@ -163,7 +163,7 @@
   .t-lecs{--ink:var(--a-ink);--glow:var(--a-glow);--bloom:var(--a-bloom);--solid:0.84;--fs:clamp(13.7px, calc(13.7px + 0.00338 * (100vw - 760px)), 16px);--soft:0.9px;--glowR:2.22em;--bloomR:5.2px;--slabF:url(#bl-t16);--w:400;--ls:0.0168em;--lh:0.947;--gap:30px}
   .t-lecx{--ink:var(--a-ink);--glow:var(--a-glow);--bloom:var(--a-bloom);--solid:0.84;--fs:clamp(17.1px, calc(17.1px + 0.00426 * (100vw - 760px)), 20px);--soft:0.9px;--glowR:2.22em;--bloomR:5.2px;--slabF:url(#bl-t20);--w:400;--ls:-0.0196em;--lh:0.882}
   .t-viewt{--ink:var(--a-ink);--glow:var(--a-glow);--bloom:var(--a-bloom);--solid:0.84;--fs:clamp(12px, calc(12px + 0.00294 * (100vw - 760px)), 14px);--soft:0.9px;--glowR:2.22em;--bloomR:5.2px;--slabF:url(#bl-t14);--w:400;--ls:0.035em;--lh:0.98}
-  .t-schedh{--ink:var(--a-ink);--glow:var(--a-glow);--bloom:var(--a-bloom);--solid:0.84;--fs:clamp(13.7px, calc(13.7px + 0.00338 * (100vw - 760px)), 16px);--soft:0.9px;--glowR:2.22em;--bloomR:5.2px;--slabF:url(#bl-t16);--w:400;--ls:0.0168em;--lh:0.947}
+  .t-schedh{--ink:var(--a-ink);--glow:var(--a-glow);--bloom:var(--a-bloom);--solid:0.84;--fs:clamp(12px, calc(12px + 0.00294 * (100vw - 760px)), 14px);--soft:0.9px;--glowR:2.22em;--bloomR:5.2px;--slabF:url(#bl-t14);--w:400;--ls:0.035em;--lh:0.98}
   .t-cue{--ink:var(--c-ink);--glow:var(--c-glow);--bloom:var(--c-bloom);--solid:0.84;--fs:clamp(10.3px, calc(10.3px + 0.00250 * (100vw - 760px)), 12px);--soft:0.9px;--glowR:2.22em;--bloomR:5.2px;--slabF:url(#bl-t12);--w:400;--ls:0.0532em;--lh:1}
   .peek-flood{flood-color:var(--peek-green,#80C58A)}
   /* The lecture blocks. One per segment of the spine, parked at the middle of
@@ -420,10 +420,9 @@
      640px, where the cards' type would be larger than the poster's. */
   @media not all and (max-width:760px){
     .sched{--sw:max(100%, min(calc(100vw - var(--tools,0px) - 2 * (var(--col) + var(--pad) + 40px)), 640px));
-      width:var(--sw);margin-left:calc((100% - var(--sw)) / 2)}
+      width:var(--sw);margin-left:calc((100% - var(--sw)) / 2);margin-top:14px}
   }
-  html.sched-on .stage>.spine,html.sched-on .t-lecno,html.sched-on .grid,
-  html.sched-on .cue-tap,html.sched-on .cue-click{display:none !important}
+  html.sched-on .stage>.spine,html.sched-on .t-lecno,html.sched-on .grid{display:none !important}
   html.sched-on main{background-image:none !important}
   /* The switch, fixed top centre of the page's own column (the tools panel,
      when up, takes its width off the right). It is set as a chip is -- the
@@ -495,9 +494,9 @@
   html[data-theme="paper"] .t-lecs{--slabF:url(#bl-t16--paper)}
   html[data-theme="paper"] .t-lecx{--slabF:url(#bl-t20--paper)}
   html[data-theme="paper"] .t-viewt{--slabF:url(#bl-t14--paper)}
-  html[data-theme="paper"] .t-schedh{--slabF:url(#bl-t16--paper)}
+  html[data-theme="paper"] .t-schedh{--slabF:url(#bl-t14--paper)}
   html[data-theme="paper"] .t-cue{--slabF:url(#bl-t12--paper)}
-  @media (max-width:1100px){html[data-theme="paper"] .t-lecd{--slabF:url(#bl-t14-s--paper)}html[data-theme="paper"] .t-lecw{--slabF:url(#bl-t16-s--paper)}html[data-theme="paper"] .t-lect{--slabF:url(#bl-t20-s--paper)}html[data-theme="paper"] .t-lecno{--slabF:url(#bl-no-s--paper)}html[data-theme="paper"] .t-lecl{--slabF:url(#bl-t14-s--paper)}html[data-theme="paper"] .t-lecb{--slabF:url(#bl-t14-s--paper)}html[data-theme="paper"] .t-lecbio{--slabF:url(#bl-t14-s--paper)}html[data-theme="paper"] .t-lecs{--slabF:url(#bl-t16-s--paper)}html[data-theme="paper"] .t-lecx{--slabF:url(#bl-t20-s--paper)}html[data-theme="paper"] .t-viewt{--slabF:url(#bl-t14-s--paper)}html[data-theme="paper"] .t-schedh{--slabF:url(#bl-t16-s--paper)}html[data-theme="paper"] .t-cue{--slabF:url(#bl-t12-s--paper)}}
+  @media (max-width:1100px){html[data-theme="paper"] .t-lecd{--slabF:url(#bl-t14-s--paper)}html[data-theme="paper"] .t-lecw{--slabF:url(#bl-t16-s--paper)}html[data-theme="paper"] .t-lect{--slabF:url(#bl-t20-s--paper)}html[data-theme="paper"] .t-lecno{--slabF:url(#bl-no-s--paper)}html[data-theme="paper"] .t-lecl{--slabF:url(#bl-t14-s--paper)}html[data-theme="paper"] .t-lecb{--slabF:url(#bl-t14-s--paper)}html[data-theme="paper"] .t-lecbio{--slabF:url(#bl-t14-s--paper)}html[data-theme="paper"] .t-lecs{--slabF:url(#bl-t16-s--paper)}html[data-theme="paper"] .t-lecx{--slabF:url(#bl-t20-s--paper)}html[data-theme="paper"] .t-viewt{--slabF:url(#bl-t14-s--paper)}html[data-theme="paper"] .t-schedh{--slabF:url(#bl-t14-s--paper)}html[data-theme="paper"] .t-cue{--slabF:url(#bl-t12-s--paper)}}
   @media (max-width:760px){html[data-theme="paper"] .lec-close .t-lecx{--slabF:url(#bl-t20-s--paper)}}
   html[data-theme="dark"] .t-lecd{--slabF:url(#bl-t14--dark)}
   html[data-theme="dark"] .t-lecw{--slabF:url(#bl-t16--dark)}
@@ -509,9 +508,9 @@
   html[data-theme="dark"] .t-lecs{--slabF:url(#bl-t16--dark)}
   html[data-theme="dark"] .t-lecx{--slabF:url(#bl-t20--dark)}
   html[data-theme="dark"] .t-viewt{--slabF:url(#bl-t14--dark)}
-  html[data-theme="dark"] .t-schedh{--slabF:url(#bl-t16--dark)}
+  html[data-theme="dark"] .t-schedh{--slabF:url(#bl-t14--dark)}
   html[data-theme="dark"] .t-cue{--slabF:url(#bl-t12--dark)}
-  @media (max-width:1100px){html[data-theme="dark"] .t-lecd{--slabF:url(#bl-t14-s--dark)}html[data-theme="dark"] .t-lecw{--slabF:url(#bl-t16-s--dark)}html[data-theme="dark"] .t-lect{--slabF:url(#bl-t20-s--dark)}html[data-theme="dark"] .t-lecno{--slabF:url(#bl-no-s--dark)}html[data-theme="dark"] .t-lecl{--slabF:url(#bl-t14-s--dark)}html[data-theme="dark"] .t-lecb{--slabF:url(#bl-t14-s--dark)}html[data-theme="dark"] .t-lecbio{--slabF:url(#bl-t14-s--dark)}html[data-theme="dark"] .t-lecs{--slabF:url(#bl-t16-s--dark)}html[data-theme="dark"] .t-lecx{--slabF:url(#bl-t20-s--dark)}html[data-theme="dark"] .t-viewt{--slabF:url(#bl-t14-s--dark)}html[data-theme="dark"] .t-schedh{--slabF:url(#bl-t16-s--dark)}html[data-theme="dark"] .t-cue{--slabF:url(#bl-t12-s--dark)}}
+  @media (max-width:1100px){html[data-theme="dark"] .t-lecd{--slabF:url(#bl-t14-s--dark)}html[data-theme="dark"] .t-lecw{--slabF:url(#bl-t16-s--dark)}html[data-theme="dark"] .t-lect{--slabF:url(#bl-t20-s--dark)}html[data-theme="dark"] .t-lecno{--slabF:url(#bl-no-s--dark)}html[data-theme="dark"] .t-lecl{--slabF:url(#bl-t14-s--dark)}html[data-theme="dark"] .t-lecb{--slabF:url(#bl-t14-s--dark)}html[data-theme="dark"] .t-lecbio{--slabF:url(#bl-t14-s--dark)}html[data-theme="dark"] .t-lecs{--slabF:url(#bl-t16-s--dark)}html[data-theme="dark"] .t-lecx{--slabF:url(#bl-t20-s--dark)}html[data-theme="dark"] .t-viewt{--slabF:url(#bl-t14-s--dark)}html[data-theme="dark"] .t-schedh{--slabF:url(#bl-t14-s--dark)}html[data-theme="dark"] .t-cue{--slabF:url(#bl-t12-s--dark)}}
   @media (max-width:760px){html[data-theme="dark"] .lec-close .t-lecx{--slabF:url(#bl-t20-s--dark)}}
   html[data-theme="paper"] .t .bloom{filter:blur(var(--bloomR)) opacity(1)}
   html[data-theme="paper"] .t .ink{filter:blur(var(--soft)) opacity(1)}
@@ -769,7 +768,7 @@
     .poster .info{overscroll-behavior:contain}
   }
   @media (max-width:1100px){
-    .t-lecd{--slabF:url(#bl-t14-s)}.t-lecw{--slabF:url(#bl-t16-s)}.t-lect{--slabF:url(#bl-t20-s)}.t-lecno{--slabF:url(#bl-no-s)}.t-lecl{--slabF:url(#bl-t14-s)}.t-lecb{--slabF:url(#bl-t14-s)}.t-lecbio{--slabF:url(#bl-t14-s)}.t-lecs{--slabF:url(#bl-t16-s)}.t-lecx{--slabF:url(#bl-t20-s)}.t-viewt{--slabF:url(#bl-t14-s)}.t-schedh{--slabF:url(#bl-t16-s)}.t-cue{--slabF:url(#bl-t12-s)}
+    .t-lecd{--slabF:url(#bl-t14-s)}.t-lecw{--slabF:url(#bl-t16-s)}.t-lect{--slabF:url(#bl-t20-s)}.t-lecno{--slabF:url(#bl-no-s)}.t-lecl{--slabF:url(#bl-t14-s)}.t-lecb{--slabF:url(#bl-t14-s)}.t-lecbio{--slabF:url(#bl-t14-s)}.t-lecs{--slabF:url(#bl-t16-s)}.t-lecx{--slabF:url(#bl-t20-s)}.t-viewt{--slabF:url(#bl-t14-s)}.t-schedh{--slabF:url(#bl-t14-s)}.t-cue{--slabF:url(#bl-t12-s)}
   }
   /* The lens is read against the spine, so it shrinks with it, on the same
      slide and by the same share -- the feather too, or a smaller lens would
@@ -842,7 +841,8 @@
   const show=on=>{h.classList.toggle("sched-on",on);
     bs.forEach(b=>b.setAttribute("aria-pressed",(b.dataset.view==="sched")===on));
     const main=document.getElementById("content");
-    scrollTo(0,0);if(main)main.scrollTop=0;};
+    scrollTo(0,0);if(main)main.scrollTop=0;
+    if(window.__cues)window.__cues();};
   const fit=()=>{const v=document.querySelector(".view"),tg=v&&v.querySelector(".core .tg");
     if(!tg)return;const t=tg.getBoundingClientRect(),c=tg.clientLeft;
     tg.querySelectorAll(".tg-o").forEach((o,i)=>{const r=o.getBoundingClientRect();
