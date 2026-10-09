@@ -2051,7 +2051,12 @@ def cues():
             # the spine's: the page beside the spine, main on a phone
             f'const main=document.getElementById("content"),narrow=matchMedia("(max-width:{NARROW}px)");'
             'const spineCues=[document.querySelector(".cue-tap"),document.querySelector(".cue-click")];'
-            'const spine=()=>{const sc=narrow.matches?main:document.scrollingElement;spineCues.forEach(c=>end(c,sc));};'
+            # In the calendar the end is the last row on screen, not the end of the
+            # page: the page runs on past it by the room the open panel needs.
+            'const spine=()=>{const sc=narrow.matches?main:document.scrollingElement;'
+            'const cal=document.documentElement.classList.contains("sched-on")&&document.querySelector(".sched-grid");'
+            'spineCues.forEach(c=>{if(!c)return;if(cal)c.classList.toggle("end",'
+            'cal.getBoundingClientRect().bottom<=c.getBoundingClientRect().bottom+40);else end(c,sc);});};'
             'addEventListener("scroll",spine,{passive:true});if(main)main.addEventListener("scroll",spine,{passive:true});'
             'const all=()=>{spine();fixed.forEach(([c,sc])=>end(c,sc));'
             'document.querySelectorAll(".lec.open").forEach(l=>end(lecCue(l),lecSc(l)));};'
