@@ -436,6 +436,7 @@
   .sched{display:none;width:100%;
     --sched-line:#f3eca0}   /* pale yellow on the green; the other palettes keep their own grid */
   html[data-theme] .sched{--sched-line:var(--grid-line)}
+  html[data-theme=paper] .sched{--sched-line:#9d9d99}   /* grey on the paper, as in the book */
   html.sched-on .sched{display:block;animation:sched-in .3s ease}
   @keyframes sched-in{from{opacity:0}to{opacity:1}}
   /* Beside the spine it is wider than the spine's own column, by what the two
