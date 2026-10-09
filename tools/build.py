@@ -898,7 +898,10 @@ HEAD = '''<title>te online lecture</title>
     :root{--info-panel:200px;--lec-panel:calc(min(440px, 54svh) - 36px);--panel:var(--info-panel);
       --halo:26px;--panel-fade:26px}
     body:has(.lec.open){--panel:var(--lec-panel)}
-    main{padding-bottom:calc(var(--info-panel) + 24px + var(--post, 0px))}
+    /* the room under the last thing is the panel that is up -- the information,
+       or an open lecture, which is taller -- so the last row can be scrolled
+       clear of it */
+    main{padding-bottom:calc(var(--panel) + 24px + var(--post, 0px))}
     main::before,main::after{content:"";position:fixed;left:0;right:0;z-index:2;
       pointer-events:none}
     main::before{top:0;height:64px;background:linear-gradient(rgb(var(--bg0)),rgb(var(--bg0) / 0))}
@@ -1597,13 +1600,16 @@ __LECS__
         else release();
         e.stopPropagation();});
     });
-    // The calendar view's cards open the same blocks, from a button instead of
-    // a segment: no hover, no glide (the calendar is short and stays put).
+    // The calendar's cards open the same blocks, from a button instead of a
+    // segment: no hover. Beside the spine the calendar stays put; on a phone the
+    // card goes to the middle of what is left above the panel, as a segment does.
     document.querySelectorAll('.sc').forEach(c=>{const i=+c.dataset.lec;
       c.addEventListener('click',e=>{open=(open===i?-1:i);hot=-1;
         sync();
         if(open===i){if(!narrow.matches)arrive(lecs[i]);note(mores[i]);const sc=scrolls[i];
-          if(sc){sc.scrollTop=0;setTimeout(()=>ends(sc),300);}}
+          if(sc){sc.scrollTop=0;setTimeout(()=>ends(sc),300);}
+          if(narrow.matches){px=e.clientX;py=e.clientY;held=glide(c,lecs[i]);}}
+        else release();
         e.stopPropagation();});});
     // The open block takes clicks now -- to select its text, to follow its
     // link -- and none of them should reach the document and close it.
