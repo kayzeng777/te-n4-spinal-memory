@@ -495,6 +495,12 @@ LECTURES = [
          speakers=[dict(face='speakers portrait/08 Sha Shuang.jpg', bio='沙爽 Sha Shuang is an artist based in Shanghai. Her practice focuses on public space, site-specific engagement, and the intricate relationships between humans, animals, the environment, and production systems. Spanning publishing, painting, moving image, installation, and social practice, her work often develops through fieldwork, interviews, workshops, and collaborative co-creation.\n\nGrounded in concrete lived experiences and local contexts, she addresses issues of standardization, fluidity, relationships, change, memory, and community. In recent years, starting from dairy cows, her research has expanded into dairy production, data monitoring, and ecosystems, translating her fieldwork into moving images, installations, publications, and public programs.')]),
 ]
 
+# The calendar's cards: images/Calendar/01.png .. 08.png, one per lecture in
+# the order above (paths here are under images/lectures/, hence the ..).
+for _i, _lec in enumerate(LECTURES):
+    _lec.setdefault('cover', f'../Calendar/{_i + 1:02d}.png')
+
+
 
 def at_corner(corner):
     """The roles pinned to one corner, in the order they are declared."""
@@ -2260,9 +2266,9 @@ SCHED_CSS = '''
   .sc{margin:0;padding:0;border-top:0;border-left:0;font:inherit;text-align:left;cursor:pointer;
     overflow:hidden;container-type:inline-size;background:#33362f;
     -webkit-appearance:none;appearance:none}
+  /* a little darker than the file, so the white words hold over a bright one */
   .sc-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
-    filter:saturate(.7) contrast(1.05) brightness(.58)}
-  .sc.active .sc-img{filter:saturate(.9) contrast(1.05) brightness(.8)}
+    filter:brightness(.72) saturate(.9)}
   .sc.active::after{content:"";position:absolute;inset:0;border:2px solid #f4efe0;pointer-events:none}
   /* the words on a card are plain white, no effect, so they stay sharp over
      a photograph. SAT / SUN above are the poster's type. */
