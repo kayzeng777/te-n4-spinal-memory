@@ -426,6 +426,9 @@ TIME_EST = 'New York / 8am EST\nLondon / 1pm GMT'
 # a blank line in it starts a paragraph, exactly as in COPY.
 # `lang` is the line under the speaker, and belongs with the detail rather than
 # the head: it is what you need once you have decided to come.
+# `cover` is optional: the image on the lecture's card in the calendar view,
+# a path under images/lectures/ like `pics` (3:2 crops best); without it the
+# card takes the first of `pics`.
 # `pics` (2-3 images from the lecture) and `speakers` are optional; both sit in
 # the detail under `about`. Paths are under images/lectures/, where the
 # originals are kept as they came: 'lecture images/' and 'speakers portrait/'. A lecture with two
@@ -2150,7 +2153,10 @@ def schedule_html():
                 cells.append('<div class="sd"></div>')
                 continue
             i, lec = hit
-            pic = next((p for p in (lec_img(n, **{'class': 'sc-img'}) for n in lec.get('pics', [])) if p), None)
+            # the card's picture: the lecture's own `cover` if it names one,
+            # else its first picture; a file that is not there is passed over
+            names = [lec['cover']] if lec.get('cover') else lec.get('pics', [])
+            pic = next((p for p in (lec_img(n, **{'class': 'sc-img'}) for n in names) if p), None)
             cells.append(
                 f'<button class="sd sc" type="button" data-lec="{i}">'
                 + (pic[0] if pic else '')
