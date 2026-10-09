@@ -1264,6 +1264,7 @@ __CUES__
 <main id="content">
 <div class="stage">
 __SPINE__
+__SCHED__
 <div class="lecs">
 __LECS__
 </div>
@@ -1341,6 +1342,7 @@ __LECS__
       l.classList.toggle('on',i===lit||i===open);
       l.classList.toggle('open',i===open);});
       nos.forEach((n,i)=>n&&n.classList.toggle('on',i===hot||i===open));
+      document.querySelectorAll('.sc').forEach(c=>c.classList.toggle('active',+c.dataset.lec===open));
       // another segment hovered while one is open: its head is laid over the
       // open block on a ground of its own (html.peek)
       const pk=open!==-1&&lit!==-1&&lit!==open;
@@ -1586,6 +1588,14 @@ __LECS__
         else release();
         e.stopPropagation();});
     });
+    // The full schedule's cards open the same blocks, from a button instead of
+    // a segment: no hover, no glide (the calendar is short and stays put).
+    document.querySelectorAll('.sc').forEach(c=>{const i=+c.dataset.lec;
+      c.addEventListener('click',e=>{open=(open===i?-1:i);hot=-1;
+        sync();
+        if(open===i){if(!narrow.matches)arrive(lecs[i]);note(mores[i]);const sc=scrolls[i];
+          if(sc){sc.scrollTop=0;setTimeout(()=>ends(sc),300);}}
+        e.stopPropagation();});});
     // The open block takes clicks now -- to select its text, to follow its
     // link -- and none of them should reach the document and close it.
     lecs.forEach(l=>{if(!l)return;
@@ -1768,7 +1778,6 @@ __LECS__
   })();
 </script>
 </main>
-__SCHED__
 '''
 
 # The copy, as plain text. A blank line starts a paragraph, a single newline is a
@@ -2103,10 +2112,12 @@ PANEL_JS = '(function(){\n  if(!/[?&]tools/.test(location.search)) return;\n  co
 
 
 # ---------------------------------------------------------------------------
-# The full schedule: a week-by-week calendar, opened from the link in the
-# top right. Every lecture is a card in its own weekday's column, over its
-# first picture; rows are weeks, Monday to Sunday, and are built from the
-# dates in LECTURES -- a new lecture is a row, not a new rule.
+# The full schedule: the same eight lectures as the spine, laid out as a
+# week-by-week calendar in the spine's own place. The link in the top right
+# swaps one for the other (html.sched-on); a click on a card opens the same
+# block a click on a segment does, in the column on the right. Rows are
+# weeks, Monday to Sunday, built from the dates in LECTURES -- a new lecture
+# is a row, not a new rule. There is no hover here: a card is a button.
 SCHED_YEAR = 2026
 SCHED_DAYS = ('MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN')
 
@@ -2124,103 +2135,95 @@ def schedule_html():
     import datetime as dt
     esc = lambda t: t.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
     days = []
-    for lec in LECTURES:
+    for i, lec in enumerate(LECTURES):
         d = dt.datetime.strptime(f"{lec['when']} {SCHED_YEAR}", '%b %d %Y').date()
-        days.append((d, lec))
-    first = min(d for d, _ in days)
-    last = max(d for d, _ in days)
+        days.append((d, i, lec))
+    first = min(d for d, _, _ in days)
+    last = max(d for d, _, _ in days)
     week = first - dt.timedelta(days=first.weekday())
     rows = []
     while week <= last:
         cells = []
         for k in range(7):
             day = week + dt.timedelta(days=k)
-            lec = next((l for d, l in days if d == day), None)
-            if lec is None:
+            hit = next(((i, l) for d, i, l in days if d == day), None)
+            if hit is None:
                 cells.append(f'<div class="sd{" sd-wk" if k < 5 else ""}"></div>')
                 continue
+            i, lec = hit
             pic = next((p for p in (lec_img(n, **{'class': 'sc-img'}) for n in lec.get('pics', [])) if p), None)
-            href = esc(lec.get('signup', SIGNUP))
             cells.append(
-                f'<a class="sd sc" href="{href}" target="_blank" rel="noopener">'
+                f'<button class="sd sc" type="button" data-lec="{i}">'
                 + (pic[0] if pic else '')
                 + f'<span class="sc-d">{day.month}.{day.day:02d}</span>'
                 + f'<span class="sc-w">{sched_who(lec["who"])}</span>'
-                + f'<span class="sc-t">{esc(lec["what"])}</span></a>')
+                + f'<span class="sc-t">{esc(lec["what"])}</span></button>')
         rows.append(''.join(cells))
         week += dt.timedelta(days=7)
     head = ''.join(f'<span class="{"sh-wk" if k < 5 else ""}">{n}</span>' for k, n in enumerate(SCHED_DAYS))
-    return ('<div class="sched" id="schedule" role="dialog" aria-modal="true" aria-label="Full schedule">'
-            '<button class="sched-close" type="button">Close ×</button>'
-            '<div class="sched-wrap">'
-            '<h2 class="sched-title">Spinal Memory <span>Full schedule</span></h2>'
-            f'<div class="sched-head">{head}</div>'
+    return ('<section class="sched" id="schedule" aria-label="Full schedule">'
+            '<div class="sched-bar"><span>Full schedule</span>'
+            '<button class="sched-back" type="button">Back to spine</button></div>'
+            f'<div class="sched-head" aria-hidden="true">{head}</div>'
             f'<div class="sched-grid">{"".join(rows)}</div>'
-            '</div></div>\n'
+            '</section>\n'
             '<script>(function(){\n'
-            '  const h=document.documentElement,s=document.getElementById("schedule");\n'
-            '  if(!s)return;\n'
-            '  let from=null;\n'
-            '  const open=()=>{from=document.activeElement;h.classList.add("sched-open");s.scrollTop=0;\n'
-            '    s.querySelector(".sched-close").focus({preventScroll:true});};\n'
-            '  const close=()=>{h.classList.remove("sched-open");\n'
-            '    if(from&&from.focus)from.focus({preventScroll:true});\n'
-            '    if(location.hash==="#schedule")history.replaceState(null,"",location.pathname+location.search);};\n'
+            '  const h=document.documentElement;\n'
+            '  const toggle=on=>{h.classList.toggle("sched-on",on);\n'
+            '    const main=document.getElementById("content");\n'
+            '    scrollTo(0,0);if(main)main.scrollTop=0;};\n'
             '  document.addEventListener("click",e=>{\n'
-            '    if(e.target.closest(\'a[href="#schedule"]\')){e.preventDefault();open();}});\n'
-            '  s.querySelector(".sched-close").addEventListener("click",close);\n'
-            '  addEventListener("keydown",e=>{if(e.key==="Escape"&&h.classList.contains("sched-open"))close();});\n'
-            '  if(location.hash==="#schedule")open();\n'
+            '    if(e.target.closest(\'a[href="#schedule"]\')){e.preventDefault();\n'
+            '      toggle(!h.classList.contains("sched-on"));}\n'
+            '    else if(e.target.closest(".sched-back"))toggle(false);});\n'
+            '  if(location.hash==="#schedule")toggle(true);\n'
             '})();</script>')
 
 
 SCHED_CSS = '''
-  /* The full schedule. A page over the page, in the palette's own ground; the
-     grain (z-index 4) is over it as over everything. */
-  .sched{display:none;position:fixed;inset:0;z-index:3;overflow-y:auto;overscroll-behavior:contain;
-    scrollbar-width:none;background:linear-gradient(180deg,rgb(var(--bg0)) 0%,rgb(var(--bg1)) 70%,rgb(var(--bg2)) 100%);
-    color:var(--a-ink)}
-  .sched::-webkit-scrollbar{display:none}
-  html.sched-open{overflow:hidden}
-  html.sched-open .sched{display:block;animation:sched-in .25s ease}
-  @keyframes sched-in{from{opacity:0}to{opacity:1}}
-  .sched-close{position:fixed;top:var(--pad);right:var(--pad);z-index:1;border:0;cursor:pointer;
-    font:inherit;font-size:15px;line-height:1;padding:6px 8px;margin:-6px -8px;color:var(--a-ink);
-    background:rgb(var(--bg1) / .8);text-shadow:0 0 8px var(--a-glow)}
-  .sched-close:focus-visible{outline:2px solid var(--a-ink);outline-offset:2px}
-  .sched-wrap{width:min(calc(100% - 2 * var(--pad)), 1080px);margin:0 auto;padding:var(--pad) 0 calc(var(--pad) * 2)}
-  .sched-title{margin:0 0 28px;font-weight:400;font-size:15px;line-height:1;letter-spacing:.01em;
+  /* The full schedule, in the spine's place and as wide as it. Switched on
+     by html.sched-on; the spine, its numbers, its grid and its hint go. */
+  .sched{display:none;width:100%;color:var(--a-ink)}
+  html.sched-on .sched{display:block}
+  html.sched-on .stage>.spine,html.sched-on .t-lecno,html.sched-on .grid,
+  html.sched-on .cue-tap,html.sched-on .cue-click{display:none !important}
+  html.sched-on main{background-image:none !important}
+  .sched-bar{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;
+    font-size:12px;line-height:1;text-shadow:0 0 8px var(--a-glow)}
+  .sched-back{border:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer;
+    text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.18em;
+    text-shadow:inherit}
+  .sched-back:focus-visible,.sc:focus-visible{outline:2px solid var(--a-ink);outline-offset:2px}
+  .sched-head,.sched-grid{display:grid;grid-template-columns:repeat(5,.16fr) 1fr 1fr}
+  .sched-head{margin-bottom:6px;font-size:10px;line-height:1;letter-spacing:.03em;text-align:center;
     text-shadow:0 0 8px var(--a-glow)}
-  .sched-title span{margin-left:.6em}
-  .sched-head{display:grid;grid-template-columns:repeat(5,.19fr) 1fr 1fr;margin-bottom:10px;font-size:clamp(11px,1.5vw,18px);line-height:1;letter-spacing:.02em;
-    text-align:center;text-shadow:0 0 8px var(--a-glow)}
-  /* one grid for every row, so a column stays a column down the page */
-  .sched-grid{display:grid;grid-template-columns:repeat(5,.19fr) 1fr 1fr;
-    border-top:1px solid var(--grid-line);border-left:1px solid var(--grid-line)}
-  .sd{position:relative;display:block;aspect-ratio:1.6;min-width:0;
-    border-right:1px solid var(--grid-line);border-bottom:1px solid var(--grid-line)}
+  .sched-grid{border-top:1px solid var(--grid-line);border-left:1px solid var(--grid-line)}
   /* Mon to Fri are drawn only to hold the shape; a row is as tall as its Saturday */
+  .sd{position:relative;display:block;min-width:0;aspect-ratio:1.3;
+    border-right:1px solid var(--grid-line);border-bottom:1px solid var(--grid-line)}
   .sd-wk{aspect-ratio:auto}
-  .sc{overflow:hidden;color:#f4efe0;text-decoration:none;container-type:inline-size;
-    background:#33362f;font-variation-settings:normal}
+  .sc{margin:0;padding:0;border-top:0;border-left:0;font:inherit;text-align:left;cursor:pointer;
+    overflow:hidden;color:#f4efe0;container-type:inline-size;background:#33362f;
+    -webkit-appearance:none;appearance:none}
   .sc-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
-    filter:saturate(.7) contrast(1.05) brightness(.58);transition:filter .3s ease}
-  .sc:hover .sc-img,.sc:focus-visible .sc-img{filter:saturate(.9) contrast(1.05) brightness(.8)}
-  .sc:focus-visible{outline:2px solid var(--a-ink);outline-offset:-3px}
-  .sc>span{position:absolute;font-weight:400;letter-spacing:-.025em}
-  .sc-d{left:1.8cqw;top:.4cqw;font-size:9.6cqw;line-height:1;letter-spacing:-.045em}
-  .sc-w{right:2cqw;top:1.4cqw;width:52%;text-align:right;font-size:6.3cqw;line-height:1.04}
-  .sc-w small{display:block;font-size:.76em;line-height:1.04;letter-spacing:-.02em}
-  .sc-t{left:1.8cqw;right:2cqw;bottom:1.6cqw;font-size:8.1cqw;line-height:.98}
+    filter:saturate(.7) contrast(1.05) brightness(.58)}
+  .sc.active .sc-img{filter:saturate(.9) contrast(1.05) brightness(.8)}
+  .sc.active::after{content:"";position:absolute;inset:0;border:2px solid #f4efe0;pointer-events:none}
+  .sc>span{position:absolute;font-weight:400;letter-spacing:-.02em}
+  .sc-d{left:3cqw;top:2cqw;font-size:8.6cqw;line-height:1;letter-spacing:-.04em}
+  .sc-w{right:3cqw;top:2.6cqw;width:56%;text-align:right;font-size:5.6cqw;line-height:1.05}
+  .sc-w small{display:block;font-size:.8em;line-height:1.05}
+  .sc-t{left:3cqw;right:3cqw;bottom:3cqw;font-size:6.9cqw;line-height:1}
   @media (max-width:__NARROW__px){
-    /* two columns: Monday to Friday would be slivers at this width */
+    /* the whole width, and two columns: Monday to Friday would be slivers */
+    html.sched-on .stage{width:calc(100vw - 2 * var(--pad))}
+    /* under the logo and the links, which the spine's own empty top clears */
+    .sched{margin-top:48px}
     .sched-head,.sched-grid{grid-template-columns:1fr 1fr}
     .sh-wk,.sd-wk{display:none}
-    .sd{aspect-ratio:1/1.12}
-    .sched-head{font-size:13px}
-    .sched-title{margin-bottom:22px}
+    .sched-head{font-size:11px}
+    .sched-bar{font-size:13px}
   }'''
-
 
 
 def tools_panel():
@@ -2256,7 +2259,7 @@ def page(inline, spine=None, cols=None, rows=None, tools=False):
                 .replace('__MARKFS__', ramp(MARK_STEP['size'][1], MARK_STEP['size'][0]))
                 .replace('__NARROW__', str(NARROW)).replace('__MID__', str((NARROW + WIDE) // 2))
                 .replace('__COLS__', f'{cols:g}').replace('__ROWS__', str(rows))
-            + BODY.replace('__NARROW__', str(NARROW)).replace('__SPINE__', spine).replace('__LECS__', lectures_html()).replace('__CUES__', cues() + swatches(cls='themes themes-m')).replace('__CORNERS__', corners()).replace('__SCHED__', schedule_html()).replace('__BACKLIGHT__', backlight_defs()).replace('__THEMEPICK__', THEME_PICK).replace('__SPINETONES__', json.dumps({c.upper(): f'--sp-{k}' for k, c in THEMES[THEME_DEFAULT]['spine'].items()}))
+            + BODY.replace('__NARROW__', str(NARROW)).replace('__SPINE__', spine).replace('__SCHED__', schedule_html()).replace('__LECS__', lectures_html()).replace('__CUES__', cues() + swatches(cls='themes themes-m')).replace('__CORNERS__', corners()).replace('__BACKLIGHT__', backlight_defs()).replace('__THEMEPICK__', THEME_PICK).replace('__SPINETONES__', json.dumps({c.upper(): f'--sp-{k}' for k, c in THEMES[THEME_DEFAULT]['spine'].items()}))
             + (tools_panel() if tools else ''))
 
 
