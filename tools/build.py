@@ -2234,7 +2234,8 @@ SCHED_CSS = '''
   @supports (text-box:trim-both cap alphabetic){
     .tg-o{text-box:trim-both cap alphabetic;padding:.38em .6em}
   }
-  .view-b{position:absolute;top:0;bottom:0;width:50%;margin:0;padding:0;border:0;
+  .view .t{pointer-events:none}
+  .view-b{position:absolute;z-index:2;top:0;bottom:0;width:50%;margin:0;padding:0;border:0;
     background:none;cursor:pointer;border-radius:999px;opacity:0}
   .view-l{left:0}.view-r{right:0}
   .view-b:focus-visible{opacity:1;outline:2px solid var(--a-ink);outline-offset:2px}
