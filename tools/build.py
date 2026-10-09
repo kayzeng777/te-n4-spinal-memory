@@ -2258,9 +2258,9 @@ SCHED_CSS = '''
     filter:saturate(.7) contrast(1.05) brightness(.58)}
   .sc.active .sc-img{filter:saturate(.9) contrast(1.05) brightness(.8)}
   .sc.active::after{content:"";position:absolute;inset:0;border:2px solid #f4efe0;pointer-events:none}
-  /* the words on a card are plain: the poster's yellow, no effect, so they
-     stay sharp over a photograph. SAT / SUN above are the poster's type. */
-  .sc{color:#fdf48a}
+  /* the words on a card are plain white, no effect, so they stay sharp over
+     a photograph. SAT / SUN above are the poster's type. */
+  .sc{color:#fff}
   .sc>span{position:absolute;font-weight:400;letter-spacing:-.02em}
   .sc-d{left:3cqw;top:2cqw;font-size:8.6cqw;line-height:1;letter-spacing:-.04em}
   .sc-w{right:3cqw;top:2.6cqw;width:56%;text-align:right;font-size:5.6cqw;line-height:1.05}
