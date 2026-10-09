@@ -43,7 +43,6 @@ COLOUR_SETS = dict(
     b=dict(ink='#277c3c', glow='#fdf48a', bloom='#fdf48a'),
     c=dict(ink='#277c3c', glow='#e6e6e6', bloom='#e6e6e6'),   # the phone's hints
     d=dict(ink='#f28030', glow='#fdf48a', bloom='#fdf48a'),   # the reading: `a` here, not in every palette
-    e=dict(ink='#fdf48a', glow='#f28030', bloom='#f28030'),   # `a` turned over, for type on a photograph
 )
 
 # The type scale, from one step. BASE is the only text size anyone sets: every
@@ -159,14 +158,12 @@ THEMES = dict(
     # drawn, and the same soft ink -- but the light round the letters kept
     # low, a shade off the ground rather than a colour of its own.
     paper=dict(bg=('#D3C7A9', '#D7CBAE', '#D2C6A8'), panel=('#D6CAAD', '#D3C7A9'),
-               sets={**{k: dict(ink='#666a70', glow='#e7dec6', bloom='#e2d8bd') for k in 'abcd'},
-                     'e': dict(ink='#f2ecdd', glow='#4A4843', bloom='#4A4843')},
+               sets={k: dict(ink='#666a70', glow='#e7dec6', bloom='#e2d8bd') for k in 'abcd'},
                backlight='#e2d8be', grid='#C6BA9C', swatch=('#E6D6A8', '#666A70'),
                spine=dict(orange='#4A4843', cream='#9A968D', yellow='#E9E2D0',
                           hole='#CEC2A4', paper='#F2ECDD')),
     dark=dict(bg=('#1B1A18', '#22211F', '#1A1917'), panel=('#201F1D', '#1A1917'),
-              sets={**{k: dict(ink='#b3aa90', glow='#2a2823', bloom='#262522') for k in 'abcd'},
-                    'e': dict(ink='#d6cbac', glow='#1b1a18', bloom='#1b1a18')},
+              sets={k: dict(ink='#b3aa90', glow='#2a2823', bloom='#262522') for k in 'abcd'},
               backlight='#22211f', grid='#353430', backlit=False,
               swatch=('#3C3A35', '#8E8672'),
               spine=dict(orange='#D6CBAC', cream='#6E6A61', yellow='#A89E84',
@@ -412,9 +409,6 @@ TEXT = dict(
     lecx=dict(step='t20', set='a'),              # the close; its size is set in LEC_CSS
     viewt=dict(step='t14', set='a'),             # the Spine / Calendar switch, top centre
     schedh=dict(step='t16', set='a'),            # SAT / SUN over the columns
-    schedd=dict(step='t20', set='e', lh=.9),     # a calendar card: its date,
-    schedw=dict(step='t14', set='e', lh=1),      # who,
-    scht=dict(step='t16', set='e', lh=.98),      # and the title
     cue=dict(step='t12', set='c', lh=1),         # the phone's two hints, in the other colours      # Sign up, the size of the speaker's name
 )
 
@@ -1840,7 +1834,7 @@ LINKS = {'Digital Reading Room': '#',
 
 ROLE_TAG = dict(logo='div', join='p', joinzh='p', edition='div', title='h1', tag='p', info='p', desc='div', facts='div',
                 lecd='p', lecw='p', lect='p', lecl='div', lecb='div', lecbio='div',
-                lecno='p', lecs='p', lecx='span', cue='p', viewt='span', schedh='span', schedd='span', schedw='span', scht='span')
+                lecno='p', lecs='p', lecx='span', cue='p', viewt='span', schedh='span')
 
 
 def copy_html(role, text):
@@ -2160,9 +2154,9 @@ def schedule_html():
             cells.append(
                 f'<button class="sd sc" type="button" data-lec="{i}">'
                 + (pic[0] if pic else '')
-                + '<span class="sc-d">' + layers('span', 'schedd', f'{day.month}.{day.day:02d}') + '</span>'
-                + '<span class="sc-w">' + layers('span', 'schedw', sched_who(lec['who'])) + '</span>'
-                + '<span class="sc-t">' + layers('span', 'scht', esc(lec['what'])) + '</span></button>')
+                + f'<span class="sc-d">{day.month}.{day.day:02d}</span>'
+                + f'<span class="sc-w">{sched_who(lec["who"])}</span>'
+                + f'<span class="sc-t">{esc(lec["what"])}</span></button>')
         rows.append(''.join(cells))
         week += dt.timedelta(days=7)
     head = ''.join(layers('span', 'schedh', n) for n in SCHED_DAYS)
@@ -2258,18 +2252,20 @@ SCHED_CSS = '''
   .sd{position:relative;display:block;min-width:0;aspect-ratio:1.3;
     border-right:1px solid var(--sched-line);border-bottom:1px solid var(--sched-line)}
   .sc{margin:0;padding:0;border-top:0;border-left:0;font:inherit;text-align:left;cursor:pointer;
-    overflow:hidden;color:#f4efe0;container-type:inline-size;background:#33362f;
+    overflow:hidden;container-type:inline-size;background:#33362f;
     -webkit-appearance:none;appearance:none}
   .sc-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
     filter:saturate(.7) contrast(1.05) brightness(.58)}
   .sc.active .sc-img{filter:saturate(.9) contrast(1.05) brightness(.8)}
   .sc.active::after{content:"";position:absolute;inset:0;border:2px solid #f4efe0;pointer-events:none}
-  /* the words are the poster's type (TEXT: schedd, schedw, scht) */
-  .sc>span{position:absolute}
-  .sc-d{left:3cqw;top:2cqw}
-  .sc-w{right:3cqw;top:2.6cqw;width:56%;text-align:right}
-  .sc-w small{display:block;font-size:.8em}
-  .sc-t{left:3cqw;right:3cqw;bottom:3cqw}
+  /* the words on a card are plain: the poster's yellow, no effect, so they
+     stay sharp over a photograph. SAT / SUN above are the poster's type. */
+  .sc{color:#fdf48a}
+  .sc>span{position:absolute;font-weight:400;letter-spacing:-.02em}
+  .sc-d{left:3cqw;top:2cqw;font-size:8.6cqw;line-height:1;letter-spacing:-.04em}
+  .sc-w{right:3cqw;top:2.6cqw;width:56%;text-align:right;font-size:5.6cqw;line-height:1.05}
+  .sc-w small{display:block;font-size:.8em;line-height:1.05}
+  .sc-t{left:3cqw;right:3cqw;bottom:3cqw;font-size:6.9cqw;line-height:1}
   @media (max-width:__NARROW__px){
     /* the whole width */
     html.sched-on .stage{width:calc(100vw - 2 * var(--pad))}
