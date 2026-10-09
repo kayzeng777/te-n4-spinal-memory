@@ -408,6 +408,8 @@ TEXT = dict(
     lecbio=dict(step='t14', set='d'),           # a speaker's bio, beside their portrait
     lecs=dict(step='t16', set='a', gap=30),
     lecx=dict(step='t20', set='a'),              # the close; its size is set in LEC_CSS
+    schedb=dict(step='t14', set='a'),            # the calendar's own line: its name and the way back
+    schedh=dict(step='t12', set='a'),            # SAT / SUN over the columns
     cue=dict(step='t12', set='c', lh=1),         # the phone's two hints, in the other colours      # Sign up, the size of the speaker's name
 )
 
@@ -1835,7 +1837,7 @@ LINKS = {'Digital Reading Room': '#',
 
 ROLE_TAG = dict(logo='div', join='p', joinzh='p', sched='p', edition='div', title='h1', tag='p', info='p', desc='div', facts='div',
                 lecd='p', lecw='p', lect='p', lecl='div', lecb='div', lecbio='div',
-                lecno='p', lecs='p', lecx='span', cue='p')
+                lecno='p', lecs='p', lecx='span', cue='p', schedb='span', schedh='span')
 
 
 def copy_html(role, text):
@@ -2160,10 +2162,11 @@ def schedule_html():
                 + f'<span class="sc-t">{esc(lec["what"])}</span></button>')
         rows.append(''.join(cells))
         week += dt.timedelta(days=7)
-    head = ''.join(f'<span>{n}</span>' for n in SCHED_DAYS)
+    head = ''.join(layers('span', 'schedh', n) for n in SCHED_DAYS)
     return ('<section class="sched" id="schedule" aria-label="Calendar view">'
-            '<div class="sched-bar"><span>Calendar view</span>'
-            '<button class="sched-back" type="button">Back to spine</button></div>'
+            '<div class="sched-bar">' + layers('span', 'schedb', 'Calendar view')
+            + '<button class="sched-back" type="button">' + layers('span', 'schedb', 'Back to spine')
+            + '</button></div>'
             f'<div class="sched-head" aria-hidden="true">{head}</div>'
             f'<div class="sched-grid">{"".join(rows)}</div>'
             '</section>\n'
@@ -2183,22 +2186,27 @@ def schedule_html():
 SCHED_CSS = '''
   /* The calendar view, in the spine's place. Switched on
      by html.sched-on; the spine, its numbers, its grid and its hint go. */
-  .sched{display:none;width:min(100%,380px);margin:0 auto;color:var(--a-ink);
+  .sched{display:none;width:100%;
     --sched-line:#f3eca0}   /* pale yellow on the green; the other palettes keep their own grid */
   html[data-theme] .sched{--sched-line:var(--grid-line)}
   html.sched-on .sched{display:block}
+  /* Beside the spine it is wider than the spine's own column, by what the two
+     side columns leave -- never closer to them than 40px, and never past
+     640px, where the cards' type would be larger than the poster's. */
+  @media not all and (max-width:__NARROW__px){
+    .sched{--sw:max(100%, min(calc(100vw - var(--tools,0px) - 2 * (var(--col) + var(--pad) + 40px)), 640px));
+      width:var(--sw);margin-left:calc((100% - var(--sw)) / 2)}
+  }
   html.sched-on .stage>.spine,html.sched-on .t-lecno,html.sched-on .grid,
   html.sched-on .cue-tap,html.sched-on .cue-click{display:none !important}
   html.sched-on main{background-image:none !important}
-  .sched-bar{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;
-    font-size:12px;line-height:1;text-shadow:0 0 8px var(--a-glow)}
-  .sched-back{border:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer;
-    text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.18em;
-    text-shadow:inherit}
+  /* type is the poster's own (TEXT: schedb, schedh) */
+  .sched-bar{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+  .sched-back{border:0;background:none;padding:0;margin:0;font:inherit;cursor:pointer;line-height:0}
+  .sched-back .t>*{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.18em}
   .sched-back:focus-visible,.sc:focus-visible{outline:2px solid var(--a-ink);outline-offset:2px}
   .sched-head,.sched-grid{display:grid;grid-template-columns:1fr 1fr}
-  .sched-head{margin-bottom:6px;font-size:10px;line-height:1;letter-spacing:.03em;text-align:center;
-    text-shadow:0 0 8px var(--a-glow)}
+  .sched-head{margin-bottom:4px;justify-items:center}
   .sched-grid{border-top:1px solid var(--sched-line);border-left:1px solid var(--sched-line)}
   .sd{position:relative;display:block;min-width:0;aspect-ratio:1.3;
     border-right:1px solid var(--sched-line);border-bottom:1px solid var(--sched-line)}
@@ -2218,9 +2226,7 @@ SCHED_CSS = '''
     /* the whole width */
     html.sched-on .stage{width:calc(100vw - 2 * var(--pad))}
     /* under the logo and the links, which the spine's own empty top clears */
-    .sched{width:100%;margin-top:48px}
-    .sched-head{font-size:11px}
-    .sched-bar{font-size:13px}
+    .sched{margin-top:48px}
   }'''
 
 
