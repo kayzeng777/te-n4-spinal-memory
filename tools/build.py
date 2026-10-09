@@ -381,6 +381,7 @@ ROLES = dict(
     logo=dict(at='head', step='mark', set='a'),
     join=dict(at='head-r', step='su', set='a', href=SERIES_SIGNUP),
     joinzh=dict(at='head-r', step='t12', set='a', href=ZH_INTRO),   # under it
+    sched=dict(at='head-r', step='t12', set='a', href='#schedule'), # and under that: opens the calendar
     # The te editions chip, the title and the subtitle head the written
     # column, over the Intro, and are one link to the issue: roles that name
     # the same `href` are wrapped in one <a>. No widths: the column's measure
@@ -832,6 +833,8 @@ HEAD = '''<title>te online lecture</title>
   .t-join>*,.t-joinzh>*{text-decoration:underline;text-decoration-thickness:1px;
     text-underline-offset:.18em}
   .t-join>*::after,.t-joinzh>*::after{content:"\\2197";display:inline-block;margin-left:.12em}
+  .t-sched>*{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.18em}
+  .head-r .t-sched{--ls:.01em}
   /* The reading -- the information's paragraphs and a lecture's description
      and bios -- a touch more open than the ramp gives its size. */
   .poster :is(.t-desc,.t-facts),.lec :is(.t-lecb,.t-lecbio){--lh:1.06}
@@ -842,7 +845,7 @@ HEAD = '''<title>te online lecture</title>
     pointer-events:none;transition:opacity .3s ease}
   .cue.end{opacity:0}
   .nocues .cue{display:none !important}   /* ?nocues, ?clean */
-  .clean .role-link:has(.t-joinzh),.clean .t-joinzh{display:none !important}   /* ?clean */
+  .clean .role-link:has(.t-joinzh),.clean .t-joinzh,.clean .role-link:has(.t-sched){display:none !important}   /* ?clean */
   .cue .t-cue{--glowR:3.4em;--bloomR:10px}
   /* over the spine, on a soft patch of the ground so they read there */
   .cue-soft::before{content:"";position:absolute;z-index:-1;left:50%;top:50%;
@@ -1266,16 +1269,18 @@ __LECS__
 </div>
 </div>
 <script>
-  // The Chinese intro link under Sign up is set to Sign up's width, and its
-  // size follows from that: every length on it is in em, so the width is
-  // linear in the size and one measure at a trial size is enough.
+  // The links under Sign up are set to Sign up's width, and their size follows
+  // from that: every length on them is in em, so the width is linear in the
+  // size and one measure at a trial size is enough.
   (function(){
     const fit=()=>{
-      const a=document.querySelector('.t-join .ink'),b=document.querySelector('.t-joinzh .ink');
-      if(!a||!b)return;
-      const t=b.closest('.t');t.style.setProperty('--fs','10px');
-      const wa=a.getBoundingClientRect().width,wb=b.getBoundingClientRect().width;
-      if(wa&&wb)t.style.setProperty('--fs',(10*wa/wb)+'px');};
+      const a=document.querySelector('.t-join .ink');
+      if(!a)return;
+      ['joinzh','sched'].forEach(r=>{
+        const b=document.querySelector('.t-'+r+' .ink');if(!b)return;
+        const t=b.closest('.t');t.style.setProperty('--fs','10px');
+        const wa=a.getBoundingClientRect().width,wb=b.getBoundingClientRect().width;
+        if(wa&&wb)t.style.setProperty('--fs',(10*wa/wb)+'px');});};
     fit();addEventListener('resize',fit);
     if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
   })();
@@ -1763,6 +1768,7 @@ __LECS__
   })();
 </script>
 </main>
+__SCHED__
 '''
 
 # The copy, as plain text. A blank line starts a paragraph, a single newline is a
@@ -1771,6 +1777,7 @@ __LECS__
 COPY = dict(
     join='Sign up',                # underlined, with its arrow, by .t-join
     joinzh='中文版介绍',        # the same, under it
+    sched='Full schedule',      # opens the calendar (SCHED_CSS), no arrow: it stays on the page
     edition='[te editions\u2009\u2197]',
     title='Spinal Memory',
     tag='Research and Practice on Non-Human Animals',
@@ -1817,7 +1824,7 @@ LINKS = {'Digital Reading Room': '#',
          'Institute of Critical Zoologists': 'https://www.criticalzoologists.org/main.html',
          'Interspecies Library': 'https://interspecieslibrary.com/'}
 
-ROLE_TAG = dict(logo='div', join='p', joinzh='p', edition='div', title='h1', tag='p', info='p', desc='div', facts='div',
+ROLE_TAG = dict(logo='div', join='p', joinzh='p', sched='p', edition='div', title='h1', tag='p', info='p', desc='div', facts='div',
                 lecd='p', lecw='p', lect='p', lecl='div', lecb='div', lecbio='div',
                 lecno='p', lecs='p', lecx='span', cue='p')
 
@@ -2095,6 +2102,127 @@ TOOLS_CSS = '.tools{position:fixed;right:0;top:0;bottom:0;z-index:200;width:272p
 PANEL_JS = '(function(){\n  if(!/[?&]tools/.test(location.search)) return;\n  const D = __DATA__;\n  D.all = Object.assign({}, D.roles, D.text);\n  D.order = Object.keys(D.all);\n\n  // The same rule as steps()/types() in build.py: every text step is the base\n  // resized, and only tracking and leading are walked with the size. Kept in\n  // step with it by hand — if the rule there changes, it changes here.\n  function derive() {\n    D.steps = {mark: D.markStep};\n    D.type = {mark: D.markType};\n    D.back = {mark: back(D.markBack)};\n    Object.entries(D.sizes).forEach(([n, size]) => {\n      const d = Math.min(size[0], D.walkStop) - D.baseSize;\n      D.steps[n] = {size, soft: D.base.soft, glow: D.base.glow,\n                    bloom: D.base.bloom, solid: D.base.solid};\n      D.type[n] = {weight: D.base.weight,\n                   ls: +(D.base.ls - D.track * d).toFixed(4),\n                   lh: +(D.base.lh - D.lead * d).toFixed(3)};\n      D.back[n] = back(D.baseBack);\n    });\n  }\n  // the backlight\'s opacities are its own; its colour is the page\'s\n  const back = b => Object.assign({}, b, {slab: [D.blc, b.slab], glow: [D.blc, b.glow]});\n  derive();\n  const redraw = () => { derive(); apply(); Object.keys(D.steps).forEach(paintBack); dump(); };\n  const panel = document.getElementById(\'tools\');\n  panel.classList.add(\'on\');\n  document.documentElement.classList.add(\'has-tools\');\n\n  const $ = (t, a = {}, kids = []) => {\n    const el = document.createElement(t);\n    for (const k in a) k === \'text\' ? el.textContent = a[k] : el.setAttribute(k, a[k]);\n    kids.forEach(c => el.appendChild(c));\n    return el;\n  };\n  const field = (box, label, input) => {\n    box.appendChild($(\'div\', {class: \'f\'}, [$(\'label\', {text: label}), input]));\n    return input;\n  };\n  const num = (v, min, max, step) => $(\'input\', {type: \'number\', value: v, min, max, step});\n  const slider = (box, v, min, max, step) => {\n    const r = $(\'input\', {type: \'range\', min, max, step, value: v});\n    box.appendChild(r); return r;\n  };\n  const colour = (v, onset) => {\n    const el = $(\'input\', {type: \'color\', value: v});\n    el.oninput = e => onset(e.target.value);\n    return el;\n  };\n\n  // The backlight is one SVG filter per step, built by build.py and not\n  // rebuildable from here -- but every number in it lives on an attribute that\n  // takes a new value in place: a morphology radius, two deviations, a matrix\n  // and two floods. Only `stack` needs nodes added or removed. The radii are in\n  // em of the step\'s own size, so each of a step\'s two filters (poster, and the\n  // small-screen one) is painted from its own font size.\n  function paintBack(name) {\n    const b = D.back[name], st = D.steps[name];\n    [[st.size[0], \'bl-\' + name], [st.size[1], \'bl-\' + name + \'-s\']].forEach(([fs, id]) => {\n      const f = document.getElementById(id);\n      if (!f) return;\n      const q = k => f.querySelector(\'[data-bl="\' + k + \'"]\');\n      q(\'dilate\').setAttribute(\'radius\', (b.dilate * fs).toFixed(2));\n      q(\'merge\').setAttribute(\'stdDeviation\', (b.merge * fs).toFixed(2));\n      q(\'halo\').setAttribute(\'stdDeviation\', (b.halo * fs).toFixed(2));\n      q(\'hard\').setAttribute(\'values\',\n        \'0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 \' + b.hard + \' \' + (-b.hard / 2));\n      [\'slab\', \'glow\'].forEach(k => {\n        q(k).setAttribute(\'flood-color\', b[k][0]);\n        q(k).setAttribute(\'flood-opacity\', b[k][1]);\n      });\n      // same curve as stack_table() in build.py\n      const n = Math.max(1, Math.round(b.stack)), S = 64, v = [];\n      for (let k = 0; k <= S; k++) v.push((1 - Math.pow(1 - k / S, n)).toFixed(4));\n      q(\'stack\').firstElementChild.setAttribute(\'tableValues\', v.join(\' \'));\n    });\n  }\n\n  const pick = (v, opts) => {\n    const sel = $(\'select\');\n    opts.forEach(o => {\n      const opt = $(\'option\', {value: o});\n      opt.textContent = o;\n      if (o === v) opt.selected = true;\n      sel.appendChild(opt);\n    });\n    return sel;\n  };\n\n  // The same rule as copy_html in build.py: a blank line starts a paragraph, a\n  // single newline is a break, and only the div-wrapped roles take paragraphs.\n  function copyHtml(role, text) {\n    const esc = t => t.replace(/&/g, \'&amp;\').replace(/</g, \'&lt;\').replace(/>/g, \'&gt;\');\n    const paras = text.trim().split(/\\n\\s*\\n/).filter(p => p.trim());\n    const link = t => t.replace(/\\[\\[(.+?)\\]\\]/g, (_, x) =>\n      \'<a href="\' + (D.links[x] || \'#\') + \'" target="_blank" rel="noopener">\' + x + \'</a>\');\n    const em = t => t.replace(/\\*([^*]+)\\*/g, \'<em>$1</em>\');\n    const br = p => p.split(\'\\n\').map(l => em(link(esc(l)))).join(\'<br>\');\n    const para = p => { const t = p.trim(), n = t.indexOf(\'\\n\');\n      const w = t.match(/^\\[([^\\[\\]]+)\\]$/);\n      if (w) return \'<p class="chip"><span>\' + br(w[1]) + \'</span></p>\';\n      const head = n < 0 ? t : t.slice(0, n), rest = n < 0 ? \'\' : t.slice(n + 1);\n      const m = head.trim().match(/^\\[([^\\[\\]]+)\\]$/);\n      return m ? \'<p class="chip"><span>\' + esc(m[1]) + \'</span></p>\'\n                 + (rest.trim() ? \'<p>\' + br(rest) + \'</p>\' : \'\')\n               : \'<p>\' + br(p) + \'</p>\'; };\n    return D.tag[role] === \'div\'\n      ? paras.map(para).join(\'\')\n      : paras.map(br).join(\'<br>\');\n  }\n  function setCopy(role) {\n    const el = document.querySelector(\'.t-\' + role);\n    if (!el) return;\n    const html = copyHtml(role, D.copy[role]);\n    [...el.children].forEach(layer => layer.innerHTML = html);\n  }\n\n  // The one place a role\'s numbers reach the page. Corners are re-filled in the\n  // declared order so moving one role never reshuffles the others.\n  function apply() {\n    D.order.forEach(role => {\n      const r = D.all[role], st = D.steps[r.step], c = D.sets[r.set];\n      document.querySelectorAll(\'.t-\' + role).forEach(el => {\n      const s = el.style;\n      s.setProperty(\'--fs\', st.size[0] + \'px\');\n      s.setProperty(\'--soft\', st.soft + \'px\');\n      s.setProperty(\'--solid\', st.solid == null ? 1 : st.solid);\n      s.setProperty(\'--glowR\', st.glow + \'em\');\n      s.setProperty(\'--bloomR\', st.bloom + \'px\');\n      s.setProperty(\'--slabF\', \'url(#bl-\' + r.step + \')\');\n      // 字重、字距、行距属于字号档，不属于角色——换档要整套跟过去\n      const ty = D.type[r.step] || {};\n      s.setProperty(\'--w\', ty.weight);\n      s.setProperty(\'--ls\', (r.ls ?? ty.ls) + \'em\');\n      s.setProperty(\'--lh\', r.lh ?? ty.lh);\n      s.setProperty(\'--ink\', c.ink);\n      s.setProperty(\'--glow\', c.glow);\n      s.setProperty(\'--bloom\', c.bloom);\n      s.setProperty(\'--gap\', (r.gap || 0) + \'px\');\n      s.setProperty(\'--maxw\', r.width ? r.width + \'ch\' : \'var(--fit)\');\n      });\n    });\n    // spacing and size both move the detail\'s height, and the reveal animates\n    // to a number that was measured before this edit\n    if (window.__lecMeasure) window.__lecMeasure();\n    D.corners.forEach(corner => {\n      const box = document.querySelector(\'.\' + corner);\n      if (!box) return;\n      Object.keys(D.roles).filter(role => D.roles[role].at === corner)\n             .forEach(role => { const b = D.roles[role].box;\n               (b && box.querySelector(\'.\' + b) || box)\n                 .appendChild(document.querySelector(\'.t-\' + role)); });\n    });\n  }\n\n  Object.entries(D.all).forEach(([role, r]) => {\n    const pinned = role in D.roles;\n    panel.appendChild($(\'h3\', {text: role + (pinned ? \'\' : \' · 讲座\')}));\n    const box = $(\'section\');\n    panel.appendChild(box);\n\n    field(box, \'字号档\', pick(r.step, Object.keys(D.steps)))\n      .onchange = e => { r.step = e.target.value; apply(); dump(); };\n    if (pinned) field(box, \'位置\', pick(r.at, D.corners))\n      .onchange = e => { r.at = e.target.value; apply(); dump(); };\n    field(box, \'配色\', pick(r.set, Object.keys(D.sets)))\n      .onchange = e => { r.set = e.target.value; apply(); dump(); };\n\n    const g = field(box, \'上方间距 px\', num(r.gap || 0, 0, 160, 2));\n    const gr = slider(box, r.gap || 0, 0, 160, 2);\n    const setGap = v => { r.gap = +v; g.value = v; gr.value = v; apply(); dump(); };\n    g.oninput = e => setGap(e.target.value);\n    gr.oninput = e => setGap(e.target.value);\n\n    if (role in D.copy) {\n      box.appendChild($(\'div\', {class: \'hint\', text: \'文案：空行分段，单个换行是换行\'}));\n      const ta = document.createElement(\'textarea\');\n      ta.value = D.copy[role];\n      ta.rows = role === \'desc\' ? 8 : 4;\n      ta.spellcheck = false;\n      ta.style.cssText = \'height:auto;font:10px/1.5 var(--font-sans)\';\n      box.appendChild(ta);\n      ta.oninput = () => { D.copy[role] = ta.value; setCopy(role); dump(); };\n    }\n\n    const w = field(box, \'宽度 ch · 0=不限\', num(r.width || 0, 0, 90, 1));\n    const wr = slider(box, r.width || 0, 0, 90, 1);\n    const setW = v => { r.width = +v; w.value = v; wr.value = v; apply(); dump(); };\n    w.oninput = e => setW(e.target.value);\n    wr.oninput = e => setW(e.target.value);\n  });\n\n  // A step is shared by every role that names it, so these move type all over\n  // the poster at once. soft is the blur on the ink layer -- the one that\n  // decides whether small type is legible -- and glow and bloom are the haze\n  // around it. The slab filter is built at build time from `size`, so changing\n  // size here moves the type without moving its silhouette: rebuild to see it.\n  // One section, not one per step: the ramp has a single hand-set size in it.\n  {\n    panel.appendChild($(\'h3\', {text: \'基准 t\' + D.baseSize}));\n    const box = $(\'section\');\n    panel.appendChild(box);\n    const knob = (label, min, max, step, read, write) => {\n      const n = field(box, label, num(read(), min, max, step));\n      const r = slider(box, read(), min, max, step);\n      const set = v => { write(+v); n.value = v; r.value = v; redraw(); };\n      n.oninput = e => set(e.target.value);\n      r.oninput = e => set(e.target.value);\n    };\n    const B = D.base;\n    knob(\'字距 em · ls\', -.12, .3, .005, () => B.ls, v => B.ls = v);\n    knob(\'行距 · lh\', .6, 2, .01, () => B.lh, v => B.lh = v);\n    knob(\'字重\', 100, 700, 50, () => B.weight, v => B.weight = v);\n    knob(\'模糊 px · soft\', 0, 4, .02, () => B.soft, v => B.soft = v);\n    knob(\'实心度 · solid\', 0, 1, .02, () => B.solid, v => B.solid = v);\n    knob(\'内发光 em · glow\', 0, 3, .01, () => B.glow, v => B.glow = v);\n    knob(\'外发光 px · bloom\', 0, 40, .1, () => B.bloom, v => B.bloom = v);\n    box.appendChild($(\'div\', {class: \'hint\', text:\n      \'其余字号由此算出。下面两个是阶梯的斜率：每大 1px，字距和行距各收回多少。\'}));\n    knob(\'字距斜率 · TRACK\', 0, .04, .0005, () => D.track, v => D.track = v);\n    knob(\'行距斜率 · LEAD\', 0, .06, .0005, () => D.lead, v => D.lead = v);\n  }\n\n  // The backlight. Radii in em, so the base\'s numbers are the whole ramp.\n  [[\'基准 背光\', D.baseBack], [\'mark 背光\', D.markBack]].forEach(([title, b]) => {\n    panel.appendChild($(\'h3\', {text: title}));\n    const box = $(\'section\');\n    panel.appendChild(box);\n    const knob = (label, min, max, step, read, write) => {\n      const n = field(box, label, num(read(), min, max, step));\n      const r = slider(box, read(), min, max, step);\n      const set = v => { write(+v); n.value = v; r.value = v; redraw(); };\n      n.oninput = e => set(e.target.value);\n      r.oninput = e => set(e.target.value);\n    };\n    knob(\'实色不透明\', 0, 1, .02, () => b.slab, v => b.slab = v);\n    knob(\'晕色不透明\', 0, 1, .02, () => b.glow, v => b.glow = v);\n    knob(\'外扩 em · dilate\', 0, .4, .005, () => b.dilate, v => b.dilate = v);\n    knob(\'合并 em · merge\', 0, .3, .005, () => b.merge, v => b.merge = v);\n    knob(\'晕开 em · halo\', 0, .8, .005, () => b.halo, v => b.halo = v);\n    knob(\'叠加次数 · stack\', 1, 24, 1, () => b.stack, v => b.stack = v);\n    knob(\'切边硬度 · hard\', .5, 12, .1, () => b.hard, v => b.hard = v);\n  });\n\n  // ONE colour, for every backlight on the page. Per-step would only ever\n  // produce four shades of almost-the-same-yellow lit side by side.\n  {\n    panel.appendChild($(\'h3\', {text: \'背光颜色 · 全局\'}));\n    const box = $(\'section\');\n    panel.appendChild(box);\n    field(box, \'颜色\', colour(D.blc, v => { D.blc = v; redraw(); }));\n    box.appendChild($(\'div\', {class: \'hint\', text:\n      \'整页所有背光共用这一个颜色。浓淡分别在上面两节的不透明度里调。\'}));\n  }\n\n  {\n    panel.appendChild($(\'h3\', {text: \'mark · 字号档\'}));\n    const box = $(\'section\');\n    panel.appendChild(box);\n    const knob = (label, min, max, step, read, write) => {\n      const n = field(box, label, num(read(), min, max, step));\n      const r = slider(box, read(), min, max, step);\n      const set = v => { write(+v); n.value = v; r.value = v; redraw(); };\n      n.oninput = e => set(e.target.value);\n      r.oninput = e => set(e.target.value);\n    };\n    const S = D.markStep, T = D.markType;\n    knob(\'字号 px\', 8, 200, .5, () => S.size[0], v => S.size[0] = v);\n    knob(\'字距 em · ls\', -.12, .3, .005, () => T.ls, v => T.ls = v);\n    knob(\'行距 · lh\', .6, 2, .01, () => T.lh, v => T.lh = v);\n    knob(\'字重\', 100, 700, 50, () => T.weight, v => T.weight = v);\n    knob(\'模糊 px · soft\', 0, 4, .02, () => S.soft, v => S.soft = v);\n    knob(\'实心度 · solid\', 0, 1, .02, () => S.solid, v => S.solid = v);\n    knob(\'内发光 em · glow\', 0, 3, .01, () => S.glow, v => S.glow = v);\n    knob(\'外发光 px · bloom\', 0, 40, .1, () => S.bloom, v => S.bloom = v);\n  }\n\n  // The two gaps that belong to the lecture blocks rather than to any one role.\n  panel.appendChild($(\'h3\', {text: \'讲座间距\'}));\n  {\n    const box = $(\'section\');\n    panel.appendChild(box);\n    const lecs = document.querySelector(\'.lecs\');\n    const pxKnob = (label, prop, min, max, step) => {\n      const cur = parseFloat(getComputedStyle(lecs).getPropertyValue(prop)) || 0;\n      const n = field(box, label, num(cur, min, max, step));\n      const r = slider(box, cur, min, max, step);\n      const set = v => { lecs.style.setProperty(prop, v + \'px\'); n.value = v; r.value = v; dump(); };\n      n.oninput = e => set(e.target.value);\n      r.oninput = e => set(e.target.value);\n    };\n    pxKnob(\'行距 --lec-lead\', \'--lec-lead\', 0, 60, 1);\n    pxKnob(\'离脊柱 --lec-gap\', \'--lec-gap\', 0, 200, 2);\n  }\n\n  panel.appendChild($(\'h3\', {text: \'页边距\'}));\n  {\n    const box = $(\'section\');\n    panel.appendChild(box);\n    const cur = parseInt(getComputedStyle(document.documentElement).getPropertyValue(\'--pad\'));\n    const p = field(box, \'--pad px\', num(cur, 8, 96, 2));\n    const pr = slider(box, cur, 8, 96, 2);\n    const setPad = v => {\n      document.documentElement.style.setProperty(\'--pad\', v + \'px\');\n      p.value = v; pr.value = v; dump();\n    };\n    p.oninput = e => setPad(e.target.value);\n    pr.oninput = e => setPad(e.target.value);\n  }\n\n  panel.appendChild($(\'h3\', {text: \'导出 · 贴回 build.py\'}));\n  const out = $(\'textarea\', {readonly: \'\', spellcheck: \'false\'});\n  {\n    const box = $(\'section\');\n    panel.appendChild(box);\n    box.appendChild(out);\n    box.appendChild($(\'div\', {class: \'hint\', text:\n      \'面板只改这一页，刷新就回到 build.py 里的值。\' +\n      \'导出的是手调的那些数，不是它们算出来的阶梯。\'}));\n  }\n\n  function dump() {\n    const q = s => "\'" + s + "\'";\n    const row = (role, withAt) => {\n      const r = D.all[role];\n      const bits = [];\n      if (withAt) bits.push(\'at=\' + q(r.at));\n      bits.push(\'step=\' + q(r.step), \'set=\' + q(r.set));\n      if (r.gap) bits.push(\'gap=\' + r.gap);\n      if (r.width) bits.push(\'width=\' + r.width);\n      if (r.ls != null) bits.push(\'ls=\' + r.ls);\n      if (r.lh != null) bits.push(\'lh=\' + r.lh);\n      return \'    \' + role + \'=dict(\' + bits.join(\', \') + \'),\';\n    };\n    const py = s => "\'" + s.replace(/\\\\/g, \'\\\\\\\\\').replace(/\'/g, "\\\\\'")\n      .replace(/\\n/g, \'\\\\n\') + "\'";\n    const copy = Object.keys(D.copy).map(k => \'    \' + k + \'=\' + py(D.copy[k]) + \',\');\n    // Only the hand-set numbers come back out. The ramp is a rule, and printing\n    // the five sizes it produces would invite pasting them back as five tables.\n    const B = D.base, S = D.markStep, T = D.markType;\n    const dict = (name, pairs) => name + \' = dict(\' + pairs.join(\', \') + \')\';\n    const bk = (name, b) => dict(name, [\'dilate=\' + b.dilate, \'merge=\' + b.merge,\n      \'hard=\' + b.hard, \'halo=\' + b.halo, \'stack=\' + Math.round(b.stack),\n      \'slab=\' + b.slab, \'glow=\' + b.glow]);\n    const lecs = getComputedStyle(document.querySelector(\'.lecs\'));\n    out.value =\n        dict(\'BASE\', [\'soft=\' + B.soft, \'glow=\' + B.glow, \'bloom=\' + B.bloom,\n                      \'solid=\' + B.solid, \'weight=\' + B.weight,\n                      \'ls=\' + B.ls, \'lh=\' + B.lh]) + \'\\n\'\n      + \'TRACK = \' + D.track + \'\\n\'\n      + \'LEAD = \' + D.lead + \'\\n\\n\'\n      + dict(\'MARK_STEP\', [\'size=(\' + S.size[0] + \', \' + S.size[1] + \')\',\n                           \'soft=\' + S.soft, \'glow=\' + S.glow, \'bloom=\' + S.bloom,\n                           \'solid=\' + S.solid]) + \'\\n\'\n      + dict(\'MARK_TYPE\', [\'weight=\' + T.weight, \'ls=\' + T.ls, \'lh=\' + T.lh]) + \'\\n\\n\'\n      + "BACKLIGHT_COLOUR = \'" + D.blc + "\'\\n"\n      + bk(\'BASE_BACK\', D.baseBack) + \'\\n\'\n      + bk(\'MARK_BACK\', D.markBack) + \'\\n\\n\'\n      + \'ROLES = dict(\\n\' + Object.keys(D.roles).map(r => row(r, true)).join(\'\\n\') + \'\\n)\\n\\n\'\n      + \'TEXT = dict(\\n\' + Object.keys(D.text).map(r => row(r, false)).join(\'\\n\') + \'\\n)\\n\\n\'\n      + \'COPY = dict(\\n\' + copy.join(\'\\n\') + \'\\n)\\n\\n\'\n      + \'--pad: \' + getComputedStyle(document.documentElement).getPropertyValue(\'--pad\').trim()\n      + \'\\n--lec-lead: \' + lecs.getPropertyValue(\'--lec-lead\').trim()\n      + \'\\n--lec-gap: \' + lecs.getPropertyValue(\'--lec-gap\').trim();\n  }\n\n  apply(); dump();\n})();\n'
 
 
+# ---------------------------------------------------------------------------
+# The full schedule: a week-by-week calendar, opened from the link in the
+# top right. Every lecture is a card in its own weekday's column, over its
+# first picture; rows are weeks, Monday to Sunday, and are built from the
+# dates in LECTURES -- a new lecture is a row, not a new rule.
+SCHED_YEAR = 2026
+SCHED_DAYS = ('MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN')
+
+
+def sched_who(who):
+    """The speaker line of a card: Latin names only, and a parenthesis (the
+    guest moderator) set smaller under them."""
+    esc = lambda t: t.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+    who = re.sub(r'[㐀-鿿]+\s*', '', who).strip()
+    m = re.match(r'^(.*?)\s*(\(.*\))$', who)
+    return (esc(m.group(1)) + f' <small>{esc(m.group(2))}</small>') if m else esc(who)
+
+
+def schedule_html():
+    import datetime as dt
+    esc = lambda t: t.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+    days = []
+    for lec in LECTURES:
+        d = dt.datetime.strptime(f"{lec['when']} {SCHED_YEAR}", '%b %d %Y').date()
+        days.append((d, lec))
+    first = min(d for d, _ in days)
+    last = max(d for d, _ in days)
+    week = first - dt.timedelta(days=first.weekday())
+    rows = []
+    while week <= last:
+        cells = []
+        for k in range(7):
+            day = week + dt.timedelta(days=k)
+            lec = next((l for d, l in days if d == day), None)
+            if lec is None:
+                cells.append(f'<div class="sd{" sd-wk" if k < 5 else ""}"></div>')
+                continue
+            pic = next((p for p in (lec_img(n, **{'class': 'sc-img'}) for n in lec.get('pics', [])) if p), None)
+            href = esc(lec.get('signup', SIGNUP))
+            cells.append(
+                f'<a class="sd sc" href="{href}" target="_blank" rel="noopener">'
+                + (pic[0] if pic else '')
+                + f'<span class="sc-d">{day.month}.{day.day:02d}</span>'
+                + f'<span class="sc-w">{sched_who(lec["who"])}</span>'
+                + f'<span class="sc-t">{esc(lec["what"])}</span></a>')
+        rows.append(''.join(cells))
+        week += dt.timedelta(days=7)
+    head = ''.join(f'<span class="{"sh-wk" if k < 5 else ""}">{n}</span>' for k, n in enumerate(SCHED_DAYS))
+    return ('<div class="sched" id="schedule" role="dialog" aria-modal="true" aria-label="Full schedule">'
+            '<button class="sched-close" type="button">Close ×</button>'
+            '<div class="sched-wrap">'
+            '<h2 class="sched-title">Spinal Memory <span>Full schedule</span></h2>'
+            f'<div class="sched-head">{head}</div>'
+            f'<div class="sched-grid">{"".join(rows)}</div>'
+            '</div></div>\n'
+            '<script>(function(){\n'
+            '  const h=document.documentElement,s=document.getElementById("schedule");\n'
+            '  if(!s)return;\n'
+            '  let from=null;\n'
+            '  const open=()=>{from=document.activeElement;h.classList.add("sched-open");s.scrollTop=0;\n'
+            '    s.querySelector(".sched-close").focus({preventScroll:true});};\n'
+            '  const close=()=>{h.classList.remove("sched-open");\n'
+            '    if(from&&from.focus)from.focus({preventScroll:true});\n'
+            '    if(location.hash==="#schedule")history.replaceState(null,"",location.pathname+location.search);};\n'
+            '  document.addEventListener("click",e=>{\n'
+            '    if(e.target.closest(\'a[href="#schedule"]\')){e.preventDefault();open();}});\n'
+            '  s.querySelector(".sched-close").addEventListener("click",close);\n'
+            '  addEventListener("keydown",e=>{if(e.key==="Escape"&&h.classList.contains("sched-open"))close();});\n'
+            '  if(location.hash==="#schedule")open();\n'
+            '})();</script>')
+
+
+SCHED_CSS = '''
+  /* The full schedule. A page over the page, in the palette's own ground; the
+     grain (z-index 4) is over it as over everything. */
+  .sched{display:none;position:fixed;inset:0;z-index:3;overflow-y:auto;overscroll-behavior:contain;
+    scrollbar-width:none;background:linear-gradient(180deg,rgb(var(--bg0)) 0%,rgb(var(--bg1)) 70%,rgb(var(--bg2)) 100%);
+    color:var(--a-ink)}
+  .sched::-webkit-scrollbar{display:none}
+  html.sched-open{overflow:hidden}
+  html.sched-open .sched{display:block;animation:sched-in .25s ease}
+  @keyframes sched-in{from{opacity:0}to{opacity:1}}
+  .sched-close{position:fixed;top:var(--pad);right:var(--pad);z-index:1;border:0;cursor:pointer;
+    font:inherit;font-size:15px;line-height:1;padding:6px 8px;margin:-6px -8px;color:var(--a-ink);
+    background:rgb(var(--bg1) / .8);text-shadow:0 0 8px var(--a-glow)}
+  .sched-close:focus-visible{outline:2px solid var(--a-ink);outline-offset:2px}
+  .sched-wrap{width:min(calc(100% - 2 * var(--pad)), 1080px);margin:0 auto;padding:var(--pad) 0 calc(var(--pad) * 2)}
+  .sched-title{margin:0 0 28px;font-weight:400;font-size:15px;line-height:1;letter-spacing:.01em;
+    text-shadow:0 0 8px var(--a-glow)}
+  .sched-title span{margin-left:.6em}
+  .sched-head{display:grid;grid-template-columns:repeat(5,.19fr) 1fr 1fr;margin-bottom:10px;font-size:clamp(11px,1.5vw,18px);line-height:1;letter-spacing:.02em;
+    text-align:center;text-shadow:0 0 8px var(--a-glow)}
+  /* one grid for every row, so a column stays a column down the page */
+  .sched-grid{display:grid;grid-template-columns:repeat(5,.19fr) 1fr 1fr;
+    border-top:1px solid var(--grid-line);border-left:1px solid var(--grid-line)}
+  .sd{position:relative;display:block;aspect-ratio:1.6;min-width:0;
+    border-right:1px solid var(--grid-line);border-bottom:1px solid var(--grid-line)}
+  /* Mon to Fri are drawn only to hold the shape; a row is as tall as its Saturday */
+  .sd-wk{aspect-ratio:auto}
+  .sc{overflow:hidden;color:#f4efe0;text-decoration:none;container-type:inline-size;
+    background:#33362f;font-variation-settings:normal}
+  .sc-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+    filter:saturate(.7) contrast(1.05) brightness(.58);transition:filter .3s ease}
+  .sc:hover .sc-img,.sc:focus-visible .sc-img{filter:saturate(.9) contrast(1.05) brightness(.8)}
+  .sc:focus-visible{outline:2px solid var(--a-ink);outline-offset:-3px}
+  .sc>span{position:absolute;font-weight:400;letter-spacing:-.025em}
+  .sc-d{left:1.8cqw;top:.4cqw;font-size:9.6cqw;line-height:1;letter-spacing:-.045em}
+  .sc-w{right:2cqw;top:1.4cqw;width:52%;text-align:right;font-size:6.3cqw;line-height:1.04}
+  .sc-w small{display:block;font-size:.76em;line-height:1.04;letter-spacing:-.02em}
+  .sc-t{left:1.8cqw;right:2cqw;bottom:1.6cqw;font-size:8.1cqw;line-height:.98}
+  @media (max-width:__NARROW__px){
+    /* two columns: Monday to Friday would be slivers at this width */
+    .sched-head,.sched-grid{grid-template-columns:1fr 1fr}
+    .sh-wk,.sd-wk{display:none}
+    .sd{aspect-ratio:1/1.12}
+    .sched-head{font-size:13px}
+    .sched-title{margin-bottom:22px}
+  }'''
+
+
+
 def tools_panel():
     """A side panel for placing and sizing the roles. It appears on ?tools only —
     the poster itself should not ship a dev panel. It edits the same three tables
@@ -2118,7 +2246,7 @@ def page(inline, spine=None, cols=None, rows=None, tools=False):
                 .replace('__TYPEBASE__', TYPE_CSS)
                 .replace('__TOOLSCSS__', TOOLS_CSS if tools else '').replace('__TYPECSS__', type_css()).replace('__THEMECSS__', theme_css())
                 .replace('__TYPECSS_SMALL__', type_css_small())
-                .replace('__LECCSS__', LEC_CSS.replace('__WHOGAP__', str(TEXT['lecw'].get('gap', 0))))
+                .replace('__LECCSS__', LEC_CSS.replace('__WHOGAP__', str(TEXT['lecw'].get('gap', 0))) + SCHED_CSS.replace('__NARROW__', str(NARROW)))
                 .replace('__CLOSEFS__', ramp(28, 36))
                 .replace('__GRAINURL__', grain).replace('__GRAINA__', str(GRAIN['opacity']))
                 .replace('__GRAINSIZE__', f"{GRAIN['cell'] * 40:g}px")
@@ -2128,7 +2256,7 @@ def page(inline, spine=None, cols=None, rows=None, tools=False):
                 .replace('__MARKFS__', ramp(MARK_STEP['size'][1], MARK_STEP['size'][0]))
                 .replace('__NARROW__', str(NARROW)).replace('__MID__', str((NARROW + WIDE) // 2))
                 .replace('__COLS__', f'{cols:g}').replace('__ROWS__', str(rows))
-            + BODY.replace('__NARROW__', str(NARROW)).replace('__SPINE__', spine).replace('__LECS__', lectures_html()).replace('__CUES__', cues() + swatches(cls='themes themes-m')).replace('__CORNERS__', corners()).replace('__BACKLIGHT__', backlight_defs()).replace('__THEMEPICK__', THEME_PICK).replace('__SPINETONES__', json.dumps({c.upper(): f'--sp-{k}' for k, c in THEMES[THEME_DEFAULT]['spine'].items()}))
+            + BODY.replace('__NARROW__', str(NARROW)).replace('__SPINE__', spine).replace('__LECS__', lectures_html()).replace('__CUES__', cues() + swatches(cls='themes themes-m')).replace('__CORNERS__', corners()).replace('__SCHED__', schedule_html()).replace('__BACKLIGHT__', backlight_defs()).replace('__THEMEPICK__', THEME_PICK).replace('__SPINETONES__', json.dumps({c.upper(): f'--sp-{k}' for k, c in THEMES[THEME_DEFAULT]['spine'].items()}))
             + (tools_panel() if tools else ''))
 
 

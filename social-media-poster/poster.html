@@ -406,6 +406,51 @@
       line-height:0}
     .lec-close .t-lecx{--fs:24px;--lh:1;--w:300;--slabF:url(#bl-t20-s)}
   }
+  /* The full schedule. A page over the page, in the palette's own ground; the
+     grain (z-index 4) is over it as over everything. */
+  .sched{display:none;position:fixed;inset:0;z-index:3;overflow-y:auto;overscroll-behavior:contain;
+    scrollbar-width:none;background:linear-gradient(180deg,rgb(var(--bg0)) 0%,rgb(var(--bg1)) 70%,rgb(var(--bg2)) 100%);
+    color:var(--a-ink)}
+  .sched::-webkit-scrollbar{display:none}
+  html.sched-open{overflow:hidden}
+  html.sched-open .sched{display:block;animation:sched-in .25s ease}
+  @keyframes sched-in{from{opacity:0}to{opacity:1}}
+  .sched-close{position:fixed;top:var(--pad);right:var(--pad);z-index:1;border:0;cursor:pointer;
+    font:inherit;font-size:15px;line-height:1;padding:6px 8px;margin:-6px -8px;color:var(--a-ink);
+    background:rgb(var(--bg1) / .8);text-shadow:0 0 8px var(--a-glow)}
+  .sched-close:focus-visible{outline:2px solid var(--a-ink);outline-offset:2px}
+  .sched-wrap{width:min(calc(100% - 2 * var(--pad)), 1080px);margin:0 auto;padding:var(--pad) 0 calc(var(--pad) * 2)}
+  .sched-title{margin:0 0 28px;font-weight:400;font-size:15px;line-height:1;letter-spacing:.01em;
+    text-shadow:0 0 8px var(--a-glow)}
+  .sched-title span{margin-left:.6em}
+  .sched-head{display:grid;grid-template-columns:repeat(5,.19fr) 1fr 1fr;margin-bottom:10px;font-size:clamp(11px,1.5vw,18px);line-height:1;letter-spacing:.02em;
+    text-align:center;text-shadow:0 0 8px var(--a-glow)}
+  /* one grid for every row, so a column stays a column down the page */
+  .sched-grid{display:grid;grid-template-columns:repeat(5,.19fr) 1fr 1fr;
+    border-top:1px solid var(--grid-line);border-left:1px solid var(--grid-line)}
+  .sd{position:relative;display:block;aspect-ratio:1.6;min-width:0;
+    border-right:1px solid var(--grid-line);border-bottom:1px solid var(--grid-line)}
+  /* Mon to Fri are drawn only to hold the shape; a row is as tall as its Saturday */
+  .sd-wk{aspect-ratio:auto}
+  .sc{overflow:hidden;color:#f4efe0;text-decoration:none;container-type:inline-size;
+    background:#33362f;font-variation-settings:normal}
+  .sc-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+    filter:saturate(.7) contrast(1.05) brightness(.58);transition:filter .3s ease}
+  .sc:hover .sc-img,.sc:focus-visible .sc-img{filter:saturate(.9) contrast(1.05) brightness(.8)}
+  .sc:focus-visible{outline:2px solid var(--a-ink);outline-offset:-3px}
+  .sc>span{position:absolute;font-weight:400;letter-spacing:-.025em}
+  .sc-d{left:1.8cqw;top:.4cqw;font-size:9.6cqw;line-height:1;letter-spacing:-.045em}
+  .sc-w{right:2cqw;top:1.4cqw;width:52%;text-align:right;font-size:6.3cqw;line-height:1.04}
+  .sc-w small{display:block;font-size:.76em;line-height:1.04;letter-spacing:-.02em}
+  .sc-t{left:1.8cqw;right:2cqw;bottom:1.6cqw;font-size:8.1cqw;line-height:.98}
+  @media (max-width:760px){
+    /* two columns: Monday to Friday would be slivers at this width */
+    .sched-head,.sched-grid{grid-template-columns:1fr 1fr}
+    .sh-wk,.sd-wk{display:none}
+    .sd{aspect-ratio:1/1.12}
+    .sched-head{font-size:13px}
+    .sched-title{margin-bottom:22px}
+  }
   :root{--bg0:102 191 140;--bg1:146 202 135;--bg2:104 192 141;--bg-p0:139 200 136;--bg-p1:108 193 140;--a-ink:#f28030;--a-glow:#fdf48a;--a-bloom:#fdf48a;--b-ink:#277c3c;--b-glow:#fdf48a;--b-bloom:#fdf48a;--c-ink:#277c3c;--c-glow:#e6e6e6;--c-bloom:#e6e6e6;--d-ink:#f28030;--d-glow:#fdf48a;--d-bloom:#fdf48a;--sp-orange:#F28532;--sp-cream:#F8BC60;--sp-yellow:#FDF48E;--sp-hole:#86C689;--sp-paper:#FFFFFF;--grid-line:#cccccc;--grid-img:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'><path d='M0 0H1M0 0V1' fill='none' stroke='%23cccccc' stroke-width='.05' stroke-dasharray='.14 .1'/></svg>")}
   html[data-theme="paper"]{--bg0:211 199 169;--bg1:215 203 174;--bg2:210 198 168;--bg-p0:214 202 173;--bg-p1:211 199 169;--a-ink:#666a70;--a-glow:#e7dec6;--a-bloom:#e2d8bd;--b-ink:#666a70;--b-glow:#e7dec6;--b-bloom:#e2d8bd;--c-ink:#666a70;--c-glow:#e7dec6;--c-bloom:#e2d8bd;--d-ink:#666a70;--d-glow:#e7dec6;--d-bloom:#e2d8bd;--sp-orange:#4A4843;--sp-cream:#9A968D;--sp-yellow:#E9E2D0;--sp-hole:#CEC2A4;--sp-paper:#F2ECDD;--grid-line:#C6BA9C;--grid-img:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'><path d='M0 0H1M0 0V1' fill='none' stroke='%23C6BA9C' stroke-width='.05' stroke-dasharray='.14 .1'/></svg>")}
   html[data-theme="dark"]{--bg0:27 26 24;--bg1:34 33 31;--bg2:26 25 23;--bg-p0:32 31 29;--bg-p1:26 25 23;--a-ink:#b3aa90;--a-glow:#2a2823;--a-bloom:#262522;--b-ink:#b3aa90;--b-glow:#2a2823;--b-bloom:#262522;--c-ink:#b3aa90;--c-glow:#2a2823;--c-bloom:#262522;--d-ink:#b3aa90;--d-glow:#2a2823;--d-bloom:#262522;--sp-orange:#D6CBAC;--sp-cream:#6E6A61;--sp-yellow:#A89E84;--sp-hole:#2E2D2A;--sp-paper:#5E5A51;--grid-line:#353430;--grid-img:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'><path d='M0 0H1M0 0V1' fill='none' stroke='%23353430' stroke-width='.05' stroke-dasharray='.14 .1'/></svg>")}
@@ -549,6 +594,8 @@
   .t-join>*,.t-joinzh>*{text-decoration:underline;text-decoration-thickness:1px;
     text-underline-offset:.18em}
   .t-join>*::after,.t-joinzh>*::after{content:"\2197";display:inline-block;margin-left:.12em}
+  .t-sched>*{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.18em}
+  .head-r .t-sched{--ls:.01em}
   /* The reading -- the information's paragraphs and a lecture's description
      and bios -- a touch more open than the ramp gives its size. */
   .poster :is(.t-desc,.t-facts),.lec :is(.t-lecb,.t-lecbio){--lh:1.06}
@@ -559,7 +606,7 @@
     pointer-events:none;transition:opacity .3s ease}
   .cue.end{opacity:0}
   .nocues .cue{display:none !important}   /* ?nocues, ?clean */
-  .clean .role-link:has(.t-joinzh),.clean .t-joinzh{display:none !important}   /* ?clean */
+  .clean .role-link:has(.t-joinzh),.clean .t-joinzh,.clean .role-link:has(.t-sched){display:none !important}   /* ?clean */
   .cue .t-cue{--glowR:3.4em;--bloomR:10px}
   /* over the spine, on a soft patch of the ground so they read there */
   .cue-soft::before{content:"";position:absolute;z-index:-1;left:50%;top:50%;
@@ -792,16 +839,18 @@
 </div>
 </div>
 <script>
-  // The Chinese intro link under Sign up is set to Sign up's width, and its
-  // size follows from that: every length on it is in em, so the width is
-  // linear in the size and one measure at a trial size is enough.
+  // The links under Sign up are set to Sign up's width, and their size follows
+  // from that: every length on them is in em, so the width is linear in the
+  // size and one measure at a trial size is enough.
   (function(){
     const fit=()=>{
-      const a=document.querySelector('.t-join .ink'),b=document.querySelector('.t-joinzh .ink');
-      if(!a||!b)return;
-      const t=b.closest('.t');t.style.setProperty('--fs','10px');
-      const wa=a.getBoundingClientRect().width,wb=b.getBoundingClientRect().width;
-      if(wa&&wb)t.style.setProperty('--fs',(10*wa/wb)+'px');};
+      const a=document.querySelector('.t-join .ink');
+      if(!a)return;
+      ['joinzh','sched'].forEach(r=>{
+        const b=document.querySelector('.t-'+r+' .ink');if(!b)return;
+        const t=b.closest('.t');t.style.setProperty('--fs','10px');
+        const wa=a.getBoundingClientRect().width,wb=b.getBoundingClientRect().width;
+        if(wa&&wb)t.style.setProperty('--fs',(10*wa/wb)+'px');});};
     fit();addEventListener('resize',fit);
     if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
   })();
@@ -1289,6 +1338,22 @@
   })();
 </script>
 </main>
+<div class="sched" id="schedule" role="dialog" aria-modal="true" aria-label="Full schedule"><button class="sched-close" type="button">Close ×</button><div class="sched-wrap"><h2 class="sched-title">Spinal Memory <span>Full schedule</span></h2><div class="sched-head"><span class="sh-wk">MON</span><span class="sh-wk">TUE</span><span class="sh-wk">WED</span><span class="sh-wk">THU</span><span class="sh-wk">FRI</span><span class="">SAT</span><span class="">SUN</span></div><div class="sched-grid"><div class="sd sd-wk"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><a class="sd sc" href="https://luma.com/nm7vu01t" target="_blank" rel="noopener"><img src="images/lectures/web/lecture-images-1-1.jpg" width="1400" height="933" alt="" loading="lazy" decoding="async" class="sc-img"><span class="sc-d">10.10</span><span class="sc-w">Victoria Soyan Peemot</span><span class="sc-t">Horses and Songs: Multispecies Rhythm and Voice in Inner Asia</span></a><a class="sd sc" href="https://luma.com/3zuyg46f" target="_blank" rel="noopener"><img src="images/lectures/web/lecture-images-2-1.jpg" width="1400" height="788" alt="" loading="lazy" decoding="async" class="sc-img"><span class="sc-d">10.11</span><span class="sc-w">Wantanee Siripattananuntakul</span><span class="sc-t">If There’s No Reply, Is That Silence Still Love?</span></a><div class="sd sd-wk"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><a class="sd sc" href="https://luma.com/clizyb3n" target="_blank" rel="noopener"><img src="images/lectures/web/lecture-images-3-1.jpg" width="1400" height="991" alt="" loading="lazy" decoding="async" class="sc-img"><span class="sc-d">10.17</span><span class="sc-w">Terezie Štindlová</span><span class="sc-t">Do We Need Zoos?</span></a><div class="sd"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><a class="sd sc" href="https://luma.com/r415f2wl" target="_blank" rel="noopener"><img src="images/lectures/web/lecture-images-4-1.jpg" width="1400" height="1099" alt="" loading="lazy" decoding="async" class="sc-img"><span class="sc-d">10.24</span><span class="sc-w">Boria Sax <small>(Guest Moderator: Ruoyi Shi)</small></span><span class="sc-t">Stories, Poetry, and Birdsong</span></a><a class="sd sc" href="https://luma.com/o544mqdl" target="_blank" rel="noopener"><img src="images/lectures/web/lecture-images-5-1.jpg" width="1400" height="788" alt="" loading="lazy" decoding="async" class="sc-img"><span class="sc-d">10.25</span><span class="sc-w">Robert Zhao Renhui</span><span class="sc-t">Seeing Forest: Encounters, Evidence and Ways of Knowing</span></a><div class="sd sd-wk"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><a class="sd sc" href="https://luma.com/ek6lzccj" target="_blank" rel="noopener"><img src="images/lectures/web/lecture-images-6-1.jpg" width="1400" height="934" alt="" loading="lazy" decoding="async" class="sc-img"><span class="sc-d">10.31</span><span class="sc-w">Oscar Salguero</span><span class="sc-t">The Rhizomatic Archive: Interspecies Library</span></a><div class="sd"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><div class="sd sd-wk"></div><a class="sd sc" href="https://luma.com/event/evt-I5aICYx7KZLnxSw" target="_blank" rel="noopener"><img src="images/lectures/web/lecture-images-7-1.jpg" width="1400" height="788" alt="" loading="lazy" decoding="async" class="sc-img"><span class="sc-d">11.07</span><span class="sc-w">Hsu Che-Yu &amp; Chen Wan-Yin</span><span class="sc-t">Specimen of Suffering</span></a><a class="sd sc" href="https://luma.com/event/evt-nM4qZM7TCLIBj6Z" target="_blank" rel="noopener"><img src="images/lectures/web/lecture-images-8-1.jpg" width="1400" height="783" alt="" loading="lazy" decoding="async" class="sc-img"><span class="sc-d">11.08</span><span class="sc-w">Sha Shuang</span><span class="sc-t">Writing a Cow: From Surveillance Data to Fiction</span></a></div></div></div>
+<script>(function(){
+  const h=document.documentElement,s=document.getElementById("schedule");
+  if(!s)return;
+  let from=null;
+  const open=()=>{from=document.activeElement;h.classList.add("sched-open");s.scrollTop=0;
+    s.querySelector(".sched-close").focus({preventScroll:true});};
+  const close=()=>{h.classList.remove("sched-open");
+    if(from&&from.focus)from.focus({preventScroll:true});
+    if(location.hash==="#schedule")history.replaceState(null,"",location.pathname+location.search);};
+  document.addEventListener("click",e=>{
+    if(e.target.closest('a[href="#schedule"]')){e.preventDefault();open();}});
+  s.querySelector(".sched-close").addEventListener("click",close);
+  addEventListener("keydown",e=>{if(e.key==="Escape"&&h.classList.contains("sched-open"))close();});
+  if(location.hash==="#schedule")open();
+})();</script>
 <img class="lettering tr" src="social-media-poster/top-right.svg" alt="" style="width:calc(634.4 / 1080 * 100vw);top:calc(9.6 / 1080 * 100vw);right:calc(12 / 1080 * 100vw);"><img class="lettering bl" src="social-media-poster/bottom-left.svg" alt="" style="width:calc(514.4 / 1080 * 100vw);bottom:calc(5.6 / 1080 * 100vw);left:calc(9.5 / 1080 * 100vw);"><script>(function(){
   const main=document.getElementById('content'),stage=main&&main.querySelector('.stage');
   if(!stage)return;
