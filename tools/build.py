@@ -2204,21 +2204,24 @@ SCHED_CSS = '''
   html.sched-on main{background-image:none !important}
   /* The switch, fixed top centre of the page's own column (the tools panel,
      when up, takes its width off the right): an outlined pill in two halves,
-     and the chosen one is ringed by a second pill that slides across. Its
-     type is the poster's (TEXT). */
-  .view{position:fixed;z-index:3;top:var(--pad);left:calc((100vw - var(--tools,0px)) / 2);
-    transform:translateX(-50%);display:grid;grid-template-columns:1fr 1fr;
-    border:1.5px solid var(--a-ink);border-radius:999px}
-  .view-ind{position:absolute;top:-1.5px;bottom:-1.5px;left:-1.5px;width:calc(50% + 8px);
-    border:1.5px solid var(--a-ink);border-radius:999px;pointer-events:none;
-    transition:transform .3s cubic-bezier(.3,0,.2,1)}
-  html.sched-on .view-ind{transform:translateX(calc(100% - 13px))}
+     and the chosen one is ringed by a second pill. Set as the poster's chips
+     are -- the same size, the same 1px line, the same padding round the
+     capitals -- and in the poster's type (TEXT). */
+  .view{--vfs:__VIEWFS__;position:fixed;z-index:3;top:var(--pad);
+    left:calc((100vw - var(--tools,0px)) / 2);transform:translateX(-50%);
+    display:grid;grid-template-columns:1fr 1fr;font-size:var(--vfs);
+    border:1px solid var(--a-ink);border-radius:999px}
+  .view .t{--fs:var(--vfs)}
+  .view-ind{position:absolute;top:-1px;bottom:-1px;left:-1px;width:calc(50% + 6px);
+    border:1px solid var(--a-ink);border-radius:999px;pointer-events:none}
+  html.sched-on .view-ind{left:auto;right:-1px}
   .view-b{position:relative;display:flex;justify-content:center;border:0;background:none;
-    padding:7px 16px;margin:0;font:inherit;cursor:pointer;line-height:0;border-radius:999px;
-    opacity:.6;transition:opacity .2s ease}
+    padding:.2em .9em .1em;margin:0;font:inherit;cursor:pointer;border-radius:999px}
+  @supports (text-box:trim-both cap alphabetic){
+    .view-b{padding:.2em .9em}
+    .view-b .t>*{text-box:trim-both cap alphabetic}
+  }
   .view-b:focus-visible{outline:2px solid var(--a-ink);outline-offset:3px}
-  html:not(.sched-on) .view-b[data-view=spine],html.sched-on .view-b[data-view=sched]{opacity:1}
-  @media (max-width:__NARROW__px){.view-b{padding:6px 12px}}
   .sched-head,.sched-grid{display:grid;grid-template-columns:1fr 1fr}
   .sched-head{margin-bottom:4px;justify-items:center}
   .sched-grid{border-top:1px solid var(--sched-line);border-left:1px solid var(--sched-line)}
@@ -2267,7 +2270,7 @@ def page(inline, spine=None, cols=None, rows=None, tools=False):
                 .replace('__TYPEBASE__', TYPE_CSS)
                 .replace('__TOOLSCSS__', TOOLS_CSS if tools else '').replace('__TYPECSS__', type_css()).replace('__THEMECSS__', theme_css())
                 .replace('__TYPECSS_SMALL__', type_css_small())
-                .replace('__LECCSS__', LEC_CSS.replace('__WHOGAP__', str(TEXT['lecw'].get('gap', 0))) + SCHED_CSS.replace('__NARROW__', str(NARROW)))
+                .replace('__LECCSS__', LEC_CSS.replace('__WHOGAP__', str(TEXT['lecw'].get('gap', 0))) + SCHED_CSS.replace('__NARROW__', str(NARROW)).replace('__VIEWFS__', ramp(STEPS['t14']['size'][1] * .78, STEPS['t14']['size'][0] * .78)))
                 .replace('__CLOSEFS__', ramp(28, 36))
                 .replace('__GRAINURL__', grain).replace('__GRAINA__', str(GRAIN['opacity']))
                 .replace('__GRAINSIZE__', f"{GRAIN['cell'] * 40:g}px")
