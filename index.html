@@ -488,7 +488,13 @@
     -webkit-appearance:none;appearance:none}
   /* the cover is shown as it was made: any darkening or tint is in the file */
   .sc-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-  .sc.active::after{content:"";position:absolute;inset:0;border:2px solid #f4efe0;pointer-events:none}
+  /* chosen, or reached by keyboard: the grid's own line colour, drawn as the
+     poster's type is -- a crisp line, and a glow that falls inward from it,
+     tight and then wide */
+  .sc{outline:none}
+  .sc.active::after,.sc:focus-visible::after{content:"";position:absolute;inset:0;
+    border:1px solid var(--sched-line);pointer-events:none;
+    box-shadow:inset 0 0 6px 1px var(--sched-line),inset 0 0 22px 4px var(--sched-line)}
   /* the words on a card are plain white, no effect, so they stay sharp over
      a photograph. SAT / SUN above are the poster's type. */
   .sc{color:#fff}
