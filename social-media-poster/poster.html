@@ -413,7 +413,8 @@
   .sched{display:none;width:100%;
     --sched-line:#f3eca0}   /* pale yellow on the green; the other palettes keep their own grid */
   html[data-theme] .sched{--sched-line:var(--grid-line)}
-  html.sched-on .sched{display:block}
+  html.sched-on .sched{display:block;animation:sched-in .3s ease}
+  @keyframes sched-in{from{opacity:0}to{opacity:1}}
   /* Beside the spine it is wider than the spine's own column, by what the two
      side columns leave -- never closer to them than 40px, and never past
      640px, where the cards' type would be larger than the poster's. */
@@ -436,7 +437,7 @@
     border:1px solid currentColor;border-radius:999px}
   /* the ring sits on the outer line: a negative margin takes it over it */
   .tg-o{display:block;text-align:center;margin:-1px;padding:.3em .6em .16em;
-    border:1px solid transparent;border-radius:999px}
+    border:1px solid transparent;border-radius:999px;transition:border-color .25s ease}
   @supports (text-box:trim-both cap alphabetic){
     .tg-o{text-box:trim-both cap alphabetic;padding:.38em .6em}
   }
