@@ -2232,7 +2232,13 @@ def view_html():
             '    tg.querySelectorAll(".tg-o").forEach((o,i)=>{const r=o.getBoundingClientRect();\n'
             '      v.style.setProperty("--l"+(i+1),(r.left-t.left-c)+"px");\n'
             '      v.style.setProperty("--w"+(i+1),r.width+"px");});};\n'
-            '  fit();addEventListener("resize",fit);\n'
+            # The halves are measured again whenever the pill itself changes size --
+            # a window resize, a page zoom, the font landing -- not only on the
+            # `resize` event, which a zoomed page can fire before it has laid out.
+            '  fit();addEventListener("resize",fit);addEventListener("load",fit);\n'
+            '  if(window.visualViewport)visualViewport.addEventListener("resize",fit);\n'
+            '  if(window.ResizeObserver){const t=document.querySelector(".view .core .tg");\n'
+            '    if(t)new ResizeObserver(fit).observe(t);}\n'
             '  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);\n'
             '  bs.forEach(b=>b.addEventListener("click",()=>{\n'
             '    const on=b.dataset.view==="sched";\n'

@@ -865,7 +865,10 @@
     tg.querySelectorAll(".tg-o").forEach((o,i)=>{const r=o.getBoundingClientRect();
       v.style.setProperty("--l"+(i+1),(r.left-t.left-c)+"px");
       v.style.setProperty("--w"+(i+1),r.width+"px");});};
-  fit();addEventListener("resize",fit);
+  fit();addEventListener("resize",fit);addEventListener("load",fit);
+  if(window.visualViewport)visualViewport.addEventListener("resize",fit);
+  if(window.ResizeObserver){const t=document.querySelector(".view .core .tg");
+    if(t)new ResizeObserver(fit).observe(t);}
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
   bs.forEach(b=>b.addEventListener("click",()=>{
     const on=b.dataset.view==="sched";
