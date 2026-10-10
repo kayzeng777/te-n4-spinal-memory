@@ -687,8 +687,10 @@ HEAD = '''<title>te online lecture</title>
   html,body{margin:0;min-height:100%}
   /* No page scrollbar: with one, the right column read as jammed against it.
      Every inner scroller already hides its own. */
-  html{scrollbar-width:none}
-  html::-webkit-scrollbar{display:none}
+  html::-webkit-scrollbar{display:none;width:0;height:0}
+  /* Not set where ::-webkit-scrollbar exists: Safari lets scrollbar-width win
+     over it on the root, and then ignores both. */
+  @supports not selector(::-webkit-scrollbar){html{scrollbar-width:none}}
   body{min-height:100vh;background:rgb(var(--bg1));color:var(--ink);position:relative;font-family:var(--font-sans);}
   .bg{position:fixed;inset:0;z-index:-1;
     background:linear-gradient(180deg,rgb(var(--bg0)) 0%,rgb(var(--bg1)) 70%,rgb(var(--bg2)) 100%)}
