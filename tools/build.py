@@ -2203,7 +2203,7 @@ def schedule_html():
         rows.append(''.join(cells))
         week += dt.timedelta(days=7)
     head = ''.join(layers('span', 'schedh', n) for n in SCHED_DAYS)
-    return ('<section class="sched" aria-label="Calendar view">'
+    return (f'<section class="sched" aria-label="Calendar view" style="--rows:{len(rows)}">'
             f'<div class="sched-head" aria-hidden="true">{head}</div>'
             f'<div class="sched-grid">{"".join(rows)}</div>'
             '</section>\n')
@@ -2261,7 +2261,14 @@ SCHED_CSS = '''
      side columns leave -- never closer to them than 40px, and never past
      640px, where the cards' type would be larger than the poster's. */
   @media not all and (max-width:__NARROW__px){
-    .sched{--sw:max(100%, min(calc(100vw - var(--tools,0px) - 2 * (var(--col) + var(--pad) + 40px)), 640px));
+    /* Wide enough for the room the side columns leave (never nearer than 40px,
+       never past 640px) -- or, when the screen is tall enough that the rows
+       would stop short of its foot, as wide as makes them reach it: the rows
+       are 3:2 cards in two columns, so the grid is rows * width / 3 tall.
+       That wider size may come within 16px of the columns, and no further. */
+    .sched{--room:calc(100vw - var(--tools,0px) - 2 * (var(--col) + var(--pad)));
+      --fill:min(calc(3 * (100svh - 8vh - 14px - 28px - 28px) / var(--rows)), calc(var(--room) - 32px), 900px);
+      --sw:max(100%, min(calc(var(--room) - 80px), 640px), var(--fill));
       width:var(--sw);margin-left:calc((100% - var(--sw)) / 2);margin-top:14px}
   }
   html.sched-on .stage>.spine,html.sched-on .t-lecno,html.sched-on .grid{display:none !important}
