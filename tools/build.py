@@ -685,6 +685,10 @@ HEAD = '''<title>te online lecture</title>
   }
   *{box-sizing:border-box}
   html,body{margin:0;min-height:100%}
+  /* No page scrollbar: with one, the right column read as jammed against it.
+     Every inner scroller already hides its own. */
+  html{scrollbar-width:none}
+  html::-webkit-scrollbar{display:none}
   body{min-height:100vh;background:rgb(var(--bg1));color:var(--ink);position:relative;font-family:var(--font-sans);}
   .bg{position:fixed;inset:0;z-index:-1;
     background:linear-gradient(180deg,rgb(var(--bg0)) 0%,rgb(var(--bg1)) 70%,rgb(var(--bg2)) 100%)}
