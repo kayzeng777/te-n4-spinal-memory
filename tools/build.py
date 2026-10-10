@@ -519,7 +519,9 @@ LAYERS = ('slab', 'bloom', 'tight', 'ink', 'core')
 # this strong lifts the background by about +14 per channel and shifts its hue.
 # The transfer below recentres it, so the grain is texture and nothing else and
 # the gradient renders the colours it is given.
-GRAIN = dict(cell=1.9, opacity=.82, mean=.732)
+# cell is the grain's size in screen px; the tile is drawn at its own size (1:1),
+# since resampling a 120-unit tile down to 76px is what made it read as mosaic.
+GRAIN = dict(cell=1.0, tile=96, opacity=.7, mean=.732)
 
 
 def grain_url():
@@ -530,7 +532,7 @@ def grain_url():
                           for c in 'RGB')
                 + '</feComponentTransfer>')
     return ("url(\"data:image/svg+xml;utf8,"
-            "<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'>"
+            f"<svg xmlns='http://www.w3.org/2000/svg' width='{g['tile']}' height='{g['tile']}'><filter id='n'>"
             f"<feTurbulence type='fractalNoise' baseFrequency='{1/g['cell']:.4f}' "
             "numOctaves='2' stitchTiles='stitch'/>"
             "<feColorMatrix type='saturate' values='0'/>"
@@ -2349,7 +2351,7 @@ def page(inline, spine=None, cols=None, rows=None, tools=False):
                 .replace('__LECCSS__', LEC_CSS.replace('__WHOGAP__', str(TEXT['lecw'].get('gap', 0))) + SCHED_CSS.replace('__NARROW__', str(NARROW)).replace('__VIEWFS__', ramp(STEPS['t14']['size'][1] * .78, STEPS['t14']['size'][0] * .78)))
                 .replace('__CLOSEFS__', ramp(28, 36))
                 .replace('__GRAINURL__', grain).replace('__GRAINA__', str(GRAIN['opacity']))
-                .replace('__GRAINSIZE__', f"{GRAIN['cell'] * 40:g}px")
+                .replace('__GRAINSIZE__', f"{GRAIN['tile']}px")
                 .replace('__CELL__', ramp(CELL * SPINE_SMALL, CELL))
                 .replace('__LENS__', ramp(LENS * SPINE_SMALL, LENS))
                 .replace('__FEATHER__', ramp(FEATHER * SPINE_SMALL, FEATHER))
