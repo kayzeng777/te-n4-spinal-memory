@@ -859,7 +859,7 @@ HEAD = '''<title>te online lecture</title>
     pointer-events:none;transition:opacity .3s ease}
   .cue.end{opacity:0}
   .nocues .cue{display:none !important}   /* ?nocues, ?clean */
-  .clean .role-link:has(.t-joinzh),.clean .t-joinzh,.clean .view{display:none !important}   /* ?clean */
+  .clean .role-link:has(.t-joinzh),.clean .t-joinzh{display:none !important}   /* ?clean */
   .cue .t-cue{--glowR:3.4em;--bloomR:10px}
   /* over the spine, on a soft patch of the ground so they read there */
   .cue-soft::before{content:"";position:absolute;z-index:-1;left:50%;top:50%;
