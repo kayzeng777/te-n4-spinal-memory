@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Build index.html (repo, file fonts) and artifact.html (inline fonts) from parts."""
-import base64, json, os, re
+import base64, html, json, os, re
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
@@ -434,11 +434,14 @@ TIME_EST = 'New York / 8am EST\nLondon / 1pm GMT'
 # originals are kept as they came: 'lecture images/' and 'speakers portrait/'. A lecture with two
 # speakers lists two: speakers=[dict(face='06-hsu.jpg', bio='...'), dict(...)].
 # `bio` is prose like `about`.
+# `replay` is optional: a YouTube video id. The recording sits above `about` as a
+# poster frame, and is loaded only when it is played (REPLAY_JS).
 LECTURES = [
     dict(when='Oct 10', who='Victoria Soyan Peemot',
          what='Horses and Songs: Multispecies Rhythm and Voice in Inner Asia',
          lang='English',
          signup='https://luma.com/nm7vu01t',
+         replay='WSl4_SZVfXU',
          about='When Tyva people say that the horse is everything in life, this is not a metaphor—it comes from the lived experience of the people who have been mobile pastoralists for millennia, whose lives and identities have been continuously shaped by horses. Drawing on her personal experience and research among mobile pastoralists between the Altai and Sayan mountain ranges in the transnational region of Inner Asia, Dr. Victoria Soyan Peemot explores how Tyvan understandings of voice, sound, and music are rooted in multispecies relationships, with a particular focus on human-equine belonging.\n\nHer research brings together horses and their rich sound world with the people and land to which they co-belong. The lecture discusses how the rhythms and lyrics of Tyvan songs and Tyvan ways of understanding the human voice itself emerge from belonging to the land and cohabiting it with other beings.',
          pics=['lecture images/1-1.JPG', 'lecture images/1-2.jpg'],
          speakers=[dict(face='speakers portrait/01 Victoria.jpeg', bio='Victoria Soyan Peemot is a senior researcher, community advocate, and member of the Soyan kinship group from the Tyva Republic, raised at the Tyvan-Mongolian borderland in a livestock herding family. Her research weaves together Tyva transnational kinship, multispecies relations, and the continuity of pastoralist lifeways and is guided by aaldaar, the Tyvan customary practice of relational reciprocity that extends to land and other-than-human beings.\n\nShe holds a PhD in History and Cultural Heritage Studies from the University of Helsinki (2021). Her book *The Horse In My Blood* (2024) explores human-horse-homeland relationships and histories of state violence. Her second book *Songs of Tyva: A Guide to Tyvan Culture and Language* (2026) draws on emplaced storytelling through folk songs and photographs of the featured homelands. Her broader work engages ethnographic museum collections across Europe, decolonizing archives, and the return of ancestral stories to the communities they belong to.')]),
@@ -862,6 +865,7 @@ HEAD = '''<title>te online lecture</title>
   .cue.end{opacity:0}
   .nocues .cue{display:none !important}   /* ?nocues, ?clean */
   .clean .role-link:has(.t-joinzh),.clean .t-joinzh{display:none !important}   /* ?clean */
+  .hidecursor .lens{display:none !important}   /* ?hidecursor: hide the X-ray circle (combine: ?clean&hidecursor) */
   .cue .t-cue{--glowR:3.4em;--bloomR:10px}
   /* over the spine, on a soft patch of the ground so they read there */
   .cue-soft::before{content:"";position:absolute;z-index:-1;left:50%;top:50%;
@@ -1136,6 +1140,20 @@ LEC_CSS = '''.peek-flood{flood-color:var(--peek-green,#80C58A)}
      its own shape. */
   .lec .lec-pics{display:grid;gap:8px;margin-top:calc(var(--lec-lead) + 14px)}
   .lec .lec-pics img{width:100%;height:auto;display:block}
+  /* The recording: 16:9, the poster frame cropped to it (hqdefault carries
+     black bars), a plain play mark over it. Once played the iframe has the box. */
+  .lec .lec-replay{margin-top:calc(var(--lec-lead) + 14px);margin-bottom:calc(var(--lec-lead) + 14px)}
+  .lec .lec-replay>.t{margin-bottom:8px}
+  .lec .rp,.lec .lec-replay iframe{display:block;width:100%;aspect-ratio:16/9;height:auto;
+    border:0;background:#000}
+  .lec .rp{position:relative;padding:0;overflow:hidden;cursor:pointer;color:inherit}
+  .lec .rp img{width:100%;height:100%;object-fit:cover;display:block}
+  .lec .rp-play{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;
+    border-radius:50%;background:rgba(0,0,0,.55);transition:background .2s}
+  .lec .rp-play::after{content:"";position:absolute;left:22px;top:17px;border-style:solid;
+    border-width:11px 0 11px 18px;border-color:transparent transparent transparent #fff}
+  .lec .rp:hover .rp-play,.lec .rp:focus-visible .rp-play{background:rgba(0,0,0,.8)}
+  .lec .rp:focus-visible{outline:2px solid var(--a-ink);outline-offset:3px}
   /* A speaker: the bio, then the portrait under it, uncropped. */
   .lec .lec-sp{margin-top:calc(var(--lec-lead) + 14px)}
   .lec .lec-sp .face{width:50%;height:auto;display:block;margin-top:12px}
@@ -2009,6 +2027,34 @@ def lec_img(name, size=None, **attrs):
             f'loading="lazy" decoding="async"{extra}>'), w / h
 
 
+def lec_replay(lec):
+    """The recording: a poster frame and a play button, nothing loaded from
+    YouTube but the frame itself until it is clicked (REPLAY_JS swaps in the
+    player). Sits above the description, as it is what a past lecture is for."""
+    vid = lec.get('replay')
+    if not vid:
+        return ''
+    title = html.escape(f"{lec['who']} \u2014 {lec['what']}", quote=True)
+    return ('<div class="lec-replay">'
+            + layers('div', 'lecl', copy_html('lecl', '[Replay]'))
+            + f'<button class="rp" type="button" data-id="{vid}" data-title="{title}" '
+              f'aria-label="Play the replay">'
+              f'<img src="https://i.ytimg.com/vi/{vid}/hqdefault.jpg" alt="" '
+              f'loading="lazy" decoding="async">'
+              '<span class="rp-play" aria-hidden="true"></span></button></div>')
+
+
+REPLAY_JS = (
+    '<script>document.addEventListener("click",e=>{'
+    'const b=e.target.closest&&e.target.closest(".rp");if(!b)return;'
+    'const f=document.createElement("iframe");'
+    'f.src="https://www.youtube-nocookie.com/embed/"+b.dataset.id+"?autoplay=1&rel=0";'
+    'f.title=b.dataset.title;f.allowFullscreen=true;'
+    'f.allow="autoplay; encrypted-media; fullscreen; picture-in-picture";'
+    'f.referrerPolicy="strict-origin-when-cross-origin";'
+    'b.replaceWith(f);f.focus();},true);</script>')
+
+
 def lec_extra(lec):
     """The pictures and the speakers, under the description."""
     out = ''
@@ -2049,6 +2095,8 @@ def cues():
             'document.documentElement.classList.add("nocues");'
             'if(/[?&]clean\\b/.test(location.search))'
             'document.documentElement.classList.add("clean");'
+            'if(/[?&]hidecursor\\b/.test(location.search))'
+            'document.documentElement.classList.add("hidecursor");'
             'addEventListener("DOMContentLoaded",()=>{'
             'const end=(c,sc)=>{if(c&&sc)c.classList.toggle("end",'
             'sc.scrollHeight-sc.clientHeight-sc.scrollTop<4);};'
@@ -2120,6 +2168,7 @@ def lectures_html():
               f'rel="noopener">'
               + layers('p', 'lecs', '<span class="u">Sign up</span>\u2009\u2197') + '</a>'
             + '<div class="scroll">'
+            + lec_replay(lec)
             + layers('div', 'lecb', copy_html('lecb', lec['about']))
             + lec_extra(lec)
             + '</div>'
@@ -2129,6 +2178,8 @@ def lectures_html():
             + '<button class="lec-close" type="button" aria-label="Close">'
             + layers('span', 'lecx', '\u00d7') + '</button>'
             + '</div>')
+    if any(l.get('replay') for l in LECTURES[:len(bands)]):
+        out.append(REPLAY_JS)
     return '\n'.join(out)
 
 
