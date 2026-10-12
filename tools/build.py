@@ -1270,7 +1270,7 @@ LEC_CSS = '''.peek-flood{flood-color:var(--peek-green,#80C58A)}
     .lec-bar>*{margin:0}
     /* the code field, when open, is a row of its own under Sign up and the close */
     .lec-bar{flex-wrap:wrap}
-    .lec .lec-bar>.lec-room{order:3;flex:0 0 100%;margin-top:6px}
+    .lec .lec-bar>.lec-room{order:3;flex:0 0 100%;margin-top:16px}
     /* It starts right under the bar, never under it: a line scrolled up
        fades out over --under, the room above the first line, before it
        reaches Sign up. */
@@ -2090,6 +2090,7 @@ ROOM_CSS = '''
      as typed. */
   .lec .lec-room{margin-top:calc(var(--lec-lead) + 12px);margin-bottom:0;color:var(--a-ink)}
   .lec .lec-room[hidden],.lec .room-err[hidden]{display:none}
+  .lec .more-in>.lec-room{margin-top:calc(var(--lec-lead) + 22px)}
   .lec .room-form{display:flex;flex-wrap:wrap;gap:8px 6px;align-items:stretch;margin:18px 0 0}
   .lec .room-field{position:relative;flex:1 1 7em;min-width:0;display:block}
   .lec .room-form input{position:absolute;inset:0;z-index:1;display:block;box-sizing:border-box;
