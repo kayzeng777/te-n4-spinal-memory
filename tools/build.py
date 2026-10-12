@@ -529,7 +529,7 @@ LAYERS = ('slab', 'bloom', 'tight', 'ink', 'core')
 # the gradient renders the colours it is given.
 # cell is the grain's size in screen px; the tile is drawn at its own size (1:1),
 # since resampling a 120-unit tile down to 76px is what made it read as mosaic.
-GRAIN = dict(cell=1.0, tile=96, opacity=.7, mean=.732)
+GRAIN = dict(cell=1.4, tile=96, opacity=.9, mean=.732)
 
 
 def grain_url():
