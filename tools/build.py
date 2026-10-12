@@ -2086,22 +2086,22 @@ ROOM_CSS = '''
   .lec .room-form input:focus-visible,.lec .room-form button:focus-visible,
   .lec button.signup:focus-visible{outline:2px solid var(--a-ink);outline-offset:3px}
 
-  /* The replay's page: the whole window, over the poster, in the page's own
-     ground and ink. A bar with the way home, the lecture's head, the player,
-     and under it what the lecture's detail holds -- the description, its
-     pictures, the speakers. Plain type: it is a page to watch and read. */
+  /* The replay's page: the whole window, over the poster, black in every
+     palette -- it is a screening, so it does not take the page's ground, and
+     its ink is a fixed warm white rather than the palette's. A bar with the way
+     home, the lecture's head, the player, and under it what the lecture's
+     detail holds: the description, its pictures, the speakers. */
   .rpage{position:fixed;inset:0;z-index:500;overflow-y:auto;overscroll-behavior:contain;
-    color:var(--a-ink);font-family:var(--font-sans);
-    background:linear-gradient(180deg,rgb(var(--bg0)) 0%,rgb(var(--bg1)) 70%,rgb(var(--bg2)) 100%)}
+    color:#ECE8DD;color-scheme:dark;font-family:var(--font-sans);background:#000}
   .rpage[hidden]{display:none}
   .rpage:focus{outline:none}
   html.rpage-on{overflow:hidden}
   .rpage-bar{position:sticky;top:0;z-index:2;padding:14px 20px;
-    background:linear-gradient(rgb(var(--bg0)),rgb(var(--bg0) / 0))}
+    background:linear-gradient(#000,rgba(0,0,0,0))}
   .rpage-back{appearance:none;background:none;border:0;padding:6px 0;margin:0;font:inherit;
     font-size:15px;color:inherit;cursor:pointer;text-decoration:underline;
     text-decoration-thickness:1px;text-underline-offset:.18em}
-  .rpage-back:focus-visible{outline:2px solid var(--a-ink);outline-offset:3px}
+  .rpage-back:focus-visible{outline:2px solid currentColor;outline-offset:3px}
   .rpage-in{max-width:960px;margin:0 auto;padding:12px 20px 120px;box-sizing:border-box}
   .rpage-kicker{display:inline-block;margin:0 0 18px;padding:2px 9px;border:1px solid currentColor;
     border-radius:99px;font-size:12px;line-height:1.35}
