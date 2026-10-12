@@ -2065,7 +2065,7 @@ ROOM_CSS = '''
   /* A finished lecture swaps Sign up for the Reading Room: the same words'
      place and type, a lock after them, and under it, at the top of the
      scrolling detail, the password and then what the password opens. */
-  .lec button.signup{appearance:none;background:none;border:0;padding:0;margin:0;font:inherit;
+  .lec button.signup{appearance:none;background:none;border:0;padding:0;font:inherit;
     text-align:left;cursor:pointer;max-width:100%}
   .lec .signup .lk{display:inline-block;width:.72em;height:.84em;margin-left:.2em;
     vertical-align:-.04em;overflow:visible}
