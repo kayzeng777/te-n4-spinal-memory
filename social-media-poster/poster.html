@@ -214,10 +214,12 @@
   /* Open and Cancel are one width, so neither is the wider */
   .lec .room-form .room-go,.lec .room-form .room-cancel{flex:0 0 4.9em;width:4.9em}
   .lec .room-form button .rbox{width:100%;padding-left:0;padding-right:0}
-  /* Open is set as the switch's chosen half is: a block filled with the layer's
-     own colour (so it glows as the words do, from each layer, with nothing
-     added), and its word the glow's yellow on the two crisp layers only */
-  .lec .room-form .rfill{background:currentColor}
+  /* Open is set as the switch's chosen half is -- a block filled with the
+     layer's own colour, its word the glow's yellow -- but the fill is on the two
+     crisp layers only. Filled on every layer, the blur and the slab work from
+     the block's whole area and it lights several times a hollow box (Cancel) of
+     the same size; so the light comes from its edge, as Cancel's does. */
+  .lec .room-go :is(.ink,.core) .rfill{background:currentColor}
   .lec .room-go :is(.ink,.core) .rtxt{color:var(--glow)}
   .lec .room-form button{appearance:none;background:none;border:0;border-radius:0;margin:0;
     padding:0;cursor:pointer;color:inherit;display:block}
