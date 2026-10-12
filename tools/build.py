@@ -1169,6 +1169,7 @@ LEC_CSS = '''.peek-flood{flood-color:var(--peek-green,#80C58A)}
   .lec .signup{display:block;width:max-content;color:inherit;text-decoration:none}
   .lec .signup .u{text-decoration:underline;text-decoration-thickness:1px;
     text-underline-offset:.18em}
+  .lec .signup.gone{display:none}
   .lec .signup:focus-visible{outline:2px solid var(--a-ink);outline-offset:3px}
   /* Once the column narrows, an open block's detail runs long enough to reach
      its neighbours, and a hovered neighbour lands on it. Whichever it lands
@@ -2164,7 +2165,9 @@ def lectures_html():
             # stay put while what is below them scrolls
             + '<div class="more"><div class="more-in">'
             + layers('div', 'lecl', copy_html('lecl', f"[{lec['lang']}]"))
-            + f'<a class="signup" href="{tagged(lec.get("signup", SIGNUP))}" target="_blank" '
+            # a lecture with a replay is over: its Sign up stays in the markup
+            # (the phone layout moves it about) but is not shown
+            + f'<a class="signup{" gone" if lec.get("replay") else ""}" href="{tagged(lec.get("signup", SIGNUP))}" target="_blank" '
               f'rel="noopener">'
               + layers('p', 'lecs', '<span class="u">Sign up</span>\u2009\u2197') + '</a>'
             + '<div class="scroll">'
