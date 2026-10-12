@@ -377,17 +377,16 @@ def tagged(url):
 # The series' introduction in Chinese, on WeChat; under the Sign up, top right.
 ZH_INTRO = 'https://mp.weixin.qq.com/s/3zRWL0-avnhfWiduV4IL3w'
 SERIES_SIGNUP = tagged('https://luma.com/user/teeditions')
-# The Reading Room: per-lecture ciphertext made by tools/seal.js. Without that
-# file there is no entry and no overlay -- the page builds as before.
+# The Reading Room: per-lecture ciphertext made by tools/seal.js. A lecture that
+# has an entry in it swaps its Sign up for the lock (signup_html); without the
+# file the page builds as before.
 _sealed = os.path.join(HERE, 'reading-room.sealed.json')
 ROOM = json.load(open(_sealed)) if os.path.exists(_sealed) else None
-ROOM_HREF = '#reading-room'   # in the page, not a link out: see ROOM_JS
 
 ROLES = dict(
     logo=dict(at='head', step='mark', set='a'),
     join=dict(at='head-r', step='su', set='a', href=SERIES_SIGNUP),
     joinzh=dict(at='head-r', step='t12', set='a', href=ZH_INTRO),   # under it
-    **(dict(room=dict(at='head-r', step='t12', set='a', href=ROOM_HREF)) if ROOM else {}),
     # The te editions chip, the title and the subtitle head the written
     # column, over the Intro, and are one link to the issue: roles that name
     # the same `href` are wrapped in one <a>. No widths: the column's measure
@@ -854,10 +853,10 @@ HEAD = '''<title>te online lecture</title>
   .head-r .role-link{position:relative}
   .head-r .role-link+.role-link{z-index:2}   /* the link under Sign up sits over it */
   .head-r .role-link+.role-link{margin-top:8px}
-  .head-r :is(.t-joinzh,.t-room){--ls:.01em}
+  .head-r .t-joinzh{--ls:.01em}
   .head-r .t>*{width:max-content}
   @media (max-width:760px){.head-r .role-link+.role-link{margin-top:10px}}
-  .t-join>*,.t-joinzh>*,.t-room>*{text-decoration:underline;text-decoration-thickness:1px;
+  .t-join>*,.t-joinzh>*{text-decoration:underline;text-decoration-thickness:1px;
     text-underline-offset:.18em}
   .t-join>*::after,.t-joinzh>*::after{content:"\\2197";display:inline-block;margin-left:.12em}
   /* The reading -- the information's paragraphs and a lecture's description
@@ -870,7 +869,7 @@ HEAD = '''<title>te online lecture</title>
     pointer-events:none;transition:opacity .3s ease}
   .cue.end{opacity:0}
   .nocues .cue{display:none !important}   /* ?nocues, ?clean */
-  .clean .role-link:has(:is(.t-joinzh,.t-room)),.clean :is(.t-joinzh,.t-room){display:none !important}   /* ?clean */
+  .clean .role-link:has(.t-joinzh),.clean .t-joinzh{display:none !important}   /* ?clean */
   .hidecursor .lens{display:none !important}   /* ?hidecursor: hide the X-ray circle (combine: ?clean&hidecursor) */
   .cue .t-cue{--glowR:3.4em;--bloomR:10px}
   /* over the spine, on a soft patch of the ground so they read there */
@@ -1834,7 +1833,6 @@ __LECS__
 COPY = dict(
     join='Sign up',                # underlined, with its arrow, by .t-join
     joinzh='中文版介绍',        # the same, under it
-    room='Reading Room',          # the same, under that; opens the overlay
     edition='[te editions\u2009\u2197]',
     title='Spinal Memory',
     tag='Research and Practice on Non-Human Animals',
@@ -1881,7 +1879,7 @@ LINKS = {'Digital Reading Room': '#',
          'Institute of Critical Zoologists': 'https://www.criticalzoologists.org/main.html',
          'Interspecies Library': 'https://interspecieslibrary.com/'}
 
-ROLE_TAG = dict(logo='div', join='p', joinzh='p', room='p', edition='div', title='h1', tag='p', info='p', desc='div', facts='div',
+ROLE_TAG = dict(logo='div', join='p', joinzh='p', edition='div', title='h1', tag='p', info='p', desc='div', facts='div',
                 lecd='p', lecw='p', lect='p', lecl='div', lecb='div', lecbio='div',
                 lecno='p', lecs='p', lecx='span', cue='p', viewt='span', schedh='span')
 
@@ -1976,8 +1974,7 @@ def corners():
                 inner += ('</div>' if box else '') + (f'<div class="{b}">' if b else '')
                 box = b
             if h != href and h:
-                inner += (f'<a class="role-link" href="{h}">' if h.startswith('#') else
-                          f'<a class="role-link" href="{h}" target="_blank" rel="noopener">')
+                inner += f'<a class="role-link" href="{h}" target="_blank" rel="noopener">'
             href = h
             inner += (layers(ROLE_TAG[r], r, LOGO, **{'aria-label': 'te'}) if r == 'logo'
                       else layers(ROLE_TAG[r], r, copy_html(r, COPY[r])))
@@ -2065,139 +2062,120 @@ REPLAY_JS = (
 
 
 ROOM_CSS = '''
-  /* The Reading Room: a sheet over the page, opened from the link under Sign
-     up. Plain type in the page's own ink -- it is a place to read and to type
-     a password, not a poster. */
-  .room{position:fixed;inset:0;z-index:500;display:none;overflow-y:auto;overscroll-behavior:contain;
-    background:rgb(var(--bg1) / .96);color:var(--a-ink);font-family:var(--font-sans);
-    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
-  html.room-on .room{display:block}
-  html.room-on{overflow:hidden}
-  .room-in{max-width:760px;margin:0 auto;padding:64px 20px 96px;box-sizing:border-box}
-  .room h2{font-size:34px;font-weight:500;letter-spacing:-.02em;line-height:1;margin:0 0 14px}
-  .room-sub{font-size:15px;line-height:1.35;margin:0 0 36px;max-width:46ch;opacity:.85}
-  .room-x{position:fixed;top:14px;right:18px;z-index:2;background:none;border:0;padding:6px 10px;
-    font:inherit;font-size:34px;line-height:1;color:inherit;cursor:pointer}
-  .room-x:focus-visible,.room-row:focus-visible,.room-form button:focus-visible,
-  .room-form input:focus-visible,.room-links a:focus-visible{outline:2px solid var(--a-ink);outline-offset:3px}
-  .room ol{list-style:none;margin:0;padding:0;border-top:1px solid currentColor}
-  .room li{border-bottom:1px solid currentColor}
-  .room-row{all:unset;box-sizing:border-box;display:grid;grid-template-columns:5.2em 1fr auto;gap:4px 16px;
-    width:100%;padding:16px 0;cursor:pointer;font-size:16px;line-height:1.25}
-  .room-row:focus-visible{outline:2px solid var(--a-ink);outline-offset:3px}
-  .room-row .rr-d{opacity:.7}
-  .room-row .rr-w{grid-column:2}
-  .room-row .rr-t{grid-column:2;font-weight:500}
-  .room-row .rr-s{grid-column:3;grid-row:1;font-size:13px;letter-spacing:.04em;text-transform:uppercase;
-    align-self:start;opacity:.8}
-  .room li[data-state="soon"] .room-row{cursor:default;opacity:.5}
-  .room-form{display:flex;gap:10px;flex-wrap:wrap;padding:0 0 16px 6.2em}
-  .room-form[hidden],.room-body[hidden]{display:none}
-  .room-form input{flex:1 1 12em;min-width:0;font:inherit;font-size:16px;padding:9px 10px;
-    border:1px solid currentColor;border-radius:0;background:rgb(var(--bg0) / .6);color:inherit}
-  .room-form button{font:inherit;font-size:15px;padding:9px 16px;border:1px solid currentColor;
+  /* A finished lecture swaps Sign up for the Reading Room: the same words'
+     place and type, a lock after them, and under it, at the top of the
+     scrolling detail, the password and then what the password opens. */
+  .lec button.signup{appearance:none;background:none;border:0;padding:0;margin:0;font:inherit;
+    text-align:left;cursor:pointer;max-width:100%}
+  .lec .signup .lk{display:inline-block;width:.72em;height:.84em;margin-left:.2em;
+    vertical-align:-.04em;overflow:visible}
+  .lec .lec-room{margin-top:calc(var(--lec-lead) + 14px);color:var(--a-ink)}
+  .lec .lec-room[hidden],.lec .room-form[hidden],.lec .room-body[hidden]{display:none}
+  .lec .room-hint{margin:0 0 10px;font-size:13px;line-height:1.3}
+  .lec .room-form{display:flex;gap:8px;flex-wrap:wrap;margin:0}
+  .lec .room-form input{flex:1 1 9em;min-width:0;font:inherit;font-size:15px;padding:8px 9px;
+    border:1px solid currentColor;border-radius:0;background:rgb(var(--bg0) / .55);color:inherit}
+  .lec .room-form button{font:inherit;font-size:14px;padding:8px 14px;border:1px solid var(--a-ink);
     border-radius:0;background:var(--a-ink);color:rgb(var(--bg1));cursor:pointer}
-  .room-form button:disabled{opacity:.5;cursor:default}
-  .room-err{flex-basis:100%;margin:0;font-size:14px;min-height:1.2em}
-  .room-body{padding:0 0 28px 6.2em;font-size:16px;line-height:1.35}
-  .room-body>*+*{margin-top:16px}
-  .room-body .rp,.room-body .lec-replay iframe{max-width:560px}
-  .room-note{white-space:pre-line;max-width:56ch}
-  .room-links{list-style:none;margin:0;padding:0;border:0}
-  .room-links li{border:0;padding:3px 0}
-  .room-links a{color:inherit;text-decoration:underline;text-underline-offset:.18em}
-  @media (max-width:600px){
-    .room-in{padding:56px 16px 80px}
-    .room-form,.room-body{padding-left:0}
-    .room-row{grid-template-columns:1fr auto}
-    .room-row .rr-d,.room-row .rr-w,.room-row .rr-t{grid-column:1}
-  }
+  .lec .room-form button:disabled{opacity:.5;cursor:default}
+  .lec .room-err{flex-basis:100%;margin:0;font-size:13px;line-height:1.3;min-height:1.3em}
+  .lec .room-form input:focus-visible,.lec .room-form button:focus-visible,
+  .lec .room-links a:focus-visible,.lec button.signup:focus-visible{outline:2px solid var(--a-ink);outline-offset:3px}
+  .lec .room-body{font-size:15px;line-height:1.35}
+  .lec .room-body>*+*{margin-top:14px}
+  .lec .room-body .lec-replay{margin:0}
+  .lec .room-note{white-space:pre-line;margin-bottom:0}
+  .lec .room-links{list-style:none;margin:0;padding:0}
+  .lec .room-links li{padding:3px 0}
+  .lec .room-links a{color:inherit;text-decoration:underline;text-underline-offset:.18em}
 '''
 
-# The overlay's script. The sealed data is read from #room-data; a lecture opens
-# when its password decrypts it (PBKDF2-SHA256 -> AES-256-GCM, as tools/seal.js
+# The script. The sealed data is read from #room-data; a lecture opens when its
+# password decrypts its entry (PBKDF2-SHA256 -> AES-256-GCM, as tools/seal.js
 # wrote it). Nothing is built with innerHTML: what comes out of the ciphertext
-# is set as text, and a link must be https. The player is the replay frame of a
-# lecture's own detail (.rp, REPLAY_JS).
+# is set as text, a link must be https, a video id a plain id. The player is
+# the replay frame of a lecture's detail (.rp, REPLAY_JS).
 ROOM_JS = r'''<script>(function(){
-  const room=document.getElementById("room");if(!room)return;
-  const h=document.documentElement,D=JSON.parse(document.getElementById("room-data").textContent);
+  const dat=document.getElementById("room-data");if(!dat)return;
+  const D=JSON.parse(dat.textContent);
   const b64=x=>Uint8Array.from(atob(x),c=>c.charCodeAt(0));
-  const open=()=>{h.classList.add("room-on");room.scrollTop=0;
-    const x=room.querySelector(".room-x");if(x)x.focus({preventScroll:true});};
-  const close=()=>h.classList.remove("room-on");
-  document.addEventListener("click",e=>{
-    const a=e.target.closest&&e.target.closest('a[href="#reading-room"]');
-    if(a){e.preventDefault();open();}},true);
-  room.querySelector(".room-x").addEventListener("click",close);
-  addEventListener("keydown",e=>{if(e.key==="Escape"&&h.classList.contains("room-on"))close();});
-  if(location.hash==="#reading-room")open();
+  const el=(t,c,txt)=>{const n=document.createElement(t);if(c)n.className=c;if(txt!=null)n.textContent=txt;return n;};
+  const OPEN="M3.2 6V4.2a2.8 2.8 0 0 1 5.5-.7";
   async function unlock(i,pw){
-    if(!(crypto&&crypto.subtle))throw new Error("secure");
+    if(!(window.crypto&&crypto.subtle))throw new Error("secure");
     const s=D.rooms[i],km=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw.normalize("NFKC")),"PBKDF2",false,["deriveKey"]);
     const key=await crypto.subtle.deriveKey({name:"PBKDF2",salt:b64(s.salt),iterations:D.iter,hash:"SHA-256"},km,{name:"AES-GCM",length:256},false,["decrypt"]);
     return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:"AES-GCM",iv:b64(s.iv)},key,b64(s.ct))));}
-  const el=(t,c,txt)=>{const n=document.createElement(t);if(c)n.className=c;if(txt!=null)n.textContent=txt;return n;};
-  function show(li,r,title){
-    const body=li.querySelector(".room-body");body.textContent="";
+  function fill(body,r,title){
+    body.textContent="";
     if(/^[\w-]{6,20}$/.test(r.replay||"")){
       const w=el("div","lec-replay"),b=el("button","rp");b.type="button";
       b.dataset.id=r.replay;b.dataset.title=title;b.setAttribute("aria-label","Play the replay");
       const im=el("img");im.src="https://i.ytimg.com/vi/"+r.replay+"/hqdefault.jpg";im.alt="";
-      b.append(im,el("span","rp-play"));b.lastChild.setAttribute("aria-hidden","true");w.append(b);body.append(w);}
+      const pl=el("span","rp-play");pl.setAttribute("aria-hidden","true");b.append(im,pl);w.append(b);body.append(w);}
     if(r.note)body.append(el("p","room-note",r.note));
     const ls=(r.links||[]).filter(l=>/^https:\/\//.test(l.url));
-    if(ls.length){const u=el("ul","room-links");ls.forEach(l=>{const li2=el("li"),a=el("a",null,l.label||l.url);
-      a.href=l.url;a.target="_blank";a.rel="noopener";li2.append(a);u.append(li2);});body.append(u);}
-    body.hidden=false;li.querySelector(".room-form").hidden=true;li.dataset.state="open";
-    li.querySelector(".rr-s").textContent="Open";}
-  room.querySelectorAll("li[data-i]").forEach(li=>{
-    const i=li.dataset.i,row=li.querySelector(".room-row"),f=li.querySelector(".room-form");
-    if(li.dataset.state==="soon")return;
-    const title=li.querySelector(".rr-w").textContent+" \u2014 "+li.querySelector(".rr-t").textContent;
-    row.addEventListener("click",()=>{
-      if(li.dataset.state==="open"){const b=li.querySelector(".room-body");b.hidden=!b.hidden;return;}
-      f.hidden=!f.hidden;if(!f.hidden)f.querySelector("input").focus();});
+    if(ls.length){const u=el("ul","room-links");ls.forEach(l=>{const li=el("li"),a=el("a",null,l.label||l.url);
+      a.href=l.url;a.target="_blank";a.rel="noopener";li.append(a);u.append(li);});body.append(u);}}
+  document.querySelectorAll(".lec[data-lec]").forEach(l=>{
+    const i=l.dataset.lec,box=l.querySelector(".lec-room");if(!box||!D.rooms[i])return;
+    const btn=l.querySelector(".signup.room-open"),f=box.querySelector(".room-form"),
+      body=box.querySelector(".room-body"),inp=f.querySelector("input"),
+      go=f.querySelector("button"),err=f.querySelector(".room-err");
+    const title=(l.querySelector(".t-lecw .ink")||l).textContent.trim()+" — "+(l.querySelector(".t-lect .ink")||l).textContent.trim();
+    const measure=()=>{if(window.__lecMeasure)window.__lecMeasure();};
+    btn.addEventListener("click",()=>{
+      box.hidden=!box.hidden;btn.setAttribute("aria-expanded",String(!box.hidden));
+      if(!box.hidden){if(!f.hidden)inp.focus({preventScroll:true});
+        box.scrollIntoView({block:"nearest"});}
+      measure();});
     f.addEventListener("submit",async e=>{
-      e.preventDefault();const inp=f.querySelector("input"),btn=f.querySelector("button"),
-        err=f.querySelector(".room-err");err.textContent="";
-      if(!inp.value.trim())return;btn.disabled=true;
-      try{show(li,await unlock(i,inp.value.trim()),title);inp.value="";}
+      e.preventDefault();err.textContent="";const pw=inp.value.trim();if(!pw)return;go.disabled=true;
+      try{fill(body,await unlock(i,pw),title);inp.value="";f.hidden=true;box.querySelector(".room-hint").hidden=true;
+        body.hidden=false;btn.querySelectorAll(".lk path").forEach(p=>p.setAttribute("d",OPEN));
+        btn.querySelectorAll(".lk").forEach(k=>k.classList.add("unlocked"));measure();}
       catch(x){err.textContent=x.message==="secure"?"This needs a secure (https) page.":"That password does not open this lecture.";
         inp.select();}
-      btn.disabled=false;});});
+      go.disabled=false;});});
 })();</script>'''
 
+LOCK = ('<svg class="lk" viewBox="0 0 12 14" aria-hidden="true">'
+        '<rect x="1" y="6" width="10" height="7.5" rx="1" fill="currentColor"/>'
+        '<path d="M3.2 6V4.2a2.8 2.8 0 0 1 5.6 0V6" fill="none" stroke="currentColor" '
+        'stroke-width="1.5"/></svg>')
 
-def room_html():
-    """The overlay, its data and its script; nothing when nothing is sealed or
-    on a cut that has no roles (the social poster)."""
-    if not ROOM or 'room' not in ROLES:
+
+def has_room(i):
+    return bool(ROOM) and str(i) in ROOM['rooms']
+
+
+def signup_html(i, lec):
+    """Sign up -- or, for a lecture that has a Reading Room entry, the Reading
+    Room behind a lock. It keeps the class `signup`: the phone layout moves
+    that element about and does not care what it is."""
+    if has_room(i):
+        return ('<button class="signup room-open" type="button" aria-expanded="false" '
+                'aria-controls="room-%d">' % i
+                + layers('p', 'lecs', '<span class="u">Digital Reading Room &amp; Replay</span>'
+                         '\u2009' + LOCK) + '</button>')
+    return (f'<a class="signup" href="{tagged(lec.get("signup", SIGNUP))}" target="_blank" '
+            f'rel="noopener">'
+            + layers('p', 'lecs', '<span class="u">Sign up</span>\u2009\u2197') + '</a>')
+
+
+def room_box(i):
+    """Where the password goes, and then what it opens: hidden until the lock
+    is clicked, filled by ROOM_JS."""
+    if not has_room(i):
         return ''
-    rows = []
-    for i, lec in enumerate(LECTURES):
-        sealed = str(i) in ROOM['rooms']
-        rows.append(
-            f'<li data-i="{i}" data-state="{"locked" if sealed else "soon"}">'
-            f'<button class="room-row" type="button"{"" if sealed else " tabindex=\"-1\" aria-disabled=\"true\""}>'
-            f'<span class="rr-d">{html.escape(lec["when"])}</span>'
-            f'<span class="rr-w">{html.escape(re.sub(r" \(.*\)$", "", lec["who"]))}</span>'
-            f'<span class="rr-t">{html.escape(lec["what"])}</span>'
-            f'<span class="rr-s">{"Locked" if sealed else "Soon"}</span></button>'
-            + ('<form class="room-form" hidden autocomplete="off">'
-               '<input type="password" name="pw" autocomplete="off" autocapitalize="off" '
-               'spellcheck="false" placeholder="Password" aria-label="Password">'
-               '<button type="submit">Open</button><p class="room-err" role="alert"></p></form>'
-               '<div class="room-body" hidden></div>' if sealed else '')
-            + '</li>')
-    return ('<div class="room" id="room" role="dialog" aria-modal="true" aria-label="Reading Room">'
-            '<button class="room-x" type="button" aria-label="Close">\u00d7</button>'
-            '<div class="room-in"><h2>Reading Room</h2>'
-            '<p class="room-sub">Replays and reading materials for each lecture. '
-            'Enter a lecture\u2019s password to open it.</p>'
-            '<ol>' + ''.join(rows) + '</ol></div></div>\n'
-            f'<script type="application/json" id="room-data">{json.dumps(ROOM)}</script>\n'
-            + ROOM_JS)
+    return (f'<div class="lec-room" id="room-{i}" hidden>'
+            '<p class="room-hint">Enter the password you received to open this '
+            'lecture\u2019s replay and reading materials.</p>'
+            '<form class="room-form" autocomplete="off">'
+            '<input type="password" name="pw" autocomplete="off" autocapitalize="off" '
+            'spellcheck="false" placeholder="Password" aria-label="Password">'
+            '<button type="submit">Open</button><p class="room-err" role="alert"></p></form>'
+            '<div class="room-body" hidden></div></div>')
 
 
 def lec_extra(lec):
@@ -2309,12 +2287,9 @@ def lectures_html():
             # stay put while what is below them scrolls
             + '<div class="more"><div class="more-in">'
             + layers('div', 'lecl', copy_html('lecl', f"[{lec['lang']}]"))
-            # a lecture with a replay is over: its Sign up stays in the markup
-            # (the phone layout moves it about) but is not shown
-            + f'<a class="signup{" gone" if lec.get("replay") else ""}" href="{tagged(lec.get("signup", SIGNUP))}" target="_blank" '
-              f'rel="noopener">'
-              + layers('p', 'lecs', '<span class="u">Sign up</span>\u2009\u2197') + '</a>'
+            + signup_html(i, lec)
             + '<div class="scroll">'
+            + room_box(i)
             + lec_replay(lec)
             + layers('div', 'lecb', copy_html('lecb', lec['about']))
             + lec_extra(lec)
@@ -2327,6 +2302,9 @@ def lectures_html():
             + '</div>')
     if ROOM or any(l.get('replay') for l in LECTURES[:len(bands)]):
         out.append(REPLAY_JS)
+    if ROOM:
+        out.append(f'<script type="application/json" id="room-data">{json.dumps(ROOM)}</script>')
+        out.append(ROOM_JS)
     return '\n'.join(out)
 
 
@@ -2570,7 +2548,6 @@ def page(inline, spine=None, cols=None, rows=None, tools=False):
                 .replace('__NARROW__', str(NARROW)).replace('__MID__', str((NARROW + WIDE) // 2))
                 .replace('__COLS__', f'{cols:g}').replace('__ROWS__', str(rows))
             + BODY.replace('__NARROW__', str(NARROW)).replace('__SPINE__', spine).replace('__SCHED__', schedule_html()).replace('__VIEW__', view_html()).replace('__LECS__', lectures_html()).replace('__CUES__', cues() + swatches(cls='themes themes-m')).replace('__CORNERS__', corners()).replace('__BACKLIGHT__', backlight_defs()).replace('__THEMEPICK__', THEME_PICK).replace('__SPINETONES__', json.dumps({c.upper(): f'--sp-{k}' for k, c in THEMES[THEME_DEFAULT]['spine'].items()}))
-            + room_html()
             + (tools_panel() if tools else ''))
 
 
