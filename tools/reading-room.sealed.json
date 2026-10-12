@@ -1,0 +1,11 @@
+{
+ "v": 1,
+ "iter": 600000,
+ "rooms": {
+  "0": {
+   "salt": "yplq2OOqywPXABIN9o1A1A==",
+   "iv": "Vkm2QfEJSS77OGxd",
+   "ct": "CbKGH9l5Y1XvGA67I7rtBzr++PYQkl8bLNV6ANP2bFXH7voXyuaL83PWj1xuQn6RCtg04Ho2mvtLldTFNA=="
+  }
+ }
+}

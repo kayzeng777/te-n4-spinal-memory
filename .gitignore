@@ -6,3 +6,4 @@ tools/__pycache__/
 !images/lectures/
 images/lectures/*
 !images/lectures/web/
+tools/reading-room.json
