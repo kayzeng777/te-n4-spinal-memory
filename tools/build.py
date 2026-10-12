@@ -2067,6 +2067,8 @@ ROOM_CSS = '''
      scrolling detail, the password and then what the password opens. */
   .lec button.signup{appearance:none;background:none;border:0;padding:0;font:inherit;
     text-align:left;cursor:pointer;max-width:100%}
+  .lec .signup .pl{display:inline-block;width:.95em;height:.95em;margin-right:.32em;
+    vertical-align:-.13em;overflow:visible}
   .lec .signup .lk{display:inline-block;width:.72em;height:.84em;margin-left:.2em;
     vertical-align:-.04em;overflow:visible}
   .lec .lec-room{margin-top:calc(var(--lec-lead) + 14px);color:var(--a-ink)}
@@ -2142,6 +2144,9 @@ ROOM_JS = r'''<script>(function(){
       go.disabled=false;});});
 })();</script>'''
 
+PLAY = ('<svg class="pl" viewBox="0 0 14 14" aria-hidden="true">'
+        '<circle cx="7" cy="7" r="6.1" fill="none" stroke="currentColor" stroke-width="1.2"/>'
+        '<path d="M5.5 4.3 9.9 7 5.5 9.7Z" fill="currentColor"/></svg>')
 LOCK = ('<svg class="lk" viewBox="0 0 12 14" aria-hidden="true">'
         '<rect x="1" y="6" width="10" height="7.5" rx="1" fill="currentColor"/>'
         '<path d="M3.2 6V4.2a2.8 2.8 0 0 1 5.6 0V6" fill="none" stroke="currentColor" '
@@ -2159,7 +2164,7 @@ def signup_html(i, lec):
     if has_room(i):
         return ('<button class="signup room-open" type="button" aria-expanded="false" '
                 'aria-controls="room-%d">' % i
-                + layers('p', 'lecs', '<span class="u">Lecture Replay</span>'
+                + layers('p', 'lecs', PLAY + '<span class="u">Lecture replay</span>'
                          '\u2009' + LOCK) + '</button>')
     return (f'<a class="signup" href="{tagged(lec.get("signup", SIGNUP))}" target="_blank" '
             f'rel="noopener">'
