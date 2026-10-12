@@ -1268,6 +1268,9 @@ LEC_CSS = '''.peek-flood{flood-color:var(--peek-green,#80C58A)}
     .lec-bar{flex:none;position:relative;z-index:2;display:flex;justify-content:space-between;
       align-items:center;column-gap:16px;padding:0 var(--pad)}
     .lec-bar>*{margin:0}
+    /* the code field, when open, is a row of its own under Sign up and the close */
+    .lec-bar{flex-wrap:wrap}
+    .lec .lec-bar>.lec-room{order:3;flex:0 0 100%;margin-top:6px}
     /* It starts right under the bar, never under it: a line scrolled up
        fades out over --under, the room above the first line, before it
        reaches Sign up. */
@@ -1468,14 +1471,17 @@ __LECS__
         const bar=document.createElement('div'),body=document.createElement('div');
         bar.className='lec-bar';body.className='lec-body';
         const su=l.querySelector('.signup'),x=l.querySelector('.lec-close');
-        l.__home=[su.parentNode,su.nextSibling];
+        const rm=l.querySelector('.lec-room');
+        let nx=su.nextSibling;if(rm&&nx===rm)nx=rm.nextSibling;
+        l.__home=[su.parentNode,nx];
         [...l.children].forEach(c=>{if(c!==x&&!c.classList.contains('cue'))body.appendChild(c);});
-        bar.append(su,x);l.append(bar,body);l.__bar=bar;l.__body=body;
+        bar.append(su,x);if(rm)bar.append(rm);l.append(bar,body);l.__bar=bar;l.__body=body;
       }else{
         const bar=l.__bar,body=l.__body,[p,n]=l.__home;
         const su=bar.querySelector('.signup'),x=bar.querySelector('.lec-close');
         [...body.children].forEach(c=>l.insertBefore(c,bar));
-        p.insertBefore(su,n);l.appendChild(x);
+        const rm=bar.querySelector('.lec-room');
+        p.insertBefore(su,n);if(rm)p.insertBefore(rm,n);l.appendChild(x);
         const cue=l.querySelector(':scope>.cue');if(cue)l.insertBefore(cue,x);
         bar.remove();body.remove();l.__bar=l.__body=null;}}
     house();narrow.addEventListener('change',house);
@@ -2082,7 +2088,7 @@ ROOM_CSS = '''
      the ghost: it keeps the caret and the keys. Open is a filled box with the
      yellow word on it; Cancel is its box and its word. What is typed is shown
      as typed. */
-  .lec .lec-room{margin-top:calc(var(--lec-lead) + 12px);margin-bottom:32px;color:var(--a-ink)}
+  .lec .lec-room{margin-top:calc(var(--lec-lead) + 12px);margin-bottom:0;color:var(--a-ink)}
   .lec .lec-room[hidden],.lec .room-err[hidden]{display:none}
   .lec .room-form{display:flex;flex-wrap:wrap;gap:8px 6px;align-items:stretch;margin:18px 0 0}
   .lec .room-field{position:relative;flex:1 1 7em;min-width:0;display:block}
@@ -2465,8 +2471,9 @@ def lectures_html():
             + '<div class="more"><div class="more-in">'
             + layers('div', 'lecl', copy_html('lecl', f"[{lec['lang']}]"))
             + signup_html(i, lec)
-            + '<div class="scroll">'
+            # the code field sits with the button, outside what scrolls
             + room_box(i)
+            + '<div class="scroll">'
             + lec_replay(lec)
             + layers('div', 'lecb', copy_html('lecb', lec['about']))
             + lec_extra(lec)
