@@ -2080,24 +2080,25 @@ ROOM_CSS = '''
     text-shadow:0 0 .5em var(--a-glow),0 0 .15em var(--a-glow)}
   .lec .lec-room[hidden]{display:none}
   .lec .room-hint{margin:0;font-size:__RPD__;letter-spacing:.035em;line-height:1.12;max-width:30ch}
-  .lec .room-form{display:block;margin:14px 0 0}
-  .lec .room-form input{display:block;box-sizing:border-box;width:100%;max-width:22em;margin:0;
+  /* the field and Open on one line, Cancel under the field, the error under that */
+  .lec .room-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 18px;
+    align-items:baseline;margin:14px 0 0}
+  .lec .room-form input{display:block;box-sizing:border-box;width:100%;margin:0;
     padding:7px 0 6px;font:inherit;font-size:__RPW__;letter-spacing:.06em;color:inherit;
     text-shadow:inherit;background:transparent;border:0;border-radius:0;
-    border-bottom:1px solid currentColor;outline:0;caret-color:currentColor;
-    -webkit-text-security:disc}
+    border-bottom:1px solid currentColor;outline:0;caret-color:currentColor}
   .lec .room-form input::placeholder{color:inherit;opacity:.55;letter-spacing:.02em}
   .lec .room-form input:focus{border-bottom-width:2px;padding-bottom:5px}
   .lec .room-form input:-webkit-autofill{-webkit-text-fill-color:var(--a-ink);
     transition:background-color 99999s}
-  .lec .room-actions{display:flex;gap:18px;align-items:baseline;margin-top:12px}
   .lec .room-form button{appearance:none;background:none;border:0;border-radius:0;margin:0;padding:0;
     font:inherit;font-size:__RPW__;letter-spacing:.017em;color:inherit;text-shadow:inherit;
     cursor:pointer;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.18em}
-  .lec .room-form .room-cancel{font-size:__RPD__;letter-spacing:.035em;opacity:.8}
+  .lec .room-form .room-cancel{grid-column:1;justify-self:start;font-size:__RPD__;
+    letter-spacing:.035em;opacity:.8}
   .lec .room-form button:disabled{opacity:.5;cursor:default}
   .lec .room-form button:focus-visible{outline:2px solid var(--a-ink);outline-offset:3px}
-  .lec .room-err{margin:10px 0 0;font-size:__RPD__;letter-spacing:.035em;line-height:1.15;min-height:0}
+  .lec .room-err{grid-column:1 / -1;margin:0;font-size:__RPD__;letter-spacing:.035em;line-height:1.15;min-height:0}
   .lec .room-err:empty{display:none}
   .lec button.signup:focus-visible{outline:2px solid var(--a-ink);outline-offset:3px}
 
@@ -2271,15 +2272,10 @@ def room_box(i):
             '<p class="room-hint">Enter the password you received to open this '
             'lecture’s replay.</p>'
             '<form class="room-form" autocomplete="off">'
-            # a text field set as dots, not type=password: a password field is
-            # what makes the browser offer to AutoFill, and that offer opens
-            # under the field, over Open and Cancel
-            '<input type="text" name="replay-code" autocomplete="off" autocapitalize="off" '
-            'autocorrect="off" spellcheck="false" data-1p-ignore data-lpignore="true" '
-            'data-bwignore="true" data-form-type="other" placeholder="Password" '
-            'aria-label="Password">'
-            '<div class="room-actions"><button type="submit">Open \u2192</button>'
-            '<button type="button" class="room-cancel">Cancel</button></div>'
+            '<input type="password" name="pw" autocomplete="off" autocapitalize="off" '
+            'spellcheck="false" placeholder="Password" aria-label="Password">'
+            '<button type="submit">Open \u2192</button>'
+            '<button type="button" class="room-cancel">Cancel</button>'
             '<p class="room-err" role="alert"></p></form></div>')
 
 
