@@ -411,6 +411,7 @@ TEXT = dict(
     lecl=dict(step='t14', set='a', gap=4),   # a chip, the size of the Intro's
     lecb=dict(step='t14', set='d', gap=6),
     lecbio=dict(step='t14', set='d'),           # a speaker's bio, beside their portrait
+    leccap=dict(step='t12', set='d'),           # a caption, under its picture
     lecs=dict(step='t16', set='a', gap=30),
     lecx=dict(step='t20', set='a'),              # the close; its size is set in LEC_CSS
     viewt=dict(step='t14', set='a'),             # the Spine / Calendar switch, top centre
@@ -443,6 +444,10 @@ TIME_EST = 'New York / 8am EST\nLondon / 1pm GMT'
 # originals are kept as they came: 'lecture images/' and 'speakers portrait/'. A lecture with two
 # speakers lists two: speakers=[dict(face='06-hsu.jpg', bio='...'), dict(...)].
 # `bio` is prose like `about`.
+# `pic_caps` is optional: one caption per entry of `pics`, in the same order
+# (None for a picture without one), set under its picture. `pics_cap` is one
+# caption for the pictures together, set under the last. Both are prose like
+# `bio`: `*text*` is italic.
 # `replay` is optional: a YouTube video id. The recording sits above `about` as a
 # poster frame, and is loaded only when it is played (REPLAY_JS).
 LECTURES = [
@@ -452,6 +457,8 @@ LECTURES = [
          signup='https://luma.com/nm7vu01t',
          about='When Tyva people say that the horse is everything in life, this is not a metaphor—it comes from the lived experience of the people who have been mobile pastoralists for millennia, whose lives and identities have been continuously shaped by horses. Drawing on her personal experience and research among mobile pastoralists between the Altai and Sayan mountain ranges in the transnational region of Inner Asia, Dr. Victoria Soyan Peemot explores how Tyvan understandings of voice, sound, and music are rooted in multispecies relationships, with a particular focus on human-equine belonging.\n\nHer research brings together horses and their rich sound world with the people and land to which they co-belong. The lecture discusses how the rhythms and lyrics of Tyvan songs and Tyvan ways of understanding the human voice itself emerge from belonging to the land and cohabiting it with other beings.',
          pics=['lecture images/1-1.JPG', 'lecture images/1-2.jpg'],
+         pic_caps=['East Taiga, northern Mongolia, June 2023. Photo: Stanislav Krupař',
+                   'Naadam, Mongolian traditional festival. Photo: A.Duurenjargal'],
          speakers=[dict(face='speakers portrait/01 Victoria.jpeg', bio='Victoria Soyan Peemot is a senior researcher, community advocate, and member of the Soyan kinship group from the Tyva Republic, raised at the Tyvan-Mongolian borderland in a livestock herding family. Her research weaves together Tyva transnational kinship, multispecies relations, and the continuity of pastoralist lifeways and is guided by aaldaar, the Tyvan customary practice of relational reciprocity that extends to land and other-than-human beings.\n\nShe holds a PhD in History and Cultural Heritage Studies from the University of Helsinki (2021). Her book *The Horse In My Blood* (2024) explores human-horse-homeland relationships and histories of state violence. Her second book *Songs of Tyva: A Guide to Tyvan Culture and Language* (2026) draws on emplaced storytelling through folk songs and photographs of the featured homelands. Her broader work engages ethnographic museum collections across Europe, decolonizing archives, and the return of ancestral stories to the communities they belong to.')]),
     dict(when='Oct 11', who='Wantanee Siripattananuntakul',
          what='If There’s No Reply, Is That Silence Still Love?',
@@ -459,6 +466,7 @@ LECTURES = [
          signup='https://luma.com/3zuyg46f',
          about='Wantanee Siripattananuntakul has lived with Beuys, an African grey parrot, since 2013. After more than a decade together, she has come to know Beuys’ voices, movements, routines, fears, and desires. She has also kept Beuys’ feathers, images, objects, and documents, and turned to science to learn how parrots see, hear, and navigate the world. Yet the more she knows about Beuys, the more aware she becomes of what she cannot know: what the world is like for Beuys.\n\nThat distance extends beyond her relationship with Beuys into her wider artistic practice: when she reconstructs what is no longer there from what remains, traces histories she was never there to witness, or measures a distance exactly and still finds that the number cannot tell her what that distance means. Wantanee keeps looking anyway. She is no longer only asking what she can know, but what makes her think she has received an answer. What makes something an answer, and who decides? And if there is no reply, how does she know that what she calls silence is silence at all?',
          pics=['lecture images/2-1.jpg'],
+         pic_caps=['Beuys. Photo: Wantanee Siripattananuntakul'],
          speakers=[dict(face='speakers portrait/02 Wantanee.jpg', bio='Wantanee Siripattananuntakul is a Thai contemporary artist working across video, installation, sculpture, sound, and text. Her practice moves between inquiries into economic and political structures and questions of perception that extend beyond human experience. These concerns coexist within her practice, intersecting or remaining distinct depending on the conditions of each project. Her long-standing engagement with inequality, systems of value, and ideological structures often begins with particular political or economic conditions.\n\nAlongside this, her shared life with Beuys, an African grey parrot she has lived with since 2013, has gradually altered the way she approaches questions of perception and position, leading to broader investigations of how other species perceive and orient themselves within worlds that humans can never fully access.')]),
     dict(when='Oct 17', who='Terezie Štindlová',
          what='Do We Need Zoos?',
@@ -466,6 +474,7 @@ LECTURES = [
          signup='https://luma.com/clizyb3n',
          about='Do we need zoos? Why do we enjoy looking at animals? What lies behind the simple human desire to feel connected to animals? These are the questions Terezie Štindlová set out to ask through her platform [[ZOO Index]], an open archive of visual and textual zoo related material questioning its relevance in contemporary society. In this lecture, Terezie traces the development of [[ZOO Index]] from her initial interests in Zoo design and architecture toward broader questions about human ways of relating to animals, following this thinking as it takes shape through the publication process, the collaborations behind it, and the project’s possible futures.\n\nBefore the talk, the session opens with a short excerpt from a sound piece by artist Qihang Li, an immersive soundscape originally composed for ZOO Index’s book launch in Amsterdam.',
          pics=['lecture images/3-1.jpeg', 'lecture images/3-2.png'],
+         pic_caps=[None, '*ZOO Index Reader (Volume 1)*, published in 2024. Editor: Terezie Štindlová'],
          speakers=[dict(face='speakers portrait/03 Terezie.jpg', bio='Terezie Štindlová is a designer and one half of a non-workaholic studio Day Shift Office. She’s an author of the online platform and a publication *[[ZOO Index]]*, which examine the (un)relevance of zoos in contemporary society, how they shape our gaze towards nonhuman animals and by extension, ourselves and one another. In her research she’s also looking for links between zoos and current office culture; shedding light on the power dynamics of labour and control exerted through (human) design. She graduated from Werkplaats Typografie in 2023 and is currently based in Amsterdam.')]),
     dict(when='Oct 24', who='Boria Sax (Guest Moderator: Ruoyi Shi)',
          what='Stories, Poetry, and Birdsong',
@@ -473,6 +482,8 @@ LECTURES = [
          signup='https://luma.com/r415f2wl',
          about='Boria Sax has long studied how animals have moved through human culture, stories, and mythology. This lecture argues that birdsong is similar to the poetry of Dylan Thomas or John Ashbery, where there is almost no literal meaning but a great deal of suggestiveness. Human beings organize experience primarily through storytelling, which serves, among other things, to construct identities, build communities, teach lessons, and set goals. Animals from wolves to fireflies are also constantly exchanging messages. This is especially apparent in birds, for whom songs and calls are used for courtship, proclaiming territory, issuing warnings, and affirming bonds, all of which are also central motifs in the tales told by human beings.\n\nThese vocalizations also resemble human stories in that they modulate their tempo for purposes such as the building or release of dramatic tension. They differ from human stories, and even more from products of artificial intelligence, in that they are profoundly embedded in the world to a point where the question of “truth” or “falsity” can become irrelevant.\n\nThe lecture will be joined by artist Ruoyi Shi as guest moderator.',
          pics=['lecture images/4-1.jpg', 'lecture images/4-2.JPG'],
+         pic_caps=['Simon de Myle, *Noah’s Ark on Mount Arafat*, Flanders, 1570.',
+                   'Edward Hicks, *The Peaceable Kingdom*, United States, c. 1937.'],
          speakers=[dict(face='speakers portrait/04 Boria Sax.jpg', bio='Boria Sax is the author of 20 books, mostly on animals in human culture, including *Avian Illuminations: A Cultural History of Birds*, *City of Ravens*, and *The Mythical Zoo: Animals in Myth, Legend, and Literature*. His books have been widely translated including eight into either simplified or traditional Chinese. He teaches at Sing Sing prison and in the graduate English program of Mercy University.'),
                    dict(face='speakers portrait/04 Ruoyi Shi.png', bio='Ruoyi Shi is an interdisciplinary artist based in Los Angeles. Inspired by ancient tales and rituals intertwined with language, habits, and societal norms, she combines humor and fiction to construct her poetic narratives. Her work explores the interface between nature and artificial existences, as well as the notion of truth and its fabrications. Studying the linguistic connection between translation and birds, or bird-like creatures, from both nature and mythology, she expands beyond concepts of language into questions of transformation, migration, and belief.')]),
     dict(when='Oct 25', time=TIME_GMT, who='Robert Zhao Renhui',
@@ -481,6 +492,8 @@ LECTURES = [
          signup='https://luma.com/o544mqdl',
          about='How do we come to know a forest through the encounters we have within it? Similar questions extend across Robert Zhao Renhui’s practice: what can we know from what we observe and document, and how much can such evidence really tell us?\n\nIn this lecture, Robert shares the fieldwork and artistic processes behind his investigations into Singapore’s secondary forests. Moving between the [[Institute of Critical Zoologists]] which he founded in 2018 and his project *Seeing Forest*, he traces how repeated visits, camera observations and found objects become photographs, moving images, installations and publications. Through stories from the field, this lecture reflects on what images reveal, what remains uncertain, and how sustained attention can change our understanding of the lives and histories that make up a place.',
          pics=['lecture images/5-1.jpg', 'lecture images/5-2.jpg'],
+         pic_caps=['“I was told by the local boys in the township that the bears frequent the rubbish dump. I put 2 cameras looking at the rubbish dump for 2 months,” Hampi, 2025. Photo: Robert Zhao Renhui',
+                   'Muntjac in Izu Oshima Zoo, where in 1970, a storm broke the fence and they escaped. Today, more than 19500 muntjacs roam this part of Tokyo, 2025. Photo: Robert Zhao Renhui'],
          speakers=[dict(face='speakers portrait/05 robert zhao renhui.jpg', bio='Robert Zhao Renhui is a Singaporean artist whose work examines the complex relationships between humans and non-human life. Working across photography, video, installation, and research-based projects, he investigates secondary forests, invasive species, and landscapes shaped by disturbance. His long-term projects explore how animals adapt within environments altered by colonial histories, urban expansion, and industrial development. He is the founder of the Institute of Critical Zoologists and lives and works in Singapore.\n\nZhao represented Singapore at the 60th Venice Biennale (2024) with *Seeing Forest*, a multi-year study of a secondary forest in Singapore. Recent projects include *5 Albizias* (Singapore/Maluku), research on sloth bears in Hampi (India), water deer in the United Kingdom, and urban deer in Tokyo. Through sustained observation and fieldwork, he challenges distinctions between native and invasive, natural and artificial, proposing instead that disturbance itself becomes habitat.')]),
     dict(when='Oct 31', time=TIME_GMT, who='Oscar Salguero',
          what='The Rhizomatic Archive: Interspecies Library',
@@ -488,6 +501,7 @@ LECTURES = [
          signup='https://luma.com/ek6lzccj',
          about='Interspecies Library is an independent archive launched in a Brooklyn apartment in 2019, as an experiment in mapping a growing, species-wide fascination with more-than-human worlds. In this lecture, founder and curator Oscar Salguero traces the story of this living archive, from informal salon-style gatherings to large-scale gallery exhibitions, original book commissions and limited editions, and, more recently, collaborations to develop an itinerant version of the library that brings these works into new environments and cross-pollinating dialogues.\n\nToday, the archive stewards over 500 volumes by international artists and independent presses, documenting how the book, an ancient human technology, continues to serve as a portal to imagining and embodying shared fungal, bacterial, plant, animal, and viral futures.',
          pics=['lecture images/6-1.jpg', 'lecture images/6-2.jpg'],
+         pics_cap='The books from the Interspecies Library. Image courtesy of Oscar Salguero',
          speakers=[dict(face='speakers portrait/06 oscarsalguero.jpg', bio="Oscar Salguero is an independent curator and researcher based in Queens, NY. He is the founder of [[Interspecies Library]], the first archive of artists' books exploring alternative interspecies futures. Salguero curated Interspecies Futures [IF] at Center for Book Arts (2021), and NEO MINERALIA at Center for Craft (2023). His latest curatorial work is Journal of Therolinguistics, an exhibition exploring the poetic study of nonhuman languages, which was presented at Descanso Gardens in California from March 25 to July 5, 2026.")]),
     dict(when='Nov 7', time=TIME_EST, who='许哲瑜 Hsu Che-Yu & 陈琬尹 Chen Wan-Yin',
          what='Specimen of Suffering',
@@ -495,6 +509,8 @@ LECTURES = [
          signup='https://luma.com/event/evt-I5aICYx7KZLnxSw',
          about='This lecture moves from a mallard at Natural History Museum Rotterdam, killed after flying into a glass panel, to the Przewalski’s horses of Mongolia; from the Nazi-era attempt to breed back the extinct Tarpan, to the beasts executed at Taipei Yuan-Shan Zoo during wartime; and on to the pathological specimens held at Amsterdam’s Museum Vrolik—research the artist has pursued across moving image, writing, archival research, and near-forensic methodologies.\n\nTheir works keep asking: how do specimens reconstruct memory? How do they conceal historical violence, or become monuments to their own suffering? This lecture invites us to reconsider how museums, science, and political ideology shape the stories behind these specimens. Beyond this, Hsu and Chen will also discuss the research behind their essay *Suffering and the Specimen*, and drawing on their own works, to trace how these histories move between fieldwork, archival material, and working method.',
          pics=['lecture images/7-1.jpg', 'lecture images/7-2.jpg'],
+         pic_caps=['Hsu Che-Yu and Chen Wan-Yin’s lecture performance *Zoo Hypothesis* (《動物園假說》), presented in Frankfurt.',
+                   'Przewalski’s Horses through a telescope; Screenshot from *Demarcation* (《劃線》). Image courtesy of Hsu Che-Yu and Chen Wan-Yin'],
          speakers=[dict(face='speakers portrait/07-Hsu Che-Yu.jpeg', bio='许哲瑜 Hsu Che-Yu is an artist who lives and works in Taipei and Amsterdam. He studied at the Graduate Institute of Plastic Arts at Tainan National University of the Arts, where he received his master’s degree in 2014. He participated in several international postgraduate programs: 2019-2020 at HISK (Higher Institute for Fine Arts) in Ghent; 2020-2022 at Le Fresnoy—Studio national des arts contemporains in Tourcoing; 2022-2024 at the Rijksakademie van Beeldende Kunsten in Amsterdam.\n\nHis practice includes video works, animations, VR works, and installations. A central theme is the intertwining of media, memory, and the body. Typical is his collaboration with forensic 3D scanning teams, whose technologies he transfers into artistic processes in order to renegotiate historical events, political traumas, or biographical narratives. He has been working closely with writer Chen Wan-Yin since 2014.'),
                    dict(face='speakers portrait/07-Chen Wan-Yin.jpeg', bio='陈琬尹 Chen Wan-Yin is a writer whose practice investigates the technological and biopolitical production of memory. She is a key conceptual collaborator in Hsu Che-Yu’s practice and has been shaping its research-driven artistic methodology since 2014. Together they co-authored *aberrant archive 2015-2025* (dmp editions, Taipei), a publication documenting their decade-long artistic alliance examining post-martial law Taiwanese histories through moving images, text and technological reconstructions. She is currently a PhD candidate in Modern and Contemporary Art at Vrije Universiteit Amsterdam.')]),
     dict(when='Nov 8', time=TIME_EST, who='沙爽 Sha Shuang',
@@ -503,6 +519,7 @@ LECTURES = [
          signup='https://luma.com/event/evt-nM4qZM7TCLIBj6Z',
          about='Every cow on the farm has its own number. How much it eats, how far it walks, when it goes into heat, how much milk it gives—all of it is quietly logged by the machines. In 2021, Sha Shuang spent six months at an animal-monitoring data company in Xundian, Yunnan, working alongside a team of programmers. Months of fieldwork left her with a realization: the production system of a cattle farm and human social life aren’t so different after all—both made of bodies, labor, reproduction, care, and the daily experience of being logged and managed by one system or another.\n\nHer essay *Finding the Steppes* grew directly out of these field experiences. This lecture begins with that piece of semi-fiction, tracing why she moved from “monitoring cows” to “writing cows,” and how years of fieldwork among dairy cows, grasslands, milk, data, and ecological systems slowly found their way into her art practice.',
          pics=['lecture images/8-1.png', 'lecture images/8-2.JPG'],
+         pics_cap='Image courtesy of Sha Shuang',
          speakers=[dict(face='speakers portrait/08 Sha Shuang.jpg', bio='沙爽 Sha Shuang is an artist based in Shanghai. Her practice focuses on public space, site-specific engagement, and the intricate relationships between humans, animals, the environment, and production systems. Spanning publishing, painting, moving image, installation, and social practice, her work often develops through fieldwork, interviews, workshops, and collaborative co-creation.\n\nGrounded in concrete lived experiences and local contexts, she addresses issues of standardization, fluidity, relationships, change, memory, and community. In recent years, starting from dairy cows, her research has expanded into dairy production, data monitoring, and ecosystems, translating her fieldwork into moving images, installations, publications, and public programs.')]),
 ]
 
@@ -1152,6 +1169,9 @@ LEC_CSS = '''.peek-flood{flood-color:var(--peek-green,#80C58A)}
      its own shape. */
   .lec .lec-pics{display:grid;gap:8px;margin-top:calc(var(--lec-lead) + 14px)}
   .lec .lec-pics img{width:100%;height:auto;display:block}
+  .lec .lec-fig{margin:0}
+  .lec .lec-fig>.t,.lec .lec-pics-cap>.t{margin-top:6px}
+  .lec .lec-pics-cap{margin-top:0}
   /* The recording: 16:9, the poster frame cropped to it (hqdefault carries
      black bars), a plain play mark over it. Once played the iframe has the box. */
   .lec .lec-replay{margin-top:calc(var(--lec-lead) + 14px);margin-bottom:calc(var(--lec-lead) + 14px)}
@@ -1893,7 +1913,7 @@ LINKS = {'Digital Reading Room': '#',
          'Interspecies Library': 'https://interspecieslibrary.com/'}
 
 ROLE_TAG = dict(logo='div', join='p', joinzh='p', edition='div', title='h1', tag='p', info='p', desc='div', facts='div',
-                lecd='p', lecw='p', lect='p', lecl='div', lecb='div', lecbio='div',
+                lecd='p', lecw='p', lect='p', lecl='div', lecb='div', lecbio='div', leccap='p',
                 lecno='p', lecs='p', lecx='span', cue='p', viewt='span', schedh='span')
 
 
@@ -2184,6 +2204,9 @@ ROOM_CSS = '''
   .rpage-pics{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));
     gap:10px;margin-top:36px}
   .rpage-pics img{width:100%;height:auto;display:block}
+  .rpage-pics figure{margin:0}
+  .rpage-cap{margin:6px 0 0;font-size:13px;line-height:1.35}
+  .rpage-cap-all{margin-top:10px;max-width:62ch}
   .rpage-sps{margin-top:40px;display:grid;gap:28px;max-width:62ch}
   .rpage-sp{display:grid;grid-template-columns:132px 1fr;gap:18px;align-items:start}
   .rpage-sp .face{width:100%;height:auto;display:block}
@@ -2355,7 +2378,7 @@ def room_pages():
         if not has_room(i):
             continue
         e = lambda t: html.escape(t, quote=True)
-        pics = [p for p in (lec_img(n) for n in lec.get('pics', [])) if p]
+        pics = lec_pics(lec)
         sps = ''
         for sp in lec.get('speakers', []):
             face = sp.get('face') and lec_img(sp['face'], size=LEC_FACE_MAX, **{'class': 'face'})
@@ -2377,18 +2400,41 @@ def room_pages():
             f'<p class="rpage-chips"><span class="rpage-chip">{e(lec["lang"])}</span></p></header>'
             '<div class="rpage-player"></div><div class="rpage-extra"></div>'
             f'<div class="rpage-about">{copy_html("lecb", lec["about"])}</div>'
-            + ('<div class="rpage-pics">' + ''.join(t for t, _ in pics) + '</div>' if pics else '')
+            + ('<div class="rpage-pics">' + ''.join(
+                '<figure>' + t + (f'<figcaption class="rpage-cap">{copy_html("leccap", c)}</figcaption>'
+                                  if c else '') + '</figure>' for t, c in pics) + '</div>'
+               if pics else '')
+            + (f'<p class="rpage-cap rpage-cap-all">{copy_html("leccap", lec["pics_cap"])}</p>'
+               if pics and lec.get('pics_cap') else '')
             + (f'<div class="rpage-sps">{sps}</div>' if sps else '')
             + '</article></section>')
     return '\n'.join(out)
 
 
+def lec_pics(lec):
+    """[(img markup, caption or None)] for the lecture's pictures that exist;
+    a caption stays with its picture when an earlier file is missing."""
+    caps = lec.get('pic_caps', [])
+    out = []
+    for k, n in enumerate(lec.get('pics', [])):
+        p = lec_img(n)
+        if p:
+            out.append((p[0], caps[k] if k < len(caps) else None))
+    return out
+
+
 def lec_extra(lec):
     """The pictures and the speakers, under the description."""
     out = ''
-    pics = [p for p in (lec_img(n) for n in lec.get('pics', [])) if p]
+    pics = lec_pics(lec)
     if pics:
-        out += '<div class="lec-pics">' + ''.join(t for t, _ in pics) + '</div>'
+        out += '<div class="lec-pics">' + ''.join(
+            '<figure class="lec-fig">' + t
+            + (layers('p', 'leccap', copy_html('leccap', c)) if c else '') + '</figure>'
+            for t, c in pics) + '</div>'
+        if lec.get('pics_cap'):
+            out += ('<div class="lec-pics-cap">'
+                    + layers('p', 'leccap', copy_html('leccap', lec['pics_cap'])) + '</div>')
     # One chip over the lot -- Speaker, or Speakers when there are two -- on
     # the first bio, as the Intro's is on the description.
     sps = lec.get('speakers', [])
