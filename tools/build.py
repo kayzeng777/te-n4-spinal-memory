@@ -2072,32 +2072,27 @@ ROOM_CSS = '''
     vertical-align:-.13em;overflow:visible}
   .lec .signup .lk{display:inline-block;width:.72em;height:.84em;margin-left:.2em;
     vertical-align:-.04em;overflow:visible}
-  /* The password: set in the poster's own manner -- words and a line, no
-     boxes. The words are the poster's type (layers, so the glow is the real
-     one); the field is an underline the ink is typed on, with the type's glow
-     put on it as a drop-shadow. The field, Open and Cancel share one line, so
-     whatever the browser opens under the field does not cover them. */
-  .lec .lec-room{margin-top:calc(var(--lec-lead) + 12px);margin-bottom:14px;color:var(--a-ink)}
+  /* The password: set in the poster's own manner. The words are the poster's
+     type (layers, so the glow is the real one); the field is an underline the
+     ink is typed on, with the type's glow put on it as a drop-shadow, and what is
+     typed is shown as typed. Open and Cancel are small rectangles under it. */
+  .lec .lec-room{margin-top:calc(var(--lec-lead) + 12px);margin-bottom:32px;color:var(--a-ink)}
   .lec .lec-room[hidden],.lec .room-err[hidden]{display:none}
-  .lec .room-form{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px 16px;
-    align-items:baseline;margin:12px 0 0}
-  .lec .room-form input{display:block;box-sizing:border-box;width:100%;min-width:0;margin:0;
-    padding:7px 0 6px;font:inherit;font-size:__RPW__;letter-spacing:.06em;color:inherit;
+  .lec .room-form{display:flex;flex-wrap:wrap;gap:12px 8px;align-items:center;margin:12px 0 0}
+  .lec .room-form input{flex:1 1 100%;display:block;box-sizing:border-box;min-width:0;margin:0;
+    padding:7px 0 6px;font:inherit;font-size:__RPW__;letter-spacing:.04em;color:inherit;
     background:transparent;border:0;border-radius:0;border-bottom:1px solid currentColor;
     outline:0;caret-color:currentColor;
     filter:drop-shadow(0 0 2px var(--a-glow)) drop-shadow(0 0 7px var(--a-bloom))}
   .lec .room-form input::placeholder{color:inherit;opacity:.55;letter-spacing:.02em}
   .lec .room-form input:focus{border-bottom-width:2px;padding-bottom:5px}
-  .lec .room-form input:-webkit-autofill{-webkit-text-fill-color:var(--a-ink);
-    transition:background-color 99999s}
-  .lec .room-form button{appearance:none;background:none;border:0;border-radius:0;margin:0;
-    padding:0;color:inherit;text-align:left;cursor:pointer}
-  .lec .room-form button .u{text-decoration:underline;text-decoration-thickness:1px;
-    text-underline-offset:.18em}
-  .lec .room-form .room-cancel{opacity:.85}
+  .lec .room-form button{font:inherit;font-size:14px;padding:8px 16px;margin:0;
+    border:1px solid var(--a-ink);border-radius:0;background:var(--a-ink);
+    color:rgb(var(--bg1));cursor:pointer}
+  .lec .room-form .room-cancel{background:none;color:inherit;border-color:currentColor}
   .lec .room-form button:disabled{opacity:.5;cursor:default}
   .lec .room-form button:focus-visible{outline:2px solid var(--a-ink);outline-offset:3px}
-  .lec .room-err{grid-column:1 / -1}
+  .lec .room-err{flex:1 1 100%}
   .lec button.signup:focus-visible{outline:2px solid var(--a-ink);outline-offset:3px}
 
   /* The replay's page: the whole window, over the poster, black in every
@@ -2275,12 +2270,10 @@ def room_box(i):
             + word('lecd', 'Enter the password you received to open this '
                    'lecture\u2019s replay.')
             + '<form class="room-form" autocomplete="off">'
-            '<input type="password" name="pw" autocomplete="off" autocapitalize="off" '
-            'spellcheck="false" placeholder="Password" aria-label="Password">'
-            '<button type="submit" class="room-go">'
-            + layers('p', 'lecs', '<span class="u">Open</span>\u2009\u2192') + '</button>'
-            '<button type="button" class="room-cancel">'
-            + layers('p', 'lecd', '<span class="u">Cancel</span>') + '</button>'
+            '<input type="text" name="code" autocomplete="off" autocapitalize="off" '
+            'autocorrect="off" spellcheck="false" placeholder="Password" aria-label="Password">'
+            '<button type="submit" class="room-go">Open</button>'
+            '<button type="button" class="room-cancel">Cancel</button>'
             '<div class="room-err" role="alert" hidden>' + layers('p', 'lecd', '') + '</div>'
             '</form></div>')
 
