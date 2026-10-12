@@ -224,10 +224,12 @@
     letter-spacing:.035em;color:transparent;-webkit-text-fill-color:transparent;
     caret-color:var(--b-ink);background:transparent;border:0;border-radius:0;outline:0}
   .lec .room-ghost{display:block;pointer-events:none}
-  /* the backlight slab is the silhouette of the block, cut at a threshold: round
-     one word it is a halo, round a wide empty box it fills the middle with a
-     smear. The box has the other four layers */
-  .lec .room-ghost .slab{display:none}
+  /* The backlight slab is the silhouette of the block, cut at a threshold. A
+     hollow wide box gives it a ring and a word, which it fills in as a smear;
+     so on that layer only the box is solid, and the light behind it is one even
+     panel with the halo round it, as a chip's is. The other layers draw the
+     border and the word. */
+  .lec .room-field .slab .rbox{background:currentColor}
   .lec .room-ghost .t,.lec .room-form button .t{--maxw:none;width:auto}
   .lec .room-form .rbox{display:block;box-sizing:border-box;line-height:1;
     padding:.58em .8em .55em;border:1px solid currentColor;border-radius:0;white-space:nowrap;
