@@ -43,7 +43,6 @@ COLOUR_SETS = dict(
     b=dict(ink='#277c3c', glow='#fdf48a', bloom='#fdf48a'),
     c=dict(ink='#277c3c', glow='#e6e6e6', bloom='#e6e6e6'),   # the phone's hints
     d=dict(ink='#f28030', glow='#fdf48a', bloom='#fdf48a'),   # the reading: `a` here, not in every palette
-    e=dict(ink='#fdf48a', glow='#f28030', bloom='#f28030'),   # `a` turned over: yellow words, orange light (Open)
 )
 
 # The type scale, from one step. BASE is the only text size anyone sets: every
@@ -159,14 +158,12 @@ THEMES = dict(
     # drawn, and the same soft ink -- but the light round the letters kept
     # low, a shade off the ground rather than a colour of its own.
     paper=dict(bg=('#D3C7A9', '#D7CBAE', '#D2C6A8'), panel=('#D6CAAD', '#D3C7A9'),
-               sets={**{k: dict(ink='#666a70', glow='#e7dec6', bloom='#e2d8bd') for k in 'abcd'},
-                     'e': dict(ink='#e7dec6', glow='#666a70', bloom='#666a70')},
+               sets={k: dict(ink='#666a70', glow='#e7dec6', bloom='#e2d8bd') for k in 'abcd'},
                backlight='#e2d8be', grid='#C6BA9C', swatch=('#E6D6A8', '#666A70'),
                spine=dict(orange='#4A4843', cream='#9A968D', yellow='#E9E2D0',
                           hole='#CEC2A4', paper='#F2ECDD')),
     dark=dict(bg=('#1B1A18', '#22211F', '#1A1917'), panel=('#201F1D', '#1A1917'),
-              sets={**{k: dict(ink='#b3aa90', glow='#2a2823', bloom='#262522') for k in 'abcd'},
-                    'e': dict(ink='#2a2823', glow='#b3aa90', bloom='#b3aa90')},
+              sets={k: dict(ink='#b3aa90', glow='#2a2823', bloom='#262522') for k in 'abcd'},
               backlight='#22211f', grid='#353430', backlit=False,
               swatch=('#3C3A35', '#8E8672'),
               spine=dict(orange='#D6CBAC', cream='#6E6A61', yellow='#A89E84',
@@ -419,7 +416,7 @@ TEXT = dict(
     viewt=dict(step='t14', set='a'),             # the Spine / Calendar switch, top centre
     schedh=dict(step='t14', set='a'),            # SAT / SUN over the columns
     roomin=dict(step='t14', set='a'),            # the code field's box and what is typed in it
-    roomgo=dict(step='t14', set='e'),            # Open: yellow words
+    roomgo=dict(step='t14', set='a'),            # Open: a filled box, its word in the glow's yellow
     roomcn=dict(step='t14', set='a'),            # Cancel: its box and its word
     cue=dict(step='t12', set='c', lh=1),         # the phone's two hints, in the other colours      # Sign up, the size of the speaker's name
 )
@@ -2094,6 +2091,10 @@ ROOM_CSS = '''
     letter-spacing:.035em;color:transparent;-webkit-text-fill-color:transparent;
     caret-color:var(--b-ink);background:transparent;border:0;border-radius:0;outline:0}
   .lec .room-ghost{display:block;pointer-events:none}
+  /* the backlight slab is the silhouette of the block, cut at a threshold: round
+     one word it is a halo, round a wide empty box it fills the middle with a
+     smear. The box has the other four layers */
+  .lec .room-ghost .slab{display:none}
   .lec .room-ghost .t,.lec .room-form button .t{--maxw:none;width:auto}
   .lec .room-form .rbox{display:block;box-sizing:border-box;line-height:1;
     padding:.58em .8em .55em;border:1px solid currentColor;border-radius:0;white-space:nowrap;
@@ -2103,9 +2104,11 @@ ROOM_CSS = '''
   /* Open and Cancel are one width, so neither is the wider */
   .lec .room-form .room-go,.lec .room-form .room-cancel{flex:0 0 4.9em;width:4.9em}
   .lec .room-form button .rbox{width:100%;padding-left:0;padding-right:0}
-  /* Open is a lit box: the fill, and the glow behind it */
-  .lec .room-form .rfill{background:var(--a-ink);border-color:var(--a-ink);
-    box-shadow:0 0 5px var(--a-glow),0 0 12px var(--a-bloom)}
+  /* Open is set as the switch's chosen half is: a block filled with the layer's
+     own colour (so it glows as the words do, from each layer, with nothing
+     added), and its word the glow's yellow on the two crisp layers only */
+  .lec .room-form .rfill{background:currentColor}
+  .lec .room-go :is(.ink,.core) .rtxt{color:var(--glow)}
   .lec .room-form button{appearance:none;background:none;border:0;border-radius:0;margin:0;
     padding:0;cursor:pointer;color:inherit;display:block}
   .lec .room-form button:disabled{opacity:.5;cursor:default}

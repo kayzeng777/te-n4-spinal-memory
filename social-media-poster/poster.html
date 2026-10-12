@@ -171,7 +171,7 @@
   .t-viewt{--ink:var(--a-ink);--glow:var(--a-glow);--bloom:var(--a-bloom);--solid:0.84;--fs:clamp(12px, calc(12px + 0.00294 * (100vw - 760px)), 14px);--soft:0.9px;--glowR:2.22em;--bloomR:5.2px;--slabF:url(#bl-t14);--w:400;--ls:0.035em;--lh:0.98}
   .t-schedh{--ink:var(--a-ink);--glow:var(--a-glow);--bloom:var(--a-bloom);--solid:0.84;--fs:clamp(12px, calc(12px + 0.00294 * (100vw - 760px)), 14px);--soft:0.9px;--glowR:2.22em;--bloomR:5.2px;--slabF:url(#bl-t14);--w:400;--ls:0.035em;--lh:0.98}
   .t-roomin{--ink:var(--a-ink);--glow:var(--a-glow);--bloom:var(--a-bloom);--solid:0.84;--fs:clamp(12px, calc(12px + 0.00294 * (100vw - 760px)), 14px);--soft:0.9px;--glowR:2.22em;--bloomR:5.2px;--slabF:url(#bl-t14);--w:400;--ls:0.035em;--lh:0.98}
-  .t-roomgo{--ink:var(--e-ink);--glow:var(--e-glow);--bloom:var(--e-bloom);--solid:0.84;--fs:clamp(12px, calc(12px + 0.00294 * (100vw - 760px)), 14px);--soft:0.9px;--glowR:2.22em;--bloomR:5.2px;--slabF:url(#bl-t14);--w:400;--ls:0.035em;--lh:0.98}
+  .t-roomgo{--ink:var(--a-ink);--glow:var(--a-glow);--bloom:var(--a-bloom);--solid:0.84;--fs:clamp(12px, calc(12px + 0.00294 * (100vw - 760px)), 14px);--soft:0.9px;--glowR:2.22em;--bloomR:5.2px;--slabF:url(#bl-t14);--w:400;--ls:0.035em;--lh:0.98}
   .t-roomcn{--ink:var(--a-ink);--glow:var(--a-glow);--bloom:var(--a-bloom);--solid:0.84;--fs:clamp(12px, calc(12px + 0.00294 * (100vw - 760px)), 14px);--soft:0.9px;--glowR:2.22em;--bloomR:5.2px;--slabF:url(#bl-t14);--w:400;--ls:0.035em;--lh:0.98}
   .t-cue{--ink:var(--c-ink);--glow:var(--c-glow);--bloom:var(--c-bloom);--solid:0.84;--fs:clamp(10.3px, calc(10.3px + 0.00250 * (100vw - 760px)), 12px);--soft:0.9px;--glowR:2.22em;--bloomR:5.2px;--slabF:url(#bl-t12);--w:400;--ls:0.0532em;--lh:1}
   
@@ -201,6 +201,10 @@
     letter-spacing:.035em;color:transparent;-webkit-text-fill-color:transparent;
     caret-color:var(--b-ink);background:transparent;border:0;border-radius:0;outline:0}
   .lec .room-ghost{display:block;pointer-events:none}
+  /* the backlight slab is the silhouette of the block, cut at a threshold: round
+     one word it is a halo, round a wide empty box it fills the middle with a
+     smear. The box has the other four layers */
+  .lec .room-ghost .slab{display:none}
   .lec .room-ghost .t,.lec .room-form button .t{--maxw:none;width:auto}
   .lec .room-form .rbox{display:block;box-sizing:border-box;line-height:1;
     padding:.58em .8em .55em;border:1px solid currentColor;border-radius:0;white-space:nowrap;
@@ -210,9 +214,11 @@
   /* Open and Cancel are one width, so neither is the wider */
   .lec .room-form .room-go,.lec .room-form .room-cancel{flex:0 0 4.9em;width:4.9em}
   .lec .room-form button .rbox{width:100%;padding-left:0;padding-right:0}
-  /* Open is a lit box: the fill, and the glow behind it */
-  .lec .room-form .rfill{background:var(--a-ink);border-color:var(--a-ink);
-    box-shadow:0 0 5px var(--a-glow),0 0 12px var(--a-bloom)}
+  /* Open is set as the switch's chosen half is: a block filled with the layer's
+     own colour (so it glows as the words do, from each layer, with nothing
+     added), and its word the glow's yellow on the two crisp layers only */
+  .lec .room-form .rfill{background:currentColor}
+  .lec .room-go :is(.ink,.core) .rtxt{color:var(--glow)}
   .lec .room-form button{appearance:none;background:none;border:0;border-radius:0;margin:0;
     padding:0;cursor:pointer;color:inherit;display:block}
   .lec .room-form button:disabled{opacity:.5;cursor:default}
@@ -630,9 +636,9 @@
     /* under the logo and the links, which the spine's own empty top clears */
     .sched{margin-top:48px}
   }
-  :root{--bg0:102 191 140;--bg1:146 202 135;--bg2:104 192 141;--bg-p0:139 200 136;--bg-p1:108 193 140;--a-ink:#f28030;--a-glow:#fdf48a;--a-bloom:#fdf48a;--b-ink:#277c3c;--b-glow:#fdf48a;--b-bloom:#fdf48a;--c-ink:#277c3c;--c-glow:#e6e6e6;--c-bloom:#e6e6e6;--d-ink:#f28030;--d-glow:#fdf48a;--d-bloom:#fdf48a;--e-ink:#fdf48a;--e-glow:#f28030;--e-bloom:#f28030;--sp-orange:#F28532;--sp-cream:#F8BC60;--sp-yellow:#FDF48E;--sp-hole:#86C689;--sp-paper:#FFFFFF;--grid-line:#cccccc;--grid-img:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'><path d='M0 0H1M0 0V1' fill='none' stroke='%23cccccc' stroke-width='.05' stroke-dasharray='.14 .1'/></svg>")}
-  html[data-theme="paper"]{--bg0:211 199 169;--bg1:215 203 174;--bg2:210 198 168;--bg-p0:214 202 173;--bg-p1:211 199 169;--a-ink:#666a70;--a-glow:#e7dec6;--a-bloom:#e2d8bd;--b-ink:#666a70;--b-glow:#e7dec6;--b-bloom:#e2d8bd;--c-ink:#666a70;--c-glow:#e7dec6;--c-bloom:#e2d8bd;--d-ink:#666a70;--d-glow:#e7dec6;--d-bloom:#e2d8bd;--e-ink:#e7dec6;--e-glow:#666a70;--e-bloom:#666a70;--sp-orange:#4A4843;--sp-cream:#9A968D;--sp-yellow:#E9E2D0;--sp-hole:#CEC2A4;--sp-paper:#F2ECDD;--grid-line:#C6BA9C;--grid-img:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'><path d='M0 0H1M0 0V1' fill='none' stroke='%23C6BA9C' stroke-width='.05' stroke-dasharray='.14 .1'/></svg>")}
-  html[data-theme="dark"]{--bg0:27 26 24;--bg1:34 33 31;--bg2:26 25 23;--bg-p0:32 31 29;--bg-p1:26 25 23;--a-ink:#b3aa90;--a-glow:#2a2823;--a-bloom:#262522;--b-ink:#b3aa90;--b-glow:#2a2823;--b-bloom:#262522;--c-ink:#b3aa90;--c-glow:#2a2823;--c-bloom:#262522;--d-ink:#b3aa90;--d-glow:#2a2823;--d-bloom:#262522;--e-ink:#2a2823;--e-glow:#b3aa90;--e-bloom:#b3aa90;--sp-orange:#D6CBAC;--sp-cream:#6E6A61;--sp-yellow:#A89E84;--sp-hole:#2E2D2A;--sp-paper:#5E5A51;--grid-line:#353430;--grid-img:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'><path d='M0 0H1M0 0V1' fill='none' stroke='%23353430' stroke-width='.05' stroke-dasharray='.14 .1'/></svg>")}
+  :root{--bg0:102 191 140;--bg1:146 202 135;--bg2:104 192 141;--bg-p0:139 200 136;--bg-p1:108 193 140;--a-ink:#f28030;--a-glow:#fdf48a;--a-bloom:#fdf48a;--b-ink:#277c3c;--b-glow:#fdf48a;--b-bloom:#fdf48a;--c-ink:#277c3c;--c-glow:#e6e6e6;--c-bloom:#e6e6e6;--d-ink:#f28030;--d-glow:#fdf48a;--d-bloom:#fdf48a;--sp-orange:#F28532;--sp-cream:#F8BC60;--sp-yellow:#FDF48E;--sp-hole:#86C689;--sp-paper:#FFFFFF;--grid-line:#cccccc;--grid-img:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'><path d='M0 0H1M0 0V1' fill='none' stroke='%23cccccc' stroke-width='.05' stroke-dasharray='.14 .1'/></svg>")}
+  html[data-theme="paper"]{--bg0:211 199 169;--bg1:215 203 174;--bg2:210 198 168;--bg-p0:214 202 173;--bg-p1:211 199 169;--a-ink:#666a70;--a-glow:#e7dec6;--a-bloom:#e2d8bd;--b-ink:#666a70;--b-glow:#e7dec6;--b-bloom:#e2d8bd;--c-ink:#666a70;--c-glow:#e7dec6;--c-bloom:#e2d8bd;--d-ink:#666a70;--d-glow:#e7dec6;--d-bloom:#e2d8bd;--sp-orange:#4A4843;--sp-cream:#9A968D;--sp-yellow:#E9E2D0;--sp-hole:#CEC2A4;--sp-paper:#F2ECDD;--grid-line:#C6BA9C;--grid-img:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'><path d='M0 0H1M0 0V1' fill='none' stroke='%23C6BA9C' stroke-width='.05' stroke-dasharray='.14 .1'/></svg>")}
+  html[data-theme="dark"]{--bg0:27 26 24;--bg1:34 33 31;--bg2:26 25 23;--bg-p0:32 31 29;--bg-p1:26 25 23;--a-ink:#b3aa90;--a-glow:#2a2823;--a-bloom:#262522;--b-ink:#b3aa90;--b-glow:#2a2823;--b-bloom:#262522;--c-ink:#b3aa90;--c-glow:#2a2823;--c-bloom:#262522;--d-ink:#b3aa90;--d-glow:#2a2823;--d-bloom:#262522;--sp-orange:#D6CBAC;--sp-cream:#6E6A61;--sp-yellow:#A89E84;--sp-hole:#2E2D2A;--sp-paper:#5E5A51;--grid-line:#353430;--grid-img:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'><path d='M0 0H1M0 0V1' fill='none' stroke='%23353430' stroke-width='.05' stroke-dasharray='.14 .1'/></svg>")}
   html[data-theme="paper"] .t-lecd{--slabF:url(#bl-t14--paper)}
   html[data-theme="paper"] .t-lecw{--slabF:url(#bl-t16--paper)}
   html[data-theme="paper"] .t-lect{--slabF:url(#bl-t20--paper)}
