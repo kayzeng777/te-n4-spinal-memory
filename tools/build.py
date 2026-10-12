@@ -2078,6 +2078,7 @@ ROOM_CSS = '''
   .lec .room-form button{font:inherit;font-size:14px;padding:8px 14px;border:1px solid var(--a-ink);
     border-radius:0;background:var(--a-ink);color:rgb(var(--bg1));cursor:pointer}
   .lec .room-form button:disabled{opacity:.5;cursor:default}
+  .lec .room-form .room-cancel{background:none;color:inherit;border-color:currentColor}
   .lec .room-err{flex-basis:100%;margin:0;font-size:13px;line-height:1.3;min-height:1.3em}
   .lec .room-form input:focus-visible,.lec .room-form button:focus-visible,
   .lec .room-links a:focus-visible,.lec button.signup:focus-visible{outline:2px solid var(--a-ink);outline-offset:3px}
@@ -2124,11 +2125,13 @@ ROOM_JS = r'''<script>(function(){
       go=f.querySelector("button"),err=f.querySelector(".room-err");
     const title=(l.querySelector(".t-lecw .ink")||l).textContent.trim()+" — "+(l.querySelector(".t-lect .ink")||l).textContent.trim();
     const measure=()=>{if(window.__lecMeasure)window.__lecMeasure();};
-    btn.addEventListener("click",()=>{
-      box.hidden=!box.hidden;btn.setAttribute("aria-expanded",String(!box.hidden));
-      if(!box.hidden){if(!f.hidden)inp.focus({preventScroll:true});
-        box.scrollIntoView({block:"nearest"});}
-      measure();});
+    const set=on=>{box.hidden=!on;btn.setAttribute("aria-expanded",String(on));
+      if(on){if(!f.hidden)inp.focus({preventScroll:true});box.scrollIntoView({block:"nearest"});}
+      measure();};
+    btn.addEventListener("click",()=>set(box.hidden));
+    // a way out for someone who has no password: the button, or Esc in the field
+    f.querySelector(".room-cancel").addEventListener("click",()=>{err.textContent="";inp.value="";set(false);btn.focus();});
+    inp.addEventListener("keydown",e=>{if(e.key==="Escape"){e.stopPropagation();err.textContent="";inp.value="";set(false);btn.focus();}});
     f.addEventListener("submit",async e=>{
       e.preventDefault();err.textContent="";const pw=inp.value.trim();if(!pw)return;go.disabled=true;
       try{fill(body,await unlock(i,pw),title);inp.value="";f.hidden=true;box.querySelector(".room-hint").hidden=true;
@@ -2174,7 +2177,9 @@ def room_box(i):
             '<form class="room-form" autocomplete="off">'
             '<input type="password" name="pw" autocomplete="off" autocapitalize="off" '
             'spellcheck="false" placeholder="Password" aria-label="Password">'
-            '<button type="submit">Open</button><p class="room-err" role="alert"></p></form>'
+            '<button type="submit">Open</button>'
+            '<button type="button" class="room-cancel">Cancel</button>'
+            '<p class="room-err" role="alert"></p></form>'
             '<div class="room-body" hidden></div></div>')
 
 
