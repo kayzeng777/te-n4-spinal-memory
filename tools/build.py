@@ -2073,23 +2073,30 @@ ROOM_CSS = '''
   .lec .signup .lk{display:inline-block;width:.72em;height:.84em;margin-left:.2em;
     vertical-align:-.04em;overflow:visible}
   /* The code: the words are the poster's type (layers, so the glow is the real
-     one); the field and the two buttons are small rectangles on one line, the
-     field with the type's glow put on it as a drop-shadow. What is typed is
-     shown as typed. */
+     one); the field and the two buttons are small rectangles on one line. The
+     field's own text is clear and a ghost of layered type sits over it, so what
+     is typed has the same effect as the words round it; the box takes the glow
+     as a shadow. What is typed is shown as typed. */
   .lec .lec-room{margin-top:calc(var(--lec-lead) + 12px);margin-bottom:32px;color:var(--a-ink)}
   .lec .lec-room[hidden],.lec .room-err[hidden]{display:none}
-  .lec .room-form{display:flex;flex-wrap:wrap;gap:8px 6px;align-items:stretch;margin:10px 0 0}
-  .lec .room-form input{flex:1 1 7em;display:block;box-sizing:border-box;min-width:0;margin:0;
-    padding:5px 8px;font:inherit;font-size:13px;line-height:1.2;letter-spacing:.03em;color:inherit;
-    background:rgb(var(--bg0) / .35);border:1px solid currentColor;border-radius:0;outline:0;
-    caret-color:currentColor;
-    filter:drop-shadow(0 0 2px var(--a-glow)) drop-shadow(0 0 6px var(--a-bloom))}
-  .lec .room-form input::placeholder{color:inherit;opacity:.55}
-  .lec .room-form input:focus{outline:1px solid currentColor;outline-offset:0}
+  .lec .room-form{display:flex;flex-wrap:wrap;gap:8px 6px;align-items:stretch;margin:18px 0 0}
+  .lec .room-field{position:relative;flex:1 1 7em;min-width:0;display:block}
+  .lec .room-form input{display:block;box-sizing:border-box;width:100%;height:100%;min-width:0;margin:0;
+    padding:5px 8px;font:inherit;font-size:__RPD__;line-height:1.2;letter-spacing:.035em;
+    color:transparent;-webkit-text-fill-color:transparent;caret-color:var(--a-ink);
+    background:rgb(var(--bg0) / .3);border:1px solid var(--a-ink);border-radius:0;outline:0;
+    box-shadow:0 0 5px var(--a-glow),0 0 12px var(--a-bloom)}
+  .lec .room-form input:focus{outline:1px solid var(--a-ink);outline-offset:0}
+  .lec .room-ghost{position:absolute;inset:0;display:flex;align-items:center;padding:0 9px;
+    overflow:hidden;pointer-events:none;white-space:nowrap}
+  .lec .room-ghost .t{--maxw:none;width:auto}
+  .lec .room-field.is-empty .room-ghost{opacity:.6}
   .lec .room-form button{font:inherit;font-size:12px;line-height:1.2;padding:5px 10px;margin:0;
     border:1px solid var(--a-ink);border-radius:0;background:var(--a-ink);
-    color:rgb(var(--bg1));cursor:pointer}
+    color:#FFFBEA;cursor:pointer;text-shadow:none}
+  html[data-theme] .lec .room-form button{color:rgb(var(--bg1))}
   .lec .room-form .room-cancel{background:none;color:inherit;border-color:currentColor}
+  html[data-theme] .lec .room-form .room-cancel{color:inherit}
   .lec .room-form button:disabled{opacity:.5;cursor:default}
   .lec .room-form button:focus-visible{outline:2px solid var(--a-ink);outline-offset:2px}
   .lec .room-err{flex:1 1 100%}
@@ -2211,6 +2218,11 @@ ROOM_JS = r'''<script>(function(){
     const measure=()=>{if(window.__lecMeasure)window.__lecMeasure();};
     // the error is set in the poster's layers: every layer takes the words
     const setErr=m=>{err.hidden=!m;err.querySelectorAll(".t>p").forEach(p=>p.textContent=m);};
+    // the ghost: what the field holds, or its label while it holds nothing
+    const wrap=inp.closest(".room-field"),ghost=wrap.querySelector(".room-ghost");
+    const echo=()=>{const v=inp.value;wrap.classList.toggle("is-empty",!v);
+      ghost.querySelectorAll(".t>p").forEach(p=>p.textContent=v||"Code");};
+    inp.addEventListener("input",echo);
     const set=on=>{box.hidden=!on;btn.setAttribute("aria-expanded",String(on));
       // the detail's own scroll goes back to its top, where the box is; scrollIntoView
       // would take the whole page with it
@@ -2219,12 +2231,12 @@ ROOM_JS = r'''<script>(function(){
     // locked: the click opens the password field; unlocked: it opens the page
     btn.addEventListener("click",()=>{if(l.__r)show(l);else set(box.hidden);});
     // a way out for someone who has no password: the button, or Esc in the field
-    const cancel=()=>{setErr("");inp.value="";set(false);btn.focus();};
+    const cancel=()=>{setErr("");inp.value="";echo();set(false);btn.focus();};
     f.querySelector(".room-cancel").addEventListener("click",cancel);
     inp.addEventListener("keydown",e=>{if(e.key==="Escape"){e.stopPropagation();cancel();}});
     f.addEventListener("submit",async e=>{
       e.preventDefault();setErr("");const pw=inp.value.trim();if(!pw)return;go.disabled=true;
-      try{l.__r=await unlock(i,pw);inp.value="";set(false);
+      try{l.__r=await unlock(i,pw);inp.value="";echo();set(false);
         btn.querySelectorAll(".lk path").forEach(p=>p.setAttribute("d",OPEN));
         show(l);}
       catch(x){setErr(x.message==="secure"?"This needs a secure (https) page.":"That password does not open this lecture.");
@@ -2269,8 +2281,14 @@ def room_box(i):
     return (f'<div class="lec-room" id="room-{i}" hidden>'
             + word('lecd', 'Enter the code you received to open lecture replay.')
             + '<form class="room-form" autocomplete="off">'
+            # the field's own text is clear (it only keeps the caret and the
+            # keys); what shows is the ghost, the same layered type as the words
+            # round it, filled from the field by ROOM_JS
+            '<span class="room-field is-empty">'
             '<input type="text" name="code" autocomplete="off" autocapitalize="off" '
-            'autocorrect="off" spellcheck="false" placeholder="Code" aria-label="Code">'
+            'autocorrect="off" spellcheck="false" aria-label="Code">'
+            '<span class="room-ghost" aria-hidden="true">'
+            + layers('p', 'lecd', 'Code') + '</span></span>'
             '<button type="submit" class="room-go">Open</button>'
             '<button type="button" class="room-cancel">Cancel</button>'
             '<div class="room-err" role="alert" hidden>' + layers('p', 'lecd', '') + '</div>'
