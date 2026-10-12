@@ -2084,7 +2084,8 @@ ROOM_CSS = '''
   .lec .room-form input{display:block;box-sizing:border-box;width:100%;max-width:22em;margin:0;
     padding:7px 0 6px;font:inherit;font-size:__RPW__;letter-spacing:.06em;color:inherit;
     text-shadow:inherit;background:transparent;border:0;border-radius:0;
-    border-bottom:1px solid currentColor;outline:0;caret-color:currentColor}
+    border-bottom:1px solid currentColor;outline:0;caret-color:currentColor;
+    -webkit-text-security:disc}
   .lec .room-form input::placeholder{color:inherit;opacity:.55;letter-spacing:.02em}
   .lec .room-form input:focus{border-bottom-width:2px;padding-bottom:5px}
   .lec .room-form input:-webkit-autofill{-webkit-text-fill-color:var(--a-ink);
@@ -2270,8 +2271,13 @@ def room_box(i):
             '<p class="room-hint">Enter the password you received to open this '
             'lecture’s replay.</p>'
             '<form class="room-form" autocomplete="off">'
-            '<input type="password" name="pw" autocomplete="off" autocapitalize="off" '
-            'spellcheck="false" placeholder="Password" aria-label="Password">'
+            # a text field set as dots, not type=password: a password field is
+            # what makes the browser offer to AutoFill, and that offer opens
+            # under the field, over Open and Cancel
+            '<input type="text" name="replay-code" autocomplete="off" autocapitalize="off" '
+            'autocorrect="off" spellcheck="false" data-1p-ignore data-lpignore="true" '
+            'data-bwignore="true" data-form-type="other" placeholder="Password" '
+            'aria-label="Password">'
             '<div class="room-actions"><button type="submit">Open \u2192</button>'
             '<button type="button" class="room-cancel">Cancel</button></div>'
             '<p class="room-err" role="alert"></p></form></div>')
