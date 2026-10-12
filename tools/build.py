@@ -2062,9 +2062,10 @@ REPLAY_JS = (
 
 
 ROOM_CSS = '''
-  /* A finished lecture swaps Sign up for the Reading Room: the same words'
-     place and type, a lock after them, and under it, at the top of the
-     scrolling detail, the password and then what the password opens. */
+  /* A finished lecture swaps Sign up for its replay: the same place and type,
+     a play mark before the words and a lock after them. The lock opens the
+     password field at the top of the detail; the password opens the replay's
+     own page (.rpage, below). */
   .lec button.signup{appearance:none;background:none;border:0;padding:0;font:inherit;
     text-align:left;cursor:pointer;max-width:100%}
   .lec .signup .pl{display:inline-block;width:.95em;height:.95em;margin-right:.32em;
@@ -2072,7 +2073,7 @@ ROOM_CSS = '''
   .lec .signup .lk{display:inline-block;width:.72em;height:.84em;margin-left:.2em;
     vertical-align:-.04em;overflow:visible}
   .lec .lec-room{margin-top:calc(var(--lec-lead) + 14px);color:var(--a-ink)}
-  .lec .lec-room[hidden],.lec .room-form[hidden],.lec .room-body[hidden]{display:none}
+  .lec .lec-room[hidden]{display:none}
   .lec .room-hint{margin:0 0 10px;font-size:13px;line-height:1.3}
   .lec .room-form{display:flex;gap:8px;flex-wrap:wrap;margin:0}
   .lec .room-form input{flex:1 1 9em;min-width:0;font:inherit;font-size:15px;padding:8px 9px;
@@ -2083,62 +2084,123 @@ ROOM_CSS = '''
   .lec .room-form .room-cancel{background:none;color:inherit;border-color:currentColor}
   .lec .room-err{flex-basis:100%;margin:0;font-size:13px;line-height:1.3;min-height:1.3em}
   .lec .room-form input:focus-visible,.lec .room-form button:focus-visible,
-  .lec .room-links a:focus-visible,.lec button.signup:focus-visible{outline:2px solid var(--a-ink);outline-offset:3px}
-  .lec .room-body{font-size:15px;line-height:1.35}
-  .lec .room-body>*+*{margin-top:14px}
-  .lec .room-body .lec-replay{margin:0}
-  .lec .room-note{white-space:pre-line;margin-bottom:0}
-  .lec .room-links{list-style:none;margin:0;padding:0}
-  .lec .room-links li{padding:3px 0}
-  .lec .room-links a{color:inherit;text-decoration:underline;text-underline-offset:.18em}
+  .lec button.signup:focus-visible{outline:2px solid var(--a-ink);outline-offset:3px}
+
+  /* The replay's page: the whole window, over the poster, in the page's own
+     ground and ink. A bar with the way home, the lecture's head, the player,
+     and under it what the lecture's detail holds -- the description, its
+     pictures, the speakers. Plain type: it is a page to watch and read. */
+  .rpage{position:fixed;inset:0;z-index:500;overflow-y:auto;overscroll-behavior:contain;
+    color:var(--a-ink);font-family:var(--font-sans);
+    background:linear-gradient(180deg,rgb(var(--bg0)) 0%,rgb(var(--bg1)) 70%,rgb(var(--bg2)) 100%)}
+  .rpage[hidden]{display:none}
+  .rpage:focus{outline:none}
+  html.rpage-on{overflow:hidden}
+  .rpage-bar{position:sticky;top:0;z-index:2;padding:14px 20px;
+    background:linear-gradient(rgb(var(--bg0)),rgb(var(--bg0) / 0))}
+  .rpage-back{appearance:none;background:none;border:0;padding:6px 0;margin:0;font:inherit;
+    font-size:15px;color:inherit;cursor:pointer;text-decoration:underline;
+    text-decoration-thickness:1px;text-underline-offset:.18em}
+  .rpage-back:focus-visible{outline:2px solid var(--a-ink);outline-offset:3px}
+  .rpage-in{max-width:960px;margin:0 auto;padding:12px 20px 120px;box-sizing:border-box}
+  .rpage-kicker{display:inline-block;margin:0 0 18px;padding:2px 9px;border:1px solid currentColor;
+    border-radius:99px;font-size:12px;line-height:1.35}
+  .rpage-title{margin:0;font-size:clamp(26px,4.4vw,44px);font-weight:500;letter-spacing:-.025em;
+    line-height:1.02;max-width:20em}
+  .rpage-who{margin:14px 0 0;font-size:clamp(16px,2vw,20px);line-height:1.2}
+  .rpage-when{margin:10px 0 0;font-size:14px;line-height:1.35;opacity:.9}
+  .rpage-player{margin-top:32px}
+  .rpage-player .lec-replay{margin:0}
+  .rpage-extra{margin-top:20px;font-size:15px;line-height:1.4;max-width:60ch}
+  .rpage-extra:empty{display:none}
+  .rpage-extra>*+*{margin-top:12px}
+  .rpage-note{white-space:pre-line}
+  .rpage-links{list-style:none;margin:0;padding:0}
+  .rpage-links li{padding:3px 0}
+  .rpage a{color:inherit;text-decoration:underline;text-underline-offset:.18em}
+  .rpage-about{margin-top:44px;max-width:62ch;font-size:16px;line-height:1.4}
+  .rpage-about p{margin:0}
+  .rpage-about p+p{margin-top:1em}
+  .rpage-pics{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));
+    gap:10px;margin-top:36px}
+  .rpage-pics img{width:100%;height:auto;display:block}
+  .rpage-sps{margin-top:40px;display:grid;gap:28px;max-width:62ch}
+  .rpage-sp{display:grid;grid-template-columns:132px 1fr;gap:18px;align-items:start}
+  .rpage-sp .face{width:100%;height:auto;display:block}
+  .rpage-sp .bio{font-size:15px;line-height:1.4}
+  .rpage-sp .bio p{margin:0}
+  .rpage-sp .bio p+p{margin-top:.8em}
+  .rpage-sp .name{margin:0 0 .5em;font-weight:500}
+  @media (max-width:600px){
+    .rpage-bar{padding:10px 16px}
+    .rpage-in{padding:8px 16px 96px}
+    .rpage-player{margin-top:24px}
+    .rpage-sp{grid-template-columns:96px 1fr;gap:14px}
+  }
 '''
 
 # The script. The sealed data is read from #room-data; a lecture opens when its
 # password decrypts its entry (PBKDF2-SHA256 -> AES-256-GCM, as tools/seal.js
 # wrote it). Nothing is built with innerHTML: what comes out of the ciphertext
 # is set as text, a link must be https, a video id a plain id. The player is
-# the replay frame of a lecture's detail (.rp, REPLAY_JS).
+# the replay frame (.rp, REPLAY_JS); it is put in the page when it opens and
+# taken out when it closes, so closing stops the video.
 ROOM_JS = r'''<script>(function(){
   const dat=document.getElementById("room-data");if(!dat)return;
-  const D=JSON.parse(dat.textContent);
+  const D=JSON.parse(dat.textContent),h=document.documentElement;
   const b64=x=>Uint8Array.from(atob(x),c=>c.charCodeAt(0));
   const el=(t,c,txt)=>{const n=document.createElement(t);if(c)n.className=c;if(txt!=null)n.textContent=txt;return n;};
   const OPEN="M3.2 6V4.2a2.8 2.8 0 0 1 5.5-.7";
+  let current=null;
   async function unlock(i,pw){
     if(!(window.crypto&&crypto.subtle))throw new Error("secure");
     const s=D.rooms[i],km=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw.normalize("NFKC")),"PBKDF2",false,["deriveKey"]);
     const key=await crypto.subtle.deriveKey({name:"PBKDF2",salt:b64(s.salt),iterations:D.iter,hash:"SHA-256"},km,{name:"AES-GCM",length:256},false,["decrypt"]);
     return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:"AES-GCM",iv:b64(s.iv)},key,b64(s.ct))));}
-  function fill(body,r,title){
-    body.textContent="";
+  function fill(pg,r){
+    const slot=pg.querySelector(".rpage-player"),ex=pg.querySelector(".rpage-extra");
+    slot.textContent="";ex.textContent="";
     if(/^[\w-]{6,20}$/.test(r.replay||"")){
       const w=el("div","lec-replay"),b=el("button","rp");b.type="button";
-      b.dataset.id=r.replay;b.dataset.title=title;b.setAttribute("aria-label","Play the replay");
+      b.dataset.id=r.replay;b.dataset.title=pg.dataset.title;b.setAttribute("aria-label","Play the replay");
       const im=el("img");im.src="https://i.ytimg.com/vi/"+r.replay+"/hqdefault.jpg";im.alt="";
-      const pl=el("span","rp-play");pl.setAttribute("aria-hidden","true");b.append(im,pl);w.append(b);body.append(w);}
-    if(r.note)body.append(el("p","room-note",r.note));
+      const pl=el("span","rp-play");pl.setAttribute("aria-hidden","true");b.append(im,pl);w.append(b);slot.append(w);}
+    if(r.note)ex.append(el("p","rpage-note",r.note));
     const ls=(r.links||[]).filter(l=>/^https:\/\//.test(l.url));
-    if(ls.length){const u=el("ul","room-links");ls.forEach(l=>{const li=el("li"),a=el("a",null,l.label||l.url);
-      a.href=l.url;a.target="_blank";a.rel="noopener";li.append(a);u.append(li);});body.append(u);}}
+    if(ls.length){const u=el("ul","rpage-links");ls.forEach(l=>{const li=el("li"),a=el("a",null,l.label||l.url);
+      a.href=l.url;a.target="_blank";a.rel="noopener";li.append(a);u.append(li);});ex.append(u);}}
+  function show(l){
+    const pg=document.getElementById("rpage-"+l.dataset.lec);fill(pg,l.__r);
+    pg.hidden=false;pg.scrollTop=0;h.classList.add("rpage-on");current={pg,l};
+    pg.focus({preventScroll:true});}
+  function hide(){
+    if(!current)return;const {pg,l}=current;current=null;
+    pg.hidden=true;h.classList.remove("rpage-on");pg.querySelector(".rpage-player").textContent="";
+    const b=l.querySelector(".signup");if(b)b.focus({preventScroll:true});}
+  // the pages come after this script in the document, so the click is caught
+  // on the way down; it goes no further, or the lecture behind would close
+  document.addEventListener("click",e=>{
+    if(e.target.closest&&e.target.closest(".rpage-back")){e.stopPropagation();hide();}},true);
+  addEventListener("keydown",e=>{if(e.key==="Escape"&&current)hide();});
   document.querySelectorAll(".lec[data-lec]").forEach(l=>{
     const i=l.dataset.lec,box=l.querySelector(".lec-room");if(!box||!D.rooms[i])return;
     const btn=l.querySelector(".signup.room-open"),f=box.querySelector(".room-form"),
-      body=box.querySelector(".room-body"),inp=f.querySelector("input"),
-      go=f.querySelector("button"),err=f.querySelector(".room-err");
-    const title=(l.querySelector(".t-lecw .ink")||l).textContent.trim()+" — "+(l.querySelector(".t-lect .ink")||l).textContent.trim();
+      inp=f.querySelector("input"),go=f.querySelector("button"),err=f.querySelector(".room-err");
     const measure=()=>{if(window.__lecMeasure)window.__lecMeasure();};
     const set=on=>{box.hidden=!on;btn.setAttribute("aria-expanded",String(on));
-      if(on){if(!f.hidden)inp.focus({preventScroll:true});box.scrollIntoView({block:"nearest"});}
+      if(on){inp.focus({preventScroll:true});box.scrollIntoView({block:"nearest"});}
       measure();};
-    btn.addEventListener("click",()=>set(box.hidden));
+    // locked: the click opens the password field; unlocked: it opens the page
+    btn.addEventListener("click",()=>{if(l.__r)show(l);else set(box.hidden);});
     // a way out for someone who has no password: the button, or Esc in the field
-    f.querySelector(".room-cancel").addEventListener("click",()=>{err.textContent="";inp.value="";set(false);btn.focus();});
-    inp.addEventListener("keydown",e=>{if(e.key==="Escape"){e.stopPropagation();err.textContent="";inp.value="";set(false);btn.focus();}});
+    const cancel=()=>{err.textContent="";inp.value="";set(false);btn.focus();};
+    f.querySelector(".room-cancel").addEventListener("click",cancel);
+    inp.addEventListener("keydown",e=>{if(e.key==="Escape"){e.stopPropagation();cancel();}});
     f.addEventListener("submit",async e=>{
       e.preventDefault();err.textContent="";const pw=inp.value.trim();if(!pw)return;go.disabled=true;
-      try{fill(body,await unlock(i,pw),title);inp.value="";f.hidden=true;box.querySelector(".room-hint").hidden=true;
-        body.hidden=false;btn.querySelectorAll(".lk path").forEach(p=>p.setAttribute("d",OPEN));
-        btn.querySelectorAll(".lk").forEach(k=>k.classList.add("unlocked"));measure();}
+      try{l.__r=await unlock(i,pw);inp.value="";set(false);
+        btn.querySelectorAll(".lk path").forEach(p=>p.setAttribute("d",OPEN));
+        show(l);}
       catch(x){err.textContent=x.message==="secure"?"This needs a secure (https) page.":"That password does not open this lecture.";
         inp.select();}
       go.disabled=false;});});
@@ -2158,34 +2220,67 @@ def has_room(i):
 
 
 def signup_html(i, lec):
-    """Sign up -- or, for a lecture that has a Reading Room entry, the Reading
-    Room behind a lock. It keeps the class `signup`: the phone layout moves
-    that element about and does not care what it is."""
+    """Sign up -- or, for a lecture that has a Reading Room entry, its replay
+    behind a lock. It keeps the class `signup`: the phone layout moves that
+    element about and does not care what it is."""
     if has_room(i):
         return ('<button class="signup room-open" type="button" aria-expanded="false" '
                 'aria-controls="room-%d">' % i
                 + layers('p', 'lecs', PLAY + '<span class="u">Lecture replay</span>'
-                         '\u2009' + LOCK) + '</button>')
+                         ' ' + LOCK) + '</button>')
     return (f'<a class="signup" href="{tagged(lec.get("signup", SIGNUP))}" target="_blank" '
             f'rel="noopener">'
-            + layers('p', 'lecs', '<span class="u">Sign up</span>\u2009\u2197') + '</a>')
+            + layers('p', 'lecs', '<span class="u">Sign up</span> ↗') + '</a>')
 
 
 def room_box(i):
-    """Where the password goes, and then what it opens: hidden until the lock
-    is clicked, filled by ROOM_JS."""
+    """Where the password goes: hidden until the lock is clicked."""
     if not has_room(i):
         return ''
     return (f'<div class="lec-room" id="room-{i}" hidden>'
             '<p class="room-hint">Enter the password you received to open this '
-            'lecture\u2019s replay.</p>'
+            'lecture’s replay.</p>'
             '<form class="room-form" autocomplete="off">'
             '<input type="password" name="pw" autocomplete="off" autocapitalize="off" '
             'spellcheck="false" placeholder="Password" aria-label="Password">'
             '<button type="submit">Open</button>'
             '<button type="button" class="room-cancel">Cancel</button>'
-            '<p class="room-err" role="alert"></p></form>'
-            '<div class="room-body" hidden></div></div>')
+            '<p class="room-err" role="alert"></p></form></div>')
+
+
+def room_pages():
+    """One page per lecture that has a replay: its head, a slot for the player
+    (filled by ROOM_JS once the password has opened it), and the lecture's own
+    description, pictures and speakers -- what its detail holds, as plain
+    markup. None of that is secret; the video is, and it is not here."""
+    out = []
+    for i, lec in enumerate(LECTURES):
+        if not has_room(i):
+            continue
+        e = lambda t: html.escape(t, quote=True)
+        pics = [p for p in (lec_img(n) for n in lec.get('pics', [])) if p]
+        sps = ''
+        for sp in lec.get('speakers', []):
+            face = sp.get('face') and lec_img(sp['face'], size=LEC_FACE_MAX, **{'class': 'face'})
+            sps += ('<div class="rpage-sp">' + (face[0] if face else '<span></span>')
+                    + '<div class="bio">' + copy_html('lecbio', sp.get('bio', '')) + '</div></div>')
+        title = f"{lec['who']} — {lec['what']}"
+        out.append(
+            f'<section class="rpage" id="rpage-{i}" role="dialog" aria-modal="true" '
+            f'aria-label="Lecture replay" data-title="{e(title)}" tabindex="-1" hidden>'
+            '<div class="rpage-bar"><button class="rpage-back" type="button">'
+            '← Return to home</button></div>'
+            '<article class="rpage-in">'
+            '<p class="rpage-kicker">Lecture replay</p>'
+            f'<h1 class="rpage-title">{e(lec["what"])}</h1>'
+            f'<p class="rpage-who">{e(lec["who"])}</p>'
+            f'<p class="rpage-when">{e(lec["when"])} · {e(lec["lang"])}</p>'
+            '<div class="rpage-player"></div><div class="rpage-extra"></div>'
+            f'<div class="rpage-about">{copy_html("lecb", lec["about"])}</div>'
+            + ('<div class="rpage-pics">' + ''.join(t for t, _ in pics) + '</div>' if pics else '')
+            + (f'<div class="rpage-sps">{sps}</div>' if sps else '')
+            + '</article></section>')
+    return '\n'.join(out)
 
 
 def lec_extra(lec):
@@ -2558,6 +2653,7 @@ def page(inline, spine=None, cols=None, rows=None, tools=False):
                 .replace('__NARROW__', str(NARROW)).replace('__MID__', str((NARROW + WIDE) // 2))
                 .replace('__COLS__', f'{cols:g}').replace('__ROWS__', str(rows))
             + BODY.replace('__NARROW__', str(NARROW)).replace('__SPINE__', spine).replace('__SCHED__', schedule_html()).replace('__VIEW__', view_html()).replace('__LECS__', lectures_html()).replace('__CUES__', cues() + swatches(cls='themes themes-m')).replace('__CORNERS__', corners()).replace('__BACKLIGHT__', backlight_defs()).replace('__THEMEPICK__', THEME_PICK).replace('__SPINETONES__', json.dumps({c.upper(): f'--sp-{k}' for k, c in THEMES[THEME_DEFAULT]['spine'].items()}))
+            + room_pages()
             + (tools_panel() if tools else ''))
 
 
