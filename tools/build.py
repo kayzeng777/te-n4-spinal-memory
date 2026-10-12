@@ -43,6 +43,7 @@ COLOUR_SETS = dict(
     b=dict(ink='#277c3c', glow='#fdf48a', bloom='#fdf48a'),
     c=dict(ink='#277c3c', glow='#e6e6e6', bloom='#e6e6e6'),   # the phone's hints
     d=dict(ink='#f28030', glow='#fdf48a', bloom='#fdf48a'),   # the reading: `a` here, not in every palette
+    e=dict(ink='#fdf48a', glow='#f28030', bloom='#f28030'),   # `a` turned over: yellow words, orange light (Open)
 )
 
 # The type scale, from one step. BASE is the only text size anyone sets: every
@@ -158,12 +159,14 @@ THEMES = dict(
     # drawn, and the same soft ink -- but the light round the letters kept
     # low, a shade off the ground rather than a colour of its own.
     paper=dict(bg=('#D3C7A9', '#D7CBAE', '#D2C6A8'), panel=('#D6CAAD', '#D3C7A9'),
-               sets={k: dict(ink='#666a70', glow='#e7dec6', bloom='#e2d8bd') for k in 'abcd'},
+               sets={**{k: dict(ink='#666a70', glow='#e7dec6', bloom='#e2d8bd') for k in 'abcd'},
+                     'e': dict(ink='#e7dec6', glow='#666a70', bloom='#666a70')},
                backlight='#e2d8be', grid='#C6BA9C', swatch=('#E6D6A8', '#666A70'),
                spine=dict(orange='#4A4843', cream='#9A968D', yellow='#E9E2D0',
                           hole='#CEC2A4', paper='#F2ECDD')),
     dark=dict(bg=('#1B1A18', '#22211F', '#1A1917'), panel=('#201F1D', '#1A1917'),
-              sets={k: dict(ink='#b3aa90', glow='#2a2823', bloom='#262522') for k in 'abcd'},
+              sets={**{k: dict(ink='#b3aa90', glow='#2a2823', bloom='#262522') for k in 'abcd'},
+                    'e': dict(ink='#2a2823', glow='#b3aa90', bloom='#b3aa90')},
               backlight='#22211f', grid='#353430', backlit=False,
               swatch=('#3C3A35', '#8E8672'),
               spine=dict(orange='#D6CBAC', cream='#6E6A61', yellow='#A89E84',
@@ -415,6 +418,9 @@ TEXT = dict(
     lecx=dict(step='t20', set='a'),              # the close; its size is set in LEC_CSS
     viewt=dict(step='t14', set='a'),             # the Spine / Calendar switch, top centre
     schedh=dict(step='t14', set='a'),            # SAT / SUN over the columns
+    roomin=dict(step='t14', set='a'),            # the code field's box and what is typed in it
+    roomgo=dict(step='t14', set='e'),            # Open: yellow words
+    roomcn=dict(step='t14', set='a'),            # Cancel: its box and its word
     cue=dict(step='t12', set='c', lh=1),         # the phone's two hints, in the other colours      # Sign up, the size of the speaker's name
 )
 
@@ -2072,33 +2078,35 @@ ROOM_CSS = '''
     vertical-align:-.13em;overflow:visible}
   .lec .signup .lk{display:inline-block;width:.72em;height:.84em;margin-left:.2em;
     vertical-align:-.04em;overflow:visible}
-  /* The code: the words are the poster's type (layers, so the glow is the real
-     one); the field and the two buttons are small rectangles on one line. The
-     field's own text is clear and a ghost of layered type sits over it, so what
-     is typed has the same effect as the words round it; the box takes the glow
-     as a shadow. What is typed is shown as typed. */
+  /* The code. Everything on it is the poster's layered type: the hint, the box
+     with what is typed in it, Open, Cancel. A box is drawn as a chip is -- a
+     1px border in the layer's own colour -- so it takes the same glow as the
+     words, and the light comes in from the edge. The field is clear and under
+     the ghost: it keeps the caret and the keys. Open is a filled box with the
+     yellow word on it; Cancel is its box and its word. What is typed is shown
+     as typed. */
   .lec .lec-room{margin-top:calc(var(--lec-lead) + 12px);margin-bottom:32px;color:var(--a-ink)}
   .lec .lec-room[hidden],.lec .room-err[hidden]{display:none}
   .lec .room-form{display:flex;flex-wrap:wrap;gap:8px 6px;align-items:stretch;margin:18px 0 0}
   .lec .room-field{position:relative;flex:1 1 7em;min-width:0;display:block}
-  .lec .room-form input{display:block;box-sizing:border-box;width:100%;height:100%;min-width:0;margin:0;
-    padding:5px 8px;font:inherit;font-size:__RPD__;line-height:1.2;letter-spacing:.035em;
-    color:transparent;-webkit-text-fill-color:transparent;caret-color:var(--a-ink);
-    background:rgb(var(--bg0) / .3);border:1px solid var(--a-ink);border-radius:0;outline:0;
-    box-shadow:0 0 5px var(--a-glow),0 0 12px var(--a-bloom)}
-  .lec .room-form input:focus{outline:1px solid var(--a-ink);outline-offset:0}
-  .lec .room-ghost{position:absolute;inset:0;display:flex;align-items:center;padding:0 9px;
-    overflow:hidden;pointer-events:none;white-space:nowrap}
-  .lec .room-ghost .t{--maxw:none;width:auto}
-  .lec .room-field.is-empty .room-ghost{opacity:.6}
-  .lec .room-form button{font:inherit;font-size:12px;line-height:1.2;padding:5px 10px;margin:0;
-    border:1px solid var(--a-ink);border-radius:0;background:var(--a-ink);
-    color:#FFFBEA;cursor:pointer;text-shadow:none}
-  html[data-theme] .lec .room-form button{color:rgb(var(--bg1))}
-  .lec .room-form .room-cancel{background:none;color:inherit;border-color:currentColor}
-  html[data-theme] .lec .room-form .room-cancel{color:inherit}
+  .lec .room-form input{position:absolute;inset:0;z-index:1;display:block;box-sizing:border-box;
+    width:100%;height:100%;min-width:0;margin:0;padding:0 .8em;font:inherit;font-size:__RPD__;
+    letter-spacing:.035em;color:transparent;-webkit-text-fill-color:transparent;
+    caret-color:var(--a-ink);background:transparent;border:0;border-radius:0;outline:0}
+  .lec .room-ghost{display:block;pointer-events:none}
+  .lec .room-ghost .t,.lec .room-form button .t{--maxw:none;width:auto}
+  .lec .room-form .rbox{display:block;box-sizing:border-box;min-width:3em;line-height:1;
+    padding:.58em .8em .55em;border:1px solid currentColor;border-radius:0;white-space:nowrap;
+    overflow:hidden}
+  .lec .room-field .rbox{width:100%;min-height:calc(1em + 1.13em + 2px)}
+  .lec .room-field.is-empty .rbox{opacity:.65}
+  .lec .room-form .rfill{background:var(--a-ink);border-color:var(--a-ink)}
+  .lec .room-form button{appearance:none;background:none;border:0;border-radius:0;margin:0;
+    padding:0;cursor:pointer;color:inherit;display:block}
   .lec .room-form button:disabled{opacity:.5;cursor:default}
-  .lec .room-form button:focus-visible{outline:2px solid var(--a-ink);outline-offset:2px}
+  .lec .room-form button:focus-visible,.lec .room-form input:focus-visible+.room-ghost .rbox{
+    outline:2px solid var(--a-ink);outline-offset:2px}
+  .lec .room-form input:focus+.room-ghost .rbox{border-width:1px;box-shadow:inset 0 0 0 1px currentColor}
   .lec .room-err{flex:1 1 100%}
   .lec button.signup:focus-visible{outline:2px solid var(--a-ink);outline-offset:3px}
 
@@ -2221,7 +2229,7 @@ ROOM_JS = r'''<script>(function(){
     // the ghost: what the field holds, or its label while it holds nothing
     const wrap=inp.closest(".room-field"),ghost=wrap.querySelector(".room-ghost");
     const echo=()=>{const v=inp.value;wrap.classList.toggle("is-empty",!v);
-      ghost.querySelectorAll(".t>p").forEach(p=>p.textContent=v||"Code");};
+      ghost.querySelectorAll(".rbox").forEach(b=>b.textContent=v||"Code");};
     inp.addEventListener("input",echo);
     const set=on=>{box.hidden=!on;btn.setAttribute("aria-expanded",String(on));
       // the detail's own scroll goes back to its top, where the box is; scrollIntoView
@@ -2281,16 +2289,20 @@ def room_box(i):
     return (f'<div class="lec-room" id="room-{i}" hidden>'
             + word('lecd', 'Enter the code you received to open lecture replay.')
             + '<form class="room-form" autocomplete="off">'
-            # the field's own text is clear (it only keeps the caret and the
-            # keys); what shows is the ghost, the same layered type as the words
-            # round it, filled from the field by ROOM_JS
+            # the field itself is clear and only keeps the caret and the keys;
+            # what shows is the ghost -- its box and its text set as a chip is,
+            # in the poster's layered type, so the border glows with the words
+            # and the light comes in from it; ROOM_JS fills it from the field.
+            # Open and Cancel are drawn the same way
             '<span class="room-field is-empty">'
             '<input type="text" name="code" autocomplete="off" autocapitalize="off" '
             'autocorrect="off" spellcheck="false" aria-label="Code">'
             '<span class="room-ghost" aria-hidden="true">'
-            + layers('p', 'lecd', 'Code') + '</span></span>'
-            '<button type="submit" class="room-go">Open</button>'
-            '<button type="button" class="room-cancel">Cancel</button>'
+            + layers('p', 'roomin', '<span class="rbox">Code</span>') + '</span></span>'
+            '<button type="submit" class="room-go" aria-label="Open">'
+            + layers('p', 'roomgo', '<span class="rbox rfill">Open</span>') + '</button>'
+            '<button type="button" class="room-cancel" aria-label="Cancel">'
+            + layers('p', 'roomcn', '<span class="rbox">Cancel</span>') + '</button>'
             '<div class="room-err" role="alert" hidden>' + layers('p', 'lecd', '') + '</div>'
             '</form></div>')
 
