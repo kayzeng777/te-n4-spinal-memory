@@ -534,7 +534,7 @@ LAYERS = ('slab', 'bloom', 'tight', 'ink', 'core')
 # units wide and shown at tile/dpr css px (see .grain), so a unit is one device
 # pixel on a phone as on a desktop -- at a fixed css size it was three times
 # as coarse at 3x. Drawn 1:1, never resampled, which is what read as mosaic.
-GRAIN = dict(cell=1.7, tile=96, opacity=.9, mean=.732)
+GRAIN = dict(cell=2.2, tile=96, opacity=.9, mean=.732)
 
 
 def grain_url():
