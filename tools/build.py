@@ -2069,6 +2069,12 @@ ROOM_CSS = '''
     text-align:left;cursor:pointer;max-width:100%}
   .lec .signup .pl{display:inline-block;width:.95em;height:.95em;margin-right:.32em;
     vertical-align:-.13em;overflow:visible}
+  /* the underline runs under the icon too, and text-decoration does not paint
+     under an inline-block: so it is drawn as the span's own 1px background, at
+     the depth the others' underline sits (.18em under the baseline, which is
+     .24em above this box's foot) */
+  .lec .signup.room-open .u{text-decoration:none;
+    background:linear-gradient(currentColor,currentColor) 0 calc(100% + 1px - .06em)/100% 1px no-repeat}
   .lec .signup .lk{display:inline-block;width:.72em;height:.84em;margin-left:.2em;
     vertical-align:-.04em;overflow:visible}
   .lec .lec-room{margin-top:calc(var(--lec-lead) + 14px);color:var(--a-ink)}
@@ -2164,7 +2170,7 @@ def signup_html(i, lec):
     if has_room(i):
         return ('<button class="signup room-open" type="button" aria-expanded="false" '
                 'aria-controls="room-%d">' % i
-                + layers('p', 'lecs', PLAY + '<span class="u">Lecture replay</span>'
+                + layers('p', 'lecs', '<span class="u">' + PLAY + 'Lecture replay</span>'
                          '\u2009' + LOCK) + '</button>')
     return (f'<a class="signup" href="{tagged(lec.get("signup", SIGNUP))}" target="_blank" '
             f'rel="noopener">'
