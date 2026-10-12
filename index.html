@@ -1159,7 +1159,7 @@
       try{l.__r=await unlock(i,pw);inp.value="";echo();set(false);
         btn.querySelectorAll(".lk path").forEach(p=>p.setAttribute("d",OPEN));
         show(l);}
-      catch(x){setErr(x.message==="secure"?"This needs a secure (https) page.":"That password does not open this lecture.");
+      catch(x){setErr(x.message==="secure"?"This needs a secure (https) page.":"Invalid code.");
         inp.select();}
       go.disabled=false;});});
 })();</script>
