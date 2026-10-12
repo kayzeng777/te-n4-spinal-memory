@@ -530,9 +530,11 @@ LAYERS = ('slab', 'bloom', 'tight', 'ink', 'core')
 # this strong lifts the background by about +14 per channel and shifts its hue.
 # The transfer below recentres it, so the grain is texture and nothing else and
 # the gradient renders the colours it is given.
-# cell is the grain's size in screen px; the tile is drawn at its own size (1:1),
-# since resampling a 120-unit tile down to 76px is what made it read as mosaic.
-GRAIN = dict(cell=1.4, tile=96, opacity=.9, mean=.732)
+# cell is the grain's size in DEVICE px, whatever the screen: the tile is `tile`
+# units wide and shown at tile/dpr css px (see .grain), so a unit is one device
+# pixel on a phone as on a desktop -- at a fixed css size it was three times
+# as coarse at 3x. Drawn 1:1, never resampled, which is what read as mosaic.
+GRAIN = dict(cell=1.7, tile=96, opacity=.9, mean=.732)
 
 
 def grain_url():
@@ -721,6 +723,8 @@ HEAD = '''<title>te online lecture</title>
   .grain{position:fixed;inset:0 var(--tools,0) 0 0;z-index:4;pointer-events:none;
     mix-blend-mode:overlay;opacity:__GRAINA__;
     background-size:__GRAINSIZE__ __GRAINSIZE__;background-image:__GRAINURL__}
+  @media (min-resolution:1.5dppx){.grain{background-size:__GRAIN2__ __GRAIN2__}}
+  @media (min-resolution:2.5dppx){.grain{background-size:__GRAIN3__ __GRAIN3__}}
   :root{--grid-img:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'><path d='M0 0H1M0 0V1' fill='none' stroke='%23cccccc' stroke-width='.05' stroke-dasharray='.14 .1'/></svg>")}
   .nogrid .grid{display:none}
   .nogrid main{background-image:none !important}
@@ -2743,6 +2747,8 @@ def page(inline, spine=None, cols=None, rows=None, tools=False):
                 .replace('__CLOSEFS__', ramp(28, 36))
                 .replace('__GRAINURL__', grain).replace('__GRAINA__', str(GRAIN['opacity']))
                 .replace('__GRAINSIZE__', f"{GRAIN['tile']}px")
+                .replace('__GRAIN2__', f"{GRAIN['tile'] / 2:g}px")
+                .replace('__GRAIN3__', f"{GRAIN['tile'] / 3:g}px")
                 .replace('__CELL__', ramp(CELL * SPINE_SMALL, CELL))
                 .replace('__LENS__', ramp(LENS * SPINE_SMALL, LENS))
                 .replace('__FEATHER__', ramp(FEATHER * SPINE_SMALL, FEATHER))
