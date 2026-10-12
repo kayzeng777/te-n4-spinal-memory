@@ -2092,21 +2092,24 @@ ROOM_CSS = '''
   .lec .room-form input{position:absolute;inset:0;z-index:1;display:block;box-sizing:border-box;
     width:100%;height:100%;min-width:0;margin:0;padding:0 .8em;font:inherit;font-size:__RPD__;
     letter-spacing:.035em;color:transparent;-webkit-text-fill-color:transparent;
-    caret-color:var(--a-ink);background:transparent;border:0;border-radius:0;outline:0}
+    caret-color:var(--b-ink);background:transparent;border:0;border-radius:0;outline:0}
   .lec .room-ghost{display:block;pointer-events:none}
   .lec .room-ghost .t,.lec .room-form button .t{--maxw:none;width:auto}
-  .lec .room-form .rbox{display:block;box-sizing:border-box;min-width:3em;line-height:1;
+  .lec .room-form .rbox{display:block;box-sizing:border-box;line-height:1;
     padding:.58em .8em .55em;border:1px solid currentColor;border-radius:0;white-space:nowrap;
-    overflow:hidden}
-  .lec .room-field .rbox{width:100%;min-height:calc(1em + 1.13em + 2px)}
-  .lec .room-field.is-empty .rbox{opacity:.65}
-  .lec .room-form .rfill{background:var(--a-ink);border-color:var(--a-ink)}
+    overflow:hidden;text-align:center}
+  .lec .room-field .rbox{width:100%;text-align:left}
+  .lec .room-field.is-empty .rtxt{opacity:.65}
+  /* Open and Cancel are one width, so neither is the wider */
+  .lec .room-form .room-go,.lec .room-form .room-cancel{flex:0 0 4.9em;width:4.9em}
+  .lec .room-form button .rbox{width:100%;padding-left:0;padding-right:0}
+  /* Open is a lit box: the fill, and the glow behind it */
+  .lec .room-form .rfill{background:var(--a-ink);border-color:var(--a-ink);
+    box-shadow:0 0 5px var(--a-glow),0 0 12px var(--a-bloom)}
   .lec .room-form button{appearance:none;background:none;border:0;border-radius:0;margin:0;
     padding:0;cursor:pointer;color:inherit;display:block}
   .lec .room-form button:disabled{opacity:.5;cursor:default}
-  .lec .room-form button:focus-visible,.lec .room-form input:focus-visible+.room-ghost .rbox{
-    outline:2px solid var(--a-ink);outline-offset:2px}
-  .lec .room-form input:focus+.room-ghost .rbox{border-width:1px;box-shadow:inset 0 0 0 1px currentColor}
+  .lec .room-form button:focus-visible{outline:2px solid var(--a-ink);outline-offset:2px}
   .lec .room-err{flex:1 1 100%}
   .lec button.signup:focus-visible{outline:2px solid var(--a-ink);outline-offset:3px}
 
@@ -2229,7 +2232,7 @@ ROOM_JS = r'''<script>(function(){
     // the ghost: what the field holds, or its label while it holds nothing
     const wrap=inp.closest(".room-field"),ghost=wrap.querySelector(".room-ghost");
     const echo=()=>{const v=inp.value;wrap.classList.toggle("is-empty",!v);
-      ghost.querySelectorAll(".rbox").forEach(b=>b.textContent=v||"Code");};
+      ghost.querySelectorAll(".rtxt").forEach(b=>b.textContent=v||"Code");};
     inp.addEventListener("input",echo);
     const set=on=>{box.hidden=!on;btn.setAttribute("aria-expanded",String(on));
       // the detail's own scroll goes back to its top, where the box is; scrollIntoView
@@ -2298,11 +2301,11 @@ def room_box(i):
             '<input type="text" name="code" autocomplete="off" autocapitalize="off" '
             'autocorrect="off" spellcheck="false" aria-label="Code">'
             '<span class="room-ghost" aria-hidden="true">'
-            + layers('p', 'roomin', '<span class="rbox">Code</span>') + '</span></span>'
+            + layers('p', 'roomin', '<span class="rbox"><span class="rtxt">Code</span></span>') + '</span></span>'
             '<button type="submit" class="room-go" aria-label="Open">'
-            + layers('p', 'roomgo', '<span class="rbox rfill">Open</span>') + '</button>'
+            + layers('p', 'roomgo', '<span class="rbox rfill"><span class="rtxt">Open</span></span>') + '</button>'
             '<button type="button" class="room-cancel" aria-label="Cancel">'
-            + layers('p', 'roomcn', '<span class="rbox">Cancel</span>') + '</button>'
+            + layers('p', 'roomcn', '<span class="rbox"><span class="rtxt">Cancel</span></span>') + '</button>'
             '<div class="room-err" role="alert" hidden>' + layers('p', 'lecd', '') + '</div>'
             '</form></div>')
 
