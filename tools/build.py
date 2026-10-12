@@ -2110,7 +2110,9 @@ ROOM_CSS = '''
     overflow:hidden;text-align:center}
   .lec .room-field .rbox{width:100%;text-align:left}
   .lec .room-field.is-empty .rtxt{opacity:.65}
-  /* Open and Cancel are one width, so neither is the wider */
+  /* Open and Cancel are one width, so neither is the wider; they travel as a
+     pair, beside the field if the line has room and under it if not */
+  .lec .room-btns{display:flex;gap:6px;flex:0 0 auto}
   .lec .room-form .room-go,.lec .room-form .room-cancel{flex:0 0 4.9em;width:4.9em}
   .lec .room-form button .rbox{width:100%;padding-left:0;padding-right:0}
   /* Open is set as the switch's chosen half is -- a block filled with the
@@ -2316,10 +2318,14 @@ def room_box(i):
             'autocorrect="off" spellcheck="false" aria-label="Code">'
             '<span class="room-ghost" aria-hidden="true">'
             + layers('p', 'roomin', '<span class="rbox"><span class="rtxt">Code</span></span>') + '</span></span>'
+            # Open and Cancel are one item: when the line is too short for all
+            # three, the field keeps the line and the two go under it together
+            '<span class="room-btns">'
             '<button type="submit" class="room-go" aria-label="Open">'
             + layers('p', 'roomgo', '<span class="rbox rfill"><span class="rtxt">Open</span></span>') + '</button>'
             '<button type="button" class="room-cancel" aria-label="Cancel">'
             + layers('p', 'roomcn', '<span class="rbox"><span class="rtxt">Cancel</span></span>') + '</button>'
+            '</span>'
             '<div class="room-err" role="alert" hidden>' + layers('p', 'lecd', '') + '</div>'
             '</form></div>')
 
