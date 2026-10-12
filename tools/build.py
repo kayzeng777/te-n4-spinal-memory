@@ -2114,8 +2114,13 @@ ROOM_CSS = '''
   .rpage-head .rpage-w{margin-top:18px;font-size:__RPW__;letter-spacing:.017em;line-height:.95}
   .rpage-head .rpage-t{margin-top:4px;font-size:__RPT__;letter-spacing:-.02em;line-height:1}
   .rpage-head .rpage-chips{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;font-size:__RPD__;letter-spacing:.035em}
-  .rpage-chip{display:inline-block;padding:.12em .7em .16em;border:1px solid currentColor;
-    border-radius:99px;line-height:1.2}
+  /* the lecture block's chip, as .t .chip draws it: .78 of the line's size, the
+     padding trimmed to the capitals where text-box is supported */
+  .rpage-chip{display:inline-block;font-size:.78em;line-height:1;padding:.3em .6em .16em;
+    border:1px solid currentColor;border-radius:999px}
+  @supports (text-box:trim-both cap alphabetic){
+    .rpage-chip{text-box:trim-both cap alphabetic;padding:.38em .6em}
+  }
   .rpage-player{margin-top:28px}
   .rpage-player .lec-replay{margin:0}
   .rpage-extra{margin-top:20px;font-size:15px;line-height:1.4;max-width:60ch}
@@ -2285,8 +2290,7 @@ def room_pages():
             f'<p class="rpage-d">{"<br>".join(e(x) for x in [lec["when"]] + lec.get("time", TIME).split(chr(10)))}</p>'
             f'<p class="rpage-w">{e(lec["who"])}</p>'
             f'<h1 class="rpage-t">{e(lec["what"])}</h1>'
-            f'<p class="rpage-chips"><span class="rpage-chip">{e(lec["lang"])}</span>'
-            '<span class="rpage-chip">Lecture replay</span></p></header>'
+            f'<p class="rpage-chips"><span class="rpage-chip">{e(lec["lang"])}</span></p></header>'
             '<div class="rpage-player"></div><div class="rpage-extra"></div>'
             f'<div class="rpage-about">{copy_html("lecb", lec["about"])}</div>'
             + ('<div class="rpage-pics">' + ''.join(t for t, _ in pics) + '</div>' if pics else '')
