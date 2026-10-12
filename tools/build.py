@@ -2072,18 +2072,32 @@ ROOM_CSS = '''
     vertical-align:-.13em;overflow:visible}
   .lec .signup .lk{display:inline-block;width:.72em;height:.84em;margin-left:.2em;
     vertical-align:-.04em;overflow:visible}
-  .lec .lec-room{margin-top:calc(var(--lec-lead) + 14px);color:var(--a-ink)}
+  /* The password: set in the poster's own manner -- words and a line, no
+     boxes. The hint is the lecture's small type; the field is an underline the
+     ink is typed on; Open and Cancel are links like Sign up is. The glow is the
+     type's own (--a-glow), so it sits on the page as the words round it do. */
+  .lec .lec-room{margin-top:calc(var(--lec-lead) + 12px);margin-bottom:14px;color:var(--a-ink);
+    text-shadow:0 0 .5em var(--a-glow),0 0 .15em var(--a-glow)}
   .lec .lec-room[hidden]{display:none}
-  .lec .room-hint{margin:0 0 10px;font-size:13px;line-height:1.3}
-  .lec .room-form{display:flex;gap:8px;flex-wrap:wrap;margin:0}
-  .lec .room-form input{flex:1 1 9em;min-width:0;font:inherit;font-size:15px;padding:8px 9px;
-    border:1px solid currentColor;border-radius:0;background:rgb(var(--bg0) / .55);color:inherit}
-  .lec .room-form button{font:inherit;font-size:14px;padding:8px 14px;border:1px solid var(--a-ink);
-    border-radius:0;background:var(--a-ink);color:rgb(var(--bg1));cursor:pointer}
+  .lec .room-hint{margin:0;font-size:__RPD__;letter-spacing:.035em;line-height:1.12;max-width:30ch}
+  .lec .room-form{display:block;margin:14px 0 0}
+  .lec .room-form input{display:block;box-sizing:border-box;width:100%;max-width:22em;margin:0;
+    padding:7px 0 6px;font:inherit;font-size:__RPW__;letter-spacing:.06em;color:inherit;
+    text-shadow:inherit;background:transparent;border:0;border-radius:0;
+    border-bottom:1px solid currentColor;outline:0;caret-color:currentColor}
+  .lec .room-form input::placeholder{color:inherit;opacity:.55;letter-spacing:.02em}
+  .lec .room-form input:focus{border-bottom-width:2px;padding-bottom:5px}
+  .lec .room-form input:-webkit-autofill{-webkit-text-fill-color:var(--a-ink);
+    transition:background-color 99999s}
+  .lec .room-actions{display:flex;gap:18px;align-items:baseline;margin-top:12px}
+  .lec .room-form button{appearance:none;background:none;border:0;border-radius:0;margin:0;padding:0;
+    font:inherit;font-size:__RPW__;letter-spacing:.017em;color:inherit;text-shadow:inherit;
+    cursor:pointer;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.18em}
+  .lec .room-form .room-cancel{font-size:__RPD__;letter-spacing:.035em;opacity:.8}
   .lec .room-form button:disabled{opacity:.5;cursor:default}
-  .lec .room-form .room-cancel{background:none;color:inherit;border-color:currentColor}
-  .lec .room-err{flex-basis:100%;margin:0;font-size:13px;line-height:1.3;min-height:1.3em}
-  .lec .room-form input:focus-visible,.lec .room-form button:focus-visible,
+  .lec .room-form button:focus-visible{outline:2px solid var(--a-ink);outline-offset:3px}
+  .lec .room-err{margin:10px 0 0;font-size:__RPD__;letter-spacing:.035em;line-height:1.15;min-height:0}
+  .lec .room-err:empty{display:none}
   .lec button.signup:focus-visible{outline:2px solid var(--a-ink);outline-offset:3px}
 
   /* The replay's page: the whole window, over the poster, black in every
@@ -2201,7 +2215,9 @@ ROOM_JS = r'''<script>(function(){
       inp=f.querySelector("input"),go=f.querySelector("button"),err=f.querySelector(".room-err");
     const measure=()=>{if(window.__lecMeasure)window.__lecMeasure();};
     const set=on=>{box.hidden=!on;btn.setAttribute("aria-expanded",String(on));
-      if(on){inp.focus({preventScroll:true});box.scrollIntoView({block:"nearest"});}
+      // the detail's own scroll goes back to its top, where the box is; scrollIntoView
+      // would take the whole page with it
+      if(on){const sc=box.closest(".scroll");if(sc)sc.scrollTop=0;inp.focus({preventScroll:true});}
       measure();};
     // locked: the click opens the password field; unlocked: it opens the page
     btn.addEventListener("click",()=>{if(l.__r)show(l);else set(box.hidden);});
@@ -2256,8 +2272,8 @@ def room_box(i):
             '<form class="room-form" autocomplete="off">'
             '<input type="password" name="pw" autocomplete="off" autocapitalize="off" '
             'spellcheck="false" placeholder="Password" aria-label="Password">'
-            '<button type="submit">Open</button>'
-            '<button type="button" class="room-cancel">Cancel</button>'
+            '<div class="room-actions"><button type="submit">Open \u2192</button>'
+            '<button type="button" class="room-cancel">Cancel</button></div>'
             '<p class="room-err" role="alert"></p></form></div>')
 
 
