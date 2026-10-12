@@ -2159,7 +2159,7 @@ def signup_html(i, lec):
     if has_room(i):
         return ('<button class="signup room-open" type="button" aria-expanded="false" '
                 'aria-controls="room-%d">' % i
-                + layers('p', 'lecs', '<span class="u">Digital Reading Room &amp; Replay</span>'
+                + layers('p', 'lecs', '<span class="u">Lecture Replay</span>'
                          '\u2009' + LOCK) + '</button>')
     return (f'<a class="signup" href="{tagged(lec.get("signup", SIGNUP))}" target="_blank" '
             f'rel="noopener">'
@@ -2173,7 +2173,7 @@ def room_box(i):
         return ''
     return (f'<div class="lec-room" id="room-{i}" hidden>'
             '<p class="room-hint">Enter the password you received to open this '
-            'lecture\u2019s replay and reading materials.</p>'
+            'lecture\u2019s replay.</p>'
             '<form class="room-form" autocomplete="off">'
             '<input type="password" name="pw" autocomplete="off" autocapitalize="off" '
             'spellcheck="false" placeholder="Password" aria-label="Password">'
