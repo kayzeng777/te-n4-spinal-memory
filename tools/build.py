@@ -2072,26 +2072,26 @@ ROOM_CSS = '''
     vertical-align:-.13em;overflow:visible}
   .lec .signup .lk{display:inline-block;width:.72em;height:.84em;margin-left:.2em;
     vertical-align:-.04em;overflow:visible}
-  /* The password: set in the poster's own manner. The words are the poster's
-     type (layers, so the glow is the real one); the field is an underline the
-     ink is typed on, with the type's glow put on it as a drop-shadow, and what is
-     typed is shown as typed. Open and Cancel are small rectangles under it. */
+  /* The code: the words are the poster's type (layers, so the glow is the real
+     one); the field and the two buttons are small rectangles on one line, the
+     field with the type's glow put on it as a drop-shadow. What is typed is
+     shown as typed. */
   .lec .lec-room{margin-top:calc(var(--lec-lead) + 12px);margin-bottom:32px;color:var(--a-ink)}
   .lec .lec-room[hidden],.lec .room-err[hidden]{display:none}
-  .lec .room-form{display:flex;flex-wrap:wrap;gap:12px 8px;align-items:center;margin:12px 0 0}
-  .lec .room-form input{flex:1 1 100%;display:block;box-sizing:border-box;min-width:0;margin:0;
-    padding:7px 0 6px;font:inherit;font-size:__RPW__;letter-spacing:.04em;color:inherit;
-    background:transparent;border:0;border-radius:0;border-bottom:1px solid currentColor;
-    outline:0;caret-color:currentColor;
-    filter:drop-shadow(0 0 2px var(--a-glow)) drop-shadow(0 0 7px var(--a-bloom))}
-  .lec .room-form input::placeholder{color:inherit;opacity:.55;letter-spacing:.02em}
-  .lec .room-form input:focus{border-bottom-width:2px;padding-bottom:5px}
-  .lec .room-form button{font:inherit;font-size:14px;padding:8px 16px;margin:0;
+  .lec .room-form{display:flex;flex-wrap:wrap;gap:8px 6px;align-items:stretch;margin:10px 0 0}
+  .lec .room-form input{flex:1 1 7em;display:block;box-sizing:border-box;min-width:0;margin:0;
+    padding:5px 8px;font:inherit;font-size:13px;line-height:1.2;letter-spacing:.03em;color:inherit;
+    background:rgb(var(--bg0) / .35);border:1px solid currentColor;border-radius:0;outline:0;
+    caret-color:currentColor;
+    filter:drop-shadow(0 0 2px var(--a-glow)) drop-shadow(0 0 6px var(--a-bloom))}
+  .lec .room-form input::placeholder{color:inherit;opacity:.55}
+  .lec .room-form input:focus{outline:1px solid currentColor;outline-offset:0}
+  .lec .room-form button{font:inherit;font-size:12px;line-height:1.2;padding:5px 10px;margin:0;
     border:1px solid var(--a-ink);border-radius:0;background:var(--a-ink);
     color:rgb(var(--bg1));cursor:pointer}
   .lec .room-form .room-cancel{background:none;color:inherit;border-color:currentColor}
   .lec .room-form button:disabled{opacity:.5;cursor:default}
-  .lec .room-form button:focus-visible{outline:2px solid var(--a-ink);outline-offset:3px}
+  .lec .room-form button:focus-visible{outline:2px solid var(--a-ink);outline-offset:2px}
   .lec .room-err{flex:1 1 100%}
   .lec button.signup:focus-visible{outline:2px solid var(--a-ink);outline-offset:3px}
 
@@ -2267,11 +2267,10 @@ def room_box(i):
         return ''
     word = lambda role, t: layers('p', role, copy_html(role, t))
     return (f'<div class="lec-room" id="room-{i}" hidden>'
-            + word('lecd', 'Enter the password you received to open this '
-                   'lecture\u2019s replay.')
+            + word('lecd', 'Enter the code you received to open lecture replay.')
             + '<form class="room-form" autocomplete="off">'
             '<input type="text" name="code" autocomplete="off" autocapitalize="off" '
-            'autocorrect="off" spellcheck="false" placeholder="Password" aria-label="Password">'
+            'autocorrect="off" spellcheck="false" placeholder="Code" aria-label="Code">'
             '<button type="submit" class="room-go">Open</button>'
             '<button type="button" class="room-cancel">Cancel</button>'
             '<div class="room-err" role="alert" hidden>' + layers('p', 'lecd', '') + '</div>'
