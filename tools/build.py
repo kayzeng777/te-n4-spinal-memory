@@ -2073,33 +2073,31 @@ ROOM_CSS = '''
   .lec .signup .lk{display:inline-block;width:.72em;height:.84em;margin-left:.2em;
     vertical-align:-.04em;overflow:visible}
   /* The password: set in the poster's own manner -- words and a line, no
-     boxes. The hint is the lecture's small type; the field is an underline the
-     ink is typed on; Open and Cancel are links like Sign up is. The glow is the
-     type's own (--a-glow), so it sits on the page as the words round it do. */
-  .lec .lec-room{margin-top:calc(var(--lec-lead) + 12px);margin-bottom:14px;color:var(--a-ink);
-    text-shadow:0 0 .5em var(--a-glow),0 0 .15em var(--a-glow)}
-  .lec .lec-room[hidden]{display:none}
-  .lec .room-hint{margin:0;font-size:__RPD__;letter-spacing:.035em;line-height:1.12;max-width:30ch}
-  /* the field and Open on one line, Cancel under the field, the error under that */
-  .lec .room-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 18px;
-    align-items:baseline;margin:14px 0 0}
-  .lec .room-form input{display:block;box-sizing:border-box;width:100%;margin:0;
+     boxes. The words are the poster's type (layers, so the glow is the real
+     one); the field is an underline the ink is typed on, with the type's glow
+     put on it as a drop-shadow. The field, Open and Cancel share one line, so
+     whatever the browser opens under the field does not cover them. */
+  .lec .lec-room{margin-top:calc(var(--lec-lead) + 12px);margin-bottom:14px;color:var(--a-ink)}
+  .lec .lec-room[hidden],.lec .room-err[hidden]{display:none}
+  .lec .room-form{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px 16px;
+    align-items:baseline;margin:12px 0 0}
+  .lec .room-form input{display:block;box-sizing:border-box;width:100%;min-width:0;margin:0;
     padding:7px 0 6px;font:inherit;font-size:__RPW__;letter-spacing:.06em;color:inherit;
-    text-shadow:inherit;background:transparent;border:0;border-radius:0;
-    border-bottom:1px solid currentColor;outline:0;caret-color:currentColor}
+    background:transparent;border:0;border-radius:0;border-bottom:1px solid currentColor;
+    outline:0;caret-color:currentColor;
+    filter:drop-shadow(0 0 2px var(--a-glow)) drop-shadow(0 0 7px var(--a-bloom))}
   .lec .room-form input::placeholder{color:inherit;opacity:.55;letter-spacing:.02em}
   .lec .room-form input:focus{border-bottom-width:2px;padding-bottom:5px}
   .lec .room-form input:-webkit-autofill{-webkit-text-fill-color:var(--a-ink);
     transition:background-color 99999s}
-  .lec .room-form button{appearance:none;background:none;border:0;border-radius:0;margin:0;padding:0;
-    font:inherit;font-size:__RPW__;letter-spacing:.017em;color:inherit;text-shadow:inherit;
-    cursor:pointer;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.18em}
-  .lec .room-form .room-cancel{grid-column:1;justify-self:start;font-size:__RPD__;
-    letter-spacing:.035em;opacity:.8}
+  .lec .room-form button{appearance:none;background:none;border:0;border-radius:0;margin:0;
+    padding:0;color:inherit;text-align:left;cursor:pointer}
+  .lec .room-form button .u{text-decoration:underline;text-decoration-thickness:1px;
+    text-underline-offset:.18em}
+  .lec .room-form .room-cancel{opacity:.85}
   .lec .room-form button:disabled{opacity:.5;cursor:default}
   .lec .room-form button:focus-visible{outline:2px solid var(--a-ink);outline-offset:3px}
-  .lec .room-err{grid-column:1 / -1;margin:0;font-size:__RPD__;letter-spacing:.035em;line-height:1.15;min-height:0}
-  .lec .room-err:empty{display:none}
+  .lec .room-err{grid-column:1 / -1}
   .lec button.signup:focus-visible{outline:2px solid var(--a-ink);outline-offset:3px}
 
   /* The replay's page: the whole window, over the poster, black in every
@@ -2216,6 +2214,8 @@ ROOM_JS = r'''<script>(function(){
     const btn=l.querySelector(".signup.room-open"),f=box.querySelector(".room-form"),
       inp=f.querySelector("input"),go=f.querySelector("button"),err=f.querySelector(".room-err");
     const measure=()=>{if(window.__lecMeasure)window.__lecMeasure();};
+    // the error is set in the poster's layers: every layer takes the words
+    const setErr=m=>{err.hidden=!m;err.querySelectorAll(".t>p").forEach(p=>p.textContent=m);};
     const set=on=>{box.hidden=!on;btn.setAttribute("aria-expanded",String(on));
       // the detail's own scroll goes back to its top, where the box is; scrollIntoView
       // would take the whole page with it
@@ -2224,15 +2224,15 @@ ROOM_JS = r'''<script>(function(){
     // locked: the click opens the password field; unlocked: it opens the page
     btn.addEventListener("click",()=>{if(l.__r)show(l);else set(box.hidden);});
     // a way out for someone who has no password: the button, or Esc in the field
-    const cancel=()=>{err.textContent="";inp.value="";set(false);btn.focus();};
+    const cancel=()=>{setErr("");inp.value="";set(false);btn.focus();};
     f.querySelector(".room-cancel").addEventListener("click",cancel);
     inp.addEventListener("keydown",e=>{if(e.key==="Escape"){e.stopPropagation();cancel();}});
     f.addEventListener("submit",async e=>{
-      e.preventDefault();err.textContent="";const pw=inp.value.trim();if(!pw)return;go.disabled=true;
+      e.preventDefault();setErr("");const pw=inp.value.trim();if(!pw)return;go.disabled=true;
       try{l.__r=await unlock(i,pw);inp.value="";set(false);
         btn.querySelectorAll(".lk path").forEach(p=>p.setAttribute("d",OPEN));
         show(l);}
-      catch(x){err.textContent=x.message==="secure"?"This needs a secure (https) page.":"That password does not open this lecture.";
+      catch(x){setErr(x.message==="secure"?"This needs a secure (https) page.":"That password does not open this lecture.");
         inp.select();}
       go.disabled=false;});});
 })();</script>'''
@@ -2265,18 +2265,24 @@ def signup_html(i, lec):
 
 
 def room_box(i):
-    """Where the password goes: hidden until the lock is clicked."""
+    """Where the password goes: hidden until the lock is clicked. Every word is
+    set in the poster's type (layers), so it has the glow the rest has; the field
+    is the one thing that cannot be, and takes the glow as a drop-shadow."""
     if not has_room(i):
         return ''
+    word = lambda role, t: layers('p', role, copy_html(role, t))
     return (f'<div class="lec-room" id="room-{i}" hidden>'
-            '<p class="room-hint">Enter the password you received to open this '
-            'lecture’s replay.</p>'
-            '<form class="room-form" autocomplete="off">'
+            + word('lecd', 'Enter the password you received to open this '
+                   'lecture\u2019s replay.')
+            + '<form class="room-form" autocomplete="off">'
             '<input type="password" name="pw" autocomplete="off" autocapitalize="off" '
             'spellcheck="false" placeholder="Password" aria-label="Password">'
-            '<button type="submit">Open \u2192</button>'
-            '<button type="button" class="room-cancel">Cancel</button>'
-            '<p class="room-err" role="alert"></p></form></div>')
+            '<button type="submit" class="room-go">'
+            + layers('p', 'lecs', '<span class="u">Open</span>\u2009\u2192') + '</button>'
+            '<button type="button" class="room-cancel">'
+            + layers('p', 'lecd', '<span class="u">Cancel</span>') + '</button>'
+            '<div class="room-err" role="alert" hidden>' + layers('p', 'lecd', '') + '</div>'
+            '</form></div>')
 
 
 def room_pages():
