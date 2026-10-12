@@ -212,14 +212,21 @@
     font-size:15px;color:inherit;cursor:pointer;text-decoration:underline;
     text-decoration-thickness:1px;text-underline-offset:.18em}
   .rpage-back:focus-visible{outline:2px solid currentColor;outline-offset:3px}
-  .rpage-in{max-width:960px;margin:0 auto;padding:12px 20px 120px;box-sizing:border-box}
-  .rpage-kicker{display:inline-block;margin:0 0 18px;padding:2px 9px;border:1px solid currentColor;
-    border-radius:99px;font-size:12px;line-height:1.35}
-  .rpage-title{margin:0;font-size:clamp(26px,4.4vw,44px);font-weight:500;letter-spacing:-.025em;
-    line-height:1.02;max-width:20em}
-  .rpage-who{margin:14px 0 0;font-size:clamp(16px,2vw,20px);line-height:1.2}
-  .rpage-when{margin:10px 0 0;font-size:14px;line-height:1.35;opacity:.9}
-  .rpage-player{margin-top:32px}
+  .rpage{--rp-pad:clamp(16px,3.2vw,56px)}
+  .rpage-in{max-width:1560px;margin:0 auto;padding:12px var(--rp-pad) 120px;box-sizing:border-box}
+  .rpage-bar{padding-left:var(--rp-pad);padding-right:var(--rp-pad)}
+  /* the lecture block's head: the same order, steps (t14 / t16 / t20), tracking
+     and leading, and the same gaps -- 18px from the date to who, 4px to the
+     title, then the chip */
+  .rpage-head{max-width:46em}
+  .rpage-head p,.rpage-head h1{margin:0;font-weight:400}
+  .rpage-d{font-size:clamp(12px, calc(12px + 0.00294 * (100vw - 760px)), 14px);letter-spacing:.035em;line-height:.98}
+  .rpage-head .rpage-w{margin-top:18px;font-size:clamp(13.7px, calc(13.7px + 0.00338 * (100vw - 760px)), 16px);letter-spacing:.017em;line-height:.95}
+  .rpage-head .rpage-t{margin-top:4px;font-size:clamp(17.1px, calc(17.1px + 0.00426 * (100vw - 760px)), 20px);letter-spacing:-.02em;line-height:1}
+  .rpage-head .rpage-chips{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;font-size:clamp(12px, calc(12px + 0.00294 * (100vw - 760px)), 14px);letter-spacing:.035em}
+  .rpage-chip{display:inline-block;padding:.12em .7em .16em;border:1px solid currentColor;
+    border-radius:99px;line-height:1.2}
+  .rpage-player{margin-top:28px}
   .rpage-player .lec-replay{margin:0}
   .rpage-extra{margin-top:20px;font-size:15px;line-height:1.4;max-width:60ch}
   .rpage-extra:empty{display:none}
@@ -229,6 +236,7 @@
   .rpage-links li{padding:3px 0}
   .rpage a{color:inherit;text-decoration:underline;text-underline-offset:.18em}
   .rpage-about{margin-top:44px;max-width:62ch;font-size:16px;line-height:1.4}
+  .rpage-pics{max-width:1100px}
   .rpage-about p{margin:0}
   .rpage-about p+p{margin-top:1em}
   .rpage-pics{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));
@@ -242,9 +250,9 @@
   .rpage-sp .bio p+p{margin-top:.8em}
   .rpage-sp .name{margin:0 0 .5em;font-weight:500}
   @media (max-width:600px){
-    .rpage-bar{padding:10px 16px}
-    .rpage-in{padding:8px 16px 96px}
-    .rpage-player{margin-top:24px}
+    .rpage-bar{padding-top:10px;padding-bottom:10px}
+    .rpage-in{padding-top:8px;padding-bottom:96px}
+    .rpage-player{margin-top:22px}
     .rpage-sp{grid-template-columns:96px 1fr;gap:14px}
   }
 .peek-flood{flood-color:var(--peek-green,#80C58A)}
@@ -1585,7 +1593,7 @@
   })();
 </script>
 </main>
-<section class="rpage" id="rpage-0" role="dialog" aria-modal="true" aria-label="Lecture replay" data-title="Victoria Soyan Peemot — Horses and Songs: Multispecies Rhythm and Voice in Inner Asia" tabindex="-1" hidden><div class="rpage-bar"><button class="rpage-back" type="button">← Return to home</button></div><article class="rpage-in"><p class="rpage-kicker">Lecture replay</p><h1 class="rpage-title">Horses and Songs: Multispecies Rhythm and Voice in Inner Asia</h1><p class="rpage-who">Victoria Soyan Peemot</p><p class="rpage-when">Oct 10 · English</p><div class="rpage-player"></div><div class="rpage-extra"></div><div class="rpage-about"><p>When Tyva people say that the horse is everything in life, this is not a metaphor—it comes from the lived experience of the people who have been mobile pastoralists for millennia, whose lives and identities have been continuously shaped by horses. Drawing on her personal experience and research among mobile pastoralists between the Altai and Sayan mountain ranges in the transnational region of Inner Asia, Dr. Victoria Soyan Peemot explores how Tyvan understandings of voice, sound, and music are rooted in multispecies relationships, with a particular focus on human-equine belonging.</p><p>Her research brings together horses and their rich sound world with the people and land to which they co-belong. The lecture discusses how the rhythms and lyrics of Tyvan songs and Tyvan ways of understanding the human voice itself emerge from belonging to the land and cohabiting it with other beings.</p></div><div class="rpage-pics"><img src="images/lectures/web/lecture-images-1-1.jpg" width="1400" height="933" alt="" loading="lazy" decoding="async"><img src="images/lectures/web/lecture-images-1-2.jpg" width="1400" height="962" alt="" loading="lazy" decoding="async"></div><div class="rpage-sps"><div class="rpage-sp"><img src="images/lectures/web/speakers-portrait-01-victoria.jpg" width="600" height="800" alt="" loading="lazy" decoding="async" class="face"><div class="bio"><p>Victoria Soyan Peemot is a senior researcher, community advocate, and member of the Soyan kinship group from the Tyva Republic, raised at the Tyvan-Mongolian borderland in a livestock herding family. Her research weaves together Tyva transnational kinship, multispecies relations, and the continuity of pastoralist lifeways and is guided by aaldaar, the Tyvan customary practice of relational reciprocity that extends to land and other-than-human beings.</p><p>She holds a PhD in History and Cultural Heritage Studies from the University of Helsinki (2021). Her book <em>The Horse In My Blood</em> (2024) explores human-horse-homeland relationships and histories of state violence. Her second book <em>Songs of Tyva: A Guide to Tyvan Culture and Language</em> (2026) draws on emplaced storytelling through folk songs and photographs of the featured homelands. Her broader work engages ethnographic museum collections across Europe, decolonizing archives, and the return of ancestral stories to the communities they belong to.</p></div></div></div></article></section><img class="lettering tr" src="social-media-poster/top-right.svg" alt="" style="width:calc(634.4 / 1080 * 100vw);top:calc(9.6 / 1080 * 100vw);right:calc(12 / 1080 * 100vw);"><img class="lettering bl" src="social-media-poster/bottom-left.svg" alt="" style="width:calc(514.4 / 1080 * 100vw);bottom:calc(5.6 / 1080 * 100vw);left:calc(9.5 / 1080 * 100vw);"><script>(function(){
+<section class="rpage" id="rpage-0" role="dialog" aria-modal="true" aria-label="Lecture replay" data-title="Victoria Soyan Peemot — Horses and Songs: Multispecies Rhythm and Voice in Inner Asia" tabindex="-1" hidden><div class="rpage-bar"><button class="rpage-back" type="button">← Return to home</button></div><article class="rpage-in"><header class="rpage-head"><p class="rpage-d">Oct 10<br>New York / 9am EDT<br>London / 2pm BST</p><p class="rpage-w">Victoria Soyan Peemot</p><h1 class="rpage-t">Horses and Songs: Multispecies Rhythm and Voice in Inner Asia</h1><p class="rpage-chips"><span class="rpage-chip">English</span><span class="rpage-chip">Lecture replay</span></p></header><div class="rpage-player"></div><div class="rpage-extra"></div><div class="rpage-about"><p>When Tyva people say that the horse is everything in life, this is not a metaphor—it comes from the lived experience of the people who have been mobile pastoralists for millennia, whose lives and identities have been continuously shaped by horses. Drawing on her personal experience and research among mobile pastoralists between the Altai and Sayan mountain ranges in the transnational region of Inner Asia, Dr. Victoria Soyan Peemot explores how Tyvan understandings of voice, sound, and music are rooted in multispecies relationships, with a particular focus on human-equine belonging.</p><p>Her research brings together horses and their rich sound world with the people and land to which they co-belong. The lecture discusses how the rhythms and lyrics of Tyvan songs and Tyvan ways of understanding the human voice itself emerge from belonging to the land and cohabiting it with other beings.</p></div><div class="rpage-pics"><img src="images/lectures/web/lecture-images-1-1.jpg" width="1400" height="933" alt="" loading="lazy" decoding="async"><img src="images/lectures/web/lecture-images-1-2.jpg" width="1400" height="962" alt="" loading="lazy" decoding="async"></div><div class="rpage-sps"><div class="rpage-sp"><img src="images/lectures/web/speakers-portrait-01-victoria.jpg" width="600" height="800" alt="" loading="lazy" decoding="async" class="face"><div class="bio"><p>Victoria Soyan Peemot is a senior researcher, community advocate, and member of the Soyan kinship group from the Tyva Republic, raised at the Tyvan-Mongolian borderland in a livestock herding family. Her research weaves together Tyva transnational kinship, multispecies relations, and the continuity of pastoralist lifeways and is guided by aaldaar, the Tyvan customary practice of relational reciprocity that extends to land and other-than-human beings.</p><p>She holds a PhD in History and Cultural Heritage Studies from the University of Helsinki (2021). Her book <em>The Horse In My Blood</em> (2024) explores human-horse-homeland relationships and histories of state violence. Her second book <em>Songs of Tyva: A Guide to Tyvan Culture and Language</em> (2026) draws on emplaced storytelling through folk songs and photographs of the featured homelands. Her broader work engages ethnographic museum collections across Europe, decolonizing archives, and the return of ancestral stories to the communities they belong to.</p></div></div></div></article></section><img class="lettering tr" src="social-media-poster/top-right.svg" alt="" style="width:calc(634.4 / 1080 * 100vw);top:calc(9.6 / 1080 * 100vw);right:calc(12 / 1080 * 100vw);"><img class="lettering bl" src="social-media-poster/bottom-left.svg" alt="" style="width:calc(514.4 / 1080 * 100vw);bottom:calc(5.6 / 1080 * 100vw);left:calc(9.5 / 1080 * 100vw);"><script>(function(){
   const main=document.getElementById('content'),stage=main&&main.querySelector('.stage');
   if(!stage)return;
   // one round of the spine in LOOP seconds, whatever size it is drawn at

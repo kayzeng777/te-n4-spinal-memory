@@ -2102,14 +2102,21 @@ ROOM_CSS = '''
     font-size:15px;color:inherit;cursor:pointer;text-decoration:underline;
     text-decoration-thickness:1px;text-underline-offset:.18em}
   .rpage-back:focus-visible{outline:2px solid currentColor;outline-offset:3px}
-  .rpage-in{max-width:960px;margin:0 auto;padding:12px 20px 120px;box-sizing:border-box}
-  .rpage-kicker{display:inline-block;margin:0 0 18px;padding:2px 9px;border:1px solid currentColor;
-    border-radius:99px;font-size:12px;line-height:1.35}
-  .rpage-title{margin:0;font-size:clamp(26px,4.4vw,44px);font-weight:500;letter-spacing:-.025em;
-    line-height:1.02;max-width:20em}
-  .rpage-who{margin:14px 0 0;font-size:clamp(16px,2vw,20px);line-height:1.2}
-  .rpage-when{margin:10px 0 0;font-size:14px;line-height:1.35;opacity:.9}
-  .rpage-player{margin-top:32px}
+  .rpage{--rp-pad:clamp(16px,3.2vw,56px)}
+  .rpage-in{max-width:1560px;margin:0 auto;padding:12px var(--rp-pad) 120px;box-sizing:border-box}
+  .rpage-bar{padding-left:var(--rp-pad);padding-right:var(--rp-pad)}
+  /* the lecture block's head: the same order, steps (t14 / t16 / t20), tracking
+     and leading, and the same gaps -- 18px from the date to who, 4px to the
+     title, then the chip */
+  .rpage-head{max-width:46em}
+  .rpage-head p,.rpage-head h1{margin:0;font-weight:400}
+  .rpage-d{font-size:__RPD__;letter-spacing:.035em;line-height:.98}
+  .rpage-head .rpage-w{margin-top:18px;font-size:__RPW__;letter-spacing:.017em;line-height:.95}
+  .rpage-head .rpage-t{margin-top:4px;font-size:__RPT__;letter-spacing:-.02em;line-height:1}
+  .rpage-head .rpage-chips{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;font-size:__RPD__;letter-spacing:.035em}
+  .rpage-chip{display:inline-block;padding:.12em .7em .16em;border:1px solid currentColor;
+    border-radius:99px;line-height:1.2}
+  .rpage-player{margin-top:28px}
   .rpage-player .lec-replay{margin:0}
   .rpage-extra{margin-top:20px;font-size:15px;line-height:1.4;max-width:60ch}
   .rpage-extra:empty{display:none}
@@ -2119,6 +2126,7 @@ ROOM_CSS = '''
   .rpage-links li{padding:3px 0}
   .rpage a{color:inherit;text-decoration:underline;text-underline-offset:.18em}
   .rpage-about{margin-top:44px;max-width:62ch;font-size:16px;line-height:1.4}
+  .rpage-pics{max-width:1100px}
   .rpage-about p{margin:0}
   .rpage-about p+p{margin-top:1em}
   .rpage-pics{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));
@@ -2132,9 +2140,9 @@ ROOM_CSS = '''
   .rpage-sp .bio p+p{margin-top:.8em}
   .rpage-sp .name{margin:0 0 .5em;font-weight:500}
   @media (max-width:600px){
-    .rpage-bar{padding:10px 16px}
-    .rpage-in{padding:8px 16px 96px}
-    .rpage-player{margin-top:24px}
+    .rpage-bar{padding-top:10px;padding-bottom:10px}
+    .rpage-in{padding-top:8px;padding-bottom:96px}
+    .rpage-player{margin-top:22px}
     .rpage-sp{grid-template-columns:96px 1fr;gap:14px}
   }
 '''
@@ -2271,10 +2279,14 @@ def room_pages():
             '<div class="rpage-bar"><button class="rpage-back" type="button">'
             '← Return to home</button></div>'
             '<article class="rpage-in">'
-            '<p class="rpage-kicker">Lecture replay</p>'
-            f'<h1 class="rpage-title">{e(lec["what"])}</h1>'
-            f'<p class="rpage-who">{e(lec["who"])}</p>'
-            f'<p class="rpage-when">{e(lec["when"])} · {e(lec["lang"])}</p>'
+            # the head is the lecture block's own, in its order: date and time,
+            # who, the title, and the language as a chip
+            '<header class="rpage-head">'
+            f'<p class="rpage-d">{"<br>".join(e(x) for x in [lec["when"]] + lec.get("time", TIME).split(chr(10)))}</p>'
+            f'<p class="rpage-w">{e(lec["who"])}</p>'
+            f'<h1 class="rpage-t">{e(lec["what"])}</h1>'
+            f'<p class="rpage-chips"><span class="rpage-chip">{e(lec["lang"])}</span>'
+            '<span class="rpage-chip">Lecture replay</span></p></header>'
             '<div class="rpage-player"></div><div class="rpage-extra"></div>'
             f'<div class="rpage-about">{copy_html("lecb", lec["about"])}</div>'
             + ('<div class="rpage-pics">' + ''.join(t for t, _ in pics) + '</div>' if pics else '')
@@ -2642,7 +2654,7 @@ def page(inline, spine=None, cols=None, rows=None, tools=False):
                 .replace('__TYPEBASE__', TYPE_CSS)
                 .replace('__TOOLSCSS__', TOOLS_CSS if tools else '').replace('__TYPECSS__', type_css()).replace('__THEMECSS__', theme_css())
                 .replace('__TYPECSS_SMALL__', type_css_small())
-                .replace('__LECCSS__', ROOM_CSS + LEC_CSS.replace('__WHOGAP__', str(TEXT['lecw'].get('gap', 0))) + SCHED_CSS.replace('__NARROW__', str(NARROW)).replace('__VIEWFS__', ramp(STEPS['t14']['size'][1] * .78, STEPS['t14']['size'][0] * .78)))
+                .replace('__LECCSS__', ROOM_CSS.replace('__RPD__', ramp(STEPS['t14']['size'][1], STEPS['t14']['size'][0])).replace('__RPW__', ramp(STEPS['t16']['size'][1], STEPS['t16']['size'][0])).replace('__RPT__', ramp(STEPS['t20']['size'][1], STEPS['t20']['size'][0])) + LEC_CSS.replace('__WHOGAP__', str(TEXT['lecw'].get('gap', 0))) + SCHED_CSS.replace('__NARROW__', str(NARROW)).replace('__VIEWFS__', ramp(STEPS['t14']['size'][1] * .78, STEPS['t14']['size'][0] * .78)))
                 .replace('__CLOSEFS__', ramp(28, 36))
                 .replace('__GRAINURL__', grain).replace('__GRAINA__', str(GRAIN['opacity']))
                 .replace('__GRAINSIZE__', f"{GRAIN['tile']}px")
