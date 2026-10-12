@@ -2103,7 +2103,7 @@ ROOM_CSS = '''
     text-decoration-thickness:1px;text-underline-offset:.18em}
   .rpage-back:focus-visible{outline:2px solid currentColor;outline-offset:3px}
   .rpage{--rp-pad:clamp(16px,3.2vw,56px)}
-  .rpage-in{max-width:1560px;margin:0 auto;padding:12px var(--rp-pad) 120px;box-sizing:border-box}
+  .rpage-in{max-width:1240px;margin:0 auto;padding:12px var(--rp-pad) 120px;box-sizing:border-box}
   .rpage-bar{padding-left:var(--rp-pad);padding-right:var(--rp-pad)}
   /* the lecture block's head: the same order, steps (t14 / t16 / t20), tracking
      and leading, and the same gaps -- 18px from the date to who, 4px to the
