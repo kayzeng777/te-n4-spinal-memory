@@ -866,6 +866,8 @@
   /* ...and no room kept under it for the information panel (narrow screens) */
   html.onlyspine{--info-panel:0px;--panel:0px;--panel-fade:0px;--post:0px}
   html.onlyspine main{padding-bottom:0}
+  /* ...and it keeps one size at every width (the design size); ?cell=<px> still overrides */
+  html.onlyspine{--cell:9px}
   .cue .t-cue{--glowR:3.4em;--bloomR:10px}
   /* over the spine, on a soft patch of the ground so they read there */
   .cue-soft::before{content:"";position:absolute;z-index:-1;left:50%;top:50%;
