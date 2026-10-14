@@ -1889,8 +1889,6 @@ COPY = dict(
          '\n\n'
          '[Duration]\n1.5 hours per lecture (including Q&A)'
          '\n\n'
-         '[Capacity]\nLimited to 50 participants per lecture'
-         '\n\n'
          '[Note]\nRegistrants will receive a replay link valid for one month after the '
          'lecture; replays do not include the live Q&A'
          '\n\n'
