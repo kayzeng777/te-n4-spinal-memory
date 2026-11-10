@@ -2608,6 +2608,11 @@ def sched_who(who):
     return '<br>'.join(esc(l) for l in lines) + (f' <small>{esc(rest)}</small>' if rest else '')
 
 
+# An empty week's height as a fraction of a card's (the cards are 3:2, so 3 / (2 * this)
+# wide-to-tall below).
+EMPTY_ROW = .3
+
+
 def schedule_html():
     import datetime as dt
     esc = lambda t: t.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
@@ -2619,6 +2624,7 @@ def schedule_html():
     last = max(d for d, _, _ in days)
     week = first - dt.timedelta(days=first.weekday())
     rows = []
+    empty = 0
     while week <= last:
         cells = []
         for k in (5, 6):
@@ -2638,10 +2644,14 @@ def schedule_html():
                 + f'<span class="sc-d">{day.month}.{day.day:02d}</span>'
                 + f'<span class="sc-w">{sched_who(lec["who"])}</span>'
                 + f'<span class="sc-t">{esc(lec["what"])}</span></button>')
+        # a week with no lecture is a thin row, not a blank card
+        if all(c == '<div class="sd"></div>' for c in cells):
+            cells = ['<div class="sd e"></div>'] * 2
+            empty += 1
         rows.append(''.join(cells))
         week += dt.timedelta(days=7)
     head = ''.join(layers('span', 'schedh', n) for n in SCHED_DAYS)
-    return (f'<section class="sched" aria-label="Calendar view" style="--rows:{len(rows)}">'
+    return (f'<section class="sched" aria-label="Calendar view" style="--rows:{len(rows) - empty * (1 - EMPTY_ROW):g}">'
             f'<div class="sched-head" aria-hidden="true">{head}</div>'
             f'<div class="sched-grid">{"".join(rows)}</div>'
             '</section>\n')
@@ -2745,6 +2755,7 @@ SCHED_CSS = '''
   .sched-head,.sched-grid{display:grid;grid-template-columns:1fr 1fr}
   .sched-head{margin-bottom:4px;justify-items:center}
   .sched-grid{border-top:1px solid var(--sched-line);border-left:1px solid var(--sched-line)}
+  .sd.e{aspect-ratio:3/.6}
   .sd{position:relative;display:block;min-width:0;aspect-ratio:3/2;
     border-right:1px solid var(--sched-line);border-bottom:1px solid var(--sched-line)}
   .sc{margin:0;padding:0;border-top:0;border-left:0;font:inherit;text-align:left;cursor:pointer;
