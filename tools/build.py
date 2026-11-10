@@ -430,7 +430,7 @@ SIGNUP = '#'
 TIME = 'New York / 9am EDT\nLondon / 2pm BST'
 TIME_GMT = 'New York / 9am EDT\nLondon / 1pm GMT'
 TIME_EST = 'New York / 8am EST\nLondon / 1pm GMT'
-TIME_CST = 'New York / 9am EST\nLondon / 1pm GMT\nBeijing / 10pm CST'
+TIME_EST9 = 'New York / 9am EST\nLondon / 1pm GMT'
 
 # One row per segment of the spine, top to bottom: segment 0 is the top vertebra.
 # `when`, `who` and `lang` are one line each; `what` is the title; `about` is prose, and
@@ -522,7 +522,7 @@ LECTURES = [
          pics=['lecture images/8-1.png', 'lecture images/8-2.JPG'],
          pics_cap='Image courtesy of Sha Shuang',
          speakers=[dict(face='speakers portrait/08 Sha Shuang.jpg', bio='沙爽 Sha Shuang is an artist based in Shanghai. Her practice focuses on public space, site-specific engagement, and the intricate relationships between humans, animals, the environment, and production systems. Spanning publishing, painting, moving image, installation, and social practice, her work often develops through fieldwork, interviews, workshops, and collaborative co-creation.\n\nGrounded in concrete lived experiences and local contexts, she addresses issues of standardization, fluidity, relationships, change, memory, and community. In recent years, starting from dairy cows, her research has expanded into dairy production, data monitoring, and ecosystems, translating her fieldwork into moving images, installations, publications, and public programs.')]),
-    dict(when='Nov 28', time=TIME_CST, who='Yi Xin Tong 童义欣',
+    dict(when='Nov 28', time=TIME_EST9, who='Yi Xin Tong 童义欣',
          what='Are Fish More Intelligent, Beautiful, and Romantic Than Humans? \u2014 Angling for Nonartificial Intelligence',
          lang='Chinese',
          signup=SIGNUP,
