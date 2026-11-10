@@ -430,6 +430,7 @@ SIGNUP = '#'
 TIME = 'New York / 9am EDT\nLondon / 2pm BST'
 TIME_GMT = 'New York / 9am EDT\nLondon / 1pm GMT'
 TIME_EST = 'New York / 8am EST\nLondon / 1pm GMT'
+TIME_CST = 'New York / 9am EST\nLondon / 1pm GMT\nBeijing / 10pm CST'
 
 # One row per segment of the spine, top to bottom: segment 0 is the top vertebra.
 # `when`, `who` and `lang` are one line each; `what` is the title; `about` is prose, and
@@ -521,14 +522,13 @@ LECTURES = [
          pics=['lecture images/8-1.png', 'lecture images/8-2.JPG'],
          pics_cap='Image courtesy of Sha Shuang',
          speakers=[dict(face='speakers portrait/08 Sha Shuang.jpg', bio='沙爽 Sha Shuang is an artist based in Shanghai. Her practice focuses on public space, site-specific engagement, and the intricate relationships between humans, animals, the environment, and production systems. Spanning publishing, painting, moving image, installation, and social practice, her work often develops through fieldwork, interviews, workshops, and collaborative co-creation.\n\nGrounded in concrete lived experiences and local contexts, she addresses issues of standardization, fluidity, relationships, change, memory, and community. In recent years, starting from dairy cows, her research has expanded into dairy production, data monitoring, and ecosystems, translating her fieldwork into moving images, installations, publications, and public programs.')]),
-    dict(when='Nov 22', time=TIME_EST, who='Dummy Speaker',
-         what='Placeholder Lecture: A Title To Be Replaced',
-         lang='English',
+    dict(when='Nov 28', time=TIME_CST, who='Yi Xin Tong 童义欣',
+         what='Are Fish More Intelligent, Beautiful, and Romantic Than Humans? \u2014 Angling for Nonartificial Intelligence',
+         lang='Chinese',
          signup=SIGNUP,
-         about='This is placeholder text for the ninth lecture. It stands in for the real description until the speaker and the topic are confirmed.\n\nA second paragraph keeps the layout honest: the detail opens to the height of whatever is written here, so the dummy should be about as long as a real one.',
+         about='Starting with fish, this lecture considers how humans define intelligence and aesthetics. Drawing on projects from 2013 to 2026, Yi Xin Tong spends time with fish in nature, senses and imagines their ways of being through the body, and lets them stand as allegorical mirrors for humans. Surf fishing keeps Tong at the water\u2019s edge, where he lures research topics and poems up from depths he cannot fathom. The lecture asks whether species can be compared, who we are as a species, and where our future might lie.',
          pics=['lecture images/9-1.jpg', 'lecture images/9-2.jpg'],
-         pics_cap='Image courtesy of the speaker',
-         speakers=[dict(face='speakers portrait/09 Dummy Speaker.jpg', bio='Dummy Speaker is a placeholder for the ninth speaker. Replace this biography with the real one.')]),
+         speakers=[dict(face='speakers portrait/09 Yi Xin Tong.jpg', bio='童义欣 Yi Xin Tong was born on Mount Lu and works in New York. Tong\u2019s practice spans object, video, and mark-making, creating poetic gestures that engage questions of time, existence, and meaning. Nature, especially fish species and marine environments, is an important point of reference. Sensitive, playful, and unexpected, Tong\u2019s work pursues moments of intimacy, transcendence, and quiet reflection. Tong\u2019s work has been recently exhibited at imagokinetics, Rockbund Art Museum, By Art Matters Museum, Palais de Tokyo, Today Art Museum, Hessel Museum of Art, MACA Art Center, UCCA Center for Contemporary Art, Para Site, Vanguard Gallery, and Candice Madey. In 2021, he was awarded the inaugural Choi Foundation Prize for Contemporary Art. Tong is an assistant professor at Pratt Institute.')]),
 ]
 
 # The calendar's cards: images/Calendar/01.png .. 09.png, one per lecture in
