@@ -521,9 +521,17 @@ LECTURES = [
          pics=['lecture images/8-1.png', 'lecture images/8-2.JPG'],
          pics_cap='Image courtesy of Sha Shuang',
          speakers=[dict(face='speakers portrait/08 Sha Shuang.jpg', bio='沙爽 Sha Shuang is an artist based in Shanghai. Her practice focuses on public space, site-specific engagement, and the intricate relationships between humans, animals, the environment, and production systems. Spanning publishing, painting, moving image, installation, and social practice, her work often develops through fieldwork, interviews, workshops, and collaborative co-creation.\n\nGrounded in concrete lived experiences and local contexts, she addresses issues of standardization, fluidity, relationships, change, memory, and community. In recent years, starting from dairy cows, her research has expanded into dairy production, data monitoring, and ecosystems, translating her fieldwork into moving images, installations, publications, and public programs.')]),
+    dict(when='Nov 22', time=TIME_EST, who='Dummy Speaker',
+         what='Placeholder Lecture: A Title To Be Replaced',
+         lang='English',
+         signup=SIGNUP,
+         about='This is placeholder text for the ninth lecture. It stands in for the real description until the speaker and the topic are confirmed.\n\nA second paragraph keeps the layout honest: the detail opens to the height of whatever is written here, so the dummy should be about as long as a real one.',
+         pics=['lecture images/9-1.jpg', 'lecture images/9-2.jpg'],
+         pics_cap='Image courtesy of the speaker',
+         speakers=[dict(face='speakers portrait/09 Dummy Speaker.jpg', bio='Dummy Speaker is a placeholder for the ninth speaker. Replace this biography with the real one.')]),
 ]
 
-# The calendar's cards: images/Calendar/01.png .. 08.png, one per lecture in
+# The calendar's cards: images/Calendar/01.png .. 09.png, one per lecture in
 # the order above (paths here are under images/lectures/, hence the ..).
 for _i, _lec in enumerate(LECTURES):
     _lec.setdefault('cover', f'../Calendar/{_i + 1:02d}.png')
@@ -1875,7 +1883,7 @@ COPY = dict(
          'and make use of animal bodies, while also trying to sketch out a new, open-ended '
          'relationship not yet fixed in form, one that reaches toward the future. As an '
          'extension of this issue, we are launching our first online lecture series, '
-         'inviting 9 speakers to give 8 online lectures.'
+         'inviting 10 speakers to give 9 online lectures.'
          '\n\n'
          'Each speaker approaches this theme in a completely different way: years of '
          'companionship and careful field observation, or history, design, writing, '

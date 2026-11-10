@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Split the flat spine SVG (spine.svg.part) into 8 hoverable segments -> spine.seg.part.
+"""Split the flat spine SVG (spine.svg.part) into 9 hoverable segments -> spine.seg.part.
 
 Cuts land on the narrowest rows near evenly spaced targets, so segments break
 between vertebrae rather than through them.
@@ -12,10 +12,10 @@ SRC = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, 'spine.svg.part')
 OUT = sys.argv[2] if len(sys.argv) > 2 else os.path.join(HERE, 'spine.seg.part')
 src = open(SRC).read()
 
-N_SEGS = 8
+N_SEGS = 9
 IMAGES = [f'images/web/0{i}.jpg' for i in range(1, N_SEGS + 1)]
 PLACEHOLDER_FILL = ['#822D00', '#F38530', '#FDF48E', '#D4F724',
-                    '#822D00', '#F38530', '#FDF48E', '#D4F724']
+                    '#822D00', '#F38530', '#FDF48E', '#D4F724', '#822D00']
 
 head = re.match(r'<svg[^>]*>', src).group(0)
 defs = ''
@@ -47,7 +47,7 @@ CUT_WIDTH_COST = 0.0
 # equal -- a dark or empty photo shrinks, a busy one swells -- so this is the
 # knob for the eye, applied on top of the split. 1 is the mean; raise a number
 # to give that segment more of the spine.
-SEG_SIZE = [1.04, 0.96, 0.96, 1, 1.06, 1.06, 1, 1.16]
+SEG_SIZE = [1.04, 0.96, 0.96, 1, 1, 1.06, 1.06, 1, 1.16]
 
 
 def box_areas():
