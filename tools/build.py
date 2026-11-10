@@ -524,7 +524,7 @@ LECTURES = [
          speakers=[dict(face='speakers portrait/08 Sha Shuang.jpg', bio='沙爽 Sha Shuang is an artist based in Shanghai. Her practice focuses on public space, site-specific engagement, and the intricate relationships between humans, animals, the environment, and production systems. Spanning publishing, painting, moving image, installation, and social practice, her work often develops through fieldwork, interviews, workshops, and collaborative co-creation.\n\nGrounded in concrete lived experiences and local contexts, she addresses issues of standardization, fluidity, relationships, change, memory, and community. In recent years, starting from dairy cows, her research has expanded into dairy production, data monitoring, and ecosystems, translating her fieldwork into moving images, installations, publications, and public programs.')]),
     dict(when='Nov 28', time=TIME_EST9, who='Yi Xin Tong 童义欣',
          what='Are Fish More Intelligent, Beautiful, and Romantic Than Humans? \u2014 Angling for Nonartificial Intelligence',
-         lang='Chinese',
+         lang='Chinese (with Zoom translated captions)',
          signup='https://luma.com/9c56vo7r',
          cover='../Calendar/09.jpg',
          about='Starting with fish, this lecture considers how humans define intelligence and aesthetics. Drawing on projects from 2013 to 2026, Yi Xin Tong spends time with fish in nature, senses and imagines their ways of being through the body, and lets them stand as allegorical mirrors for humans. Surf fishing keeps Tong at the water\u2019s edge, where he lures research topics and poems up from depths he cannot fathom. The lecture asks whether species can be compared, who we are as a species, and where our future might lie.',
