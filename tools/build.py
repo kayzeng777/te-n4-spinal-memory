@@ -525,10 +525,10 @@ LECTURES = [
     dict(when='Nov 28', time=TIME_EST9, who='Yi Xin Tong 童义欣',
          what='Are Fish More Intelligent, Beautiful, and Romantic Than Humans? \u2014 Angling for Nonartificial Intelligence',
          lang='Chinese',
-         signup=SIGNUP,
+         signup='https://luma.com/9c56vo7r',
          about='Starting with fish, this lecture considers how humans define intelligence and aesthetics. Drawing on projects from 2013 to 2026, Yi Xin Tong spends time with fish in nature, senses and imagines their ways of being through the body, and lets them stand as allegorical mirrors for humans. Surf fishing keeps Tong at the water\u2019s edge, where he lures research topics and poems up from depths he cannot fathom. The lecture asks whether species can be compared, who we are as a species, and where our future might lie.',
          pics=['lecture images/9-1.jpg', 'lecture images/9-2.jpg'],
-         speakers=[dict(face='speakers portrait/09 Yi Xin Tong.jpg', bio='童义欣 Yi Xin Tong was born on Mount Lu and works in New York. Tong\u2019s practice spans object, video, and mark-making, creating poetic gestures that engage questions of time, existence, and meaning. Nature, especially fish species and marine environments, is an important point of reference. Sensitive, playful, and unexpected, Tong\u2019s work pursues moments of intimacy, transcendence, and quiet reflection. Tong\u2019s work has been recently exhibited at imagokinetics, Rockbund Art Museum, By Art Matters Museum, Palais de Tokyo, Today Art Museum, Hessel Museum of Art, MACA Art Center, UCCA Center for Contemporary Art, Para Site, Vanguard Gallery, and Candice Madey. In 2021, he was awarded the inaugural Choi Foundation Prize for Contemporary Art. Tong is an assistant professor at Pratt Institute.')]),
+         speakers=[dict(face='speakers portrait/09 Yi Xin Tong.jpg', face_w=75, bio='童义欣 Yi Xin Tong was born on Mount Lu and works in New York. Tong\u2019s practice spans object, video, and mark-making, creating poetic gestures that engage questions of time, existence, and meaning. Nature, especially fish species and marine environments, is an important point of reference. Sensitive, playful, and unexpected, Tong\u2019s work pursues moments of intimacy, transcendence, and quiet reflection. Tong\u2019s work has been recently exhibited at imagokinetics, Rockbund Art Museum, By Art Matters Museum, Palais de Tokyo, Today Art Museum, Hessel Museum of Art, MACA Art Center, UCCA Center for Contemporary Art, Para Site, Vanguard Gallery, and Candice Madey. In 2021, he was awarded the inaugural Choi Foundation Prize for Contemporary Art. Tong is an assistant professor at Pratt Institute.')]),
 ]
 
 # The calendar's cards: images/Calendar/01.png .. 09.png, one per lecture in
@@ -2445,7 +2445,9 @@ def lec_extra(lec):
     # the first bio, as the Intro's is on the description.
     sps = lec.get('speakers', [])
     for k, sp in enumerate(sps):
-        face = sp.get('face') and lec_img(sp['face'], size=LEC_FACE_MAX, **{'class': 'face'})
+        # `face_w` is optional: the portrait's width as a % of the measure (50 by default)
+        fw = {'style': f"width:{sp['face_w']}%"} if sp.get('face_w') else {}
+        face = sp.get('face') and lec_img(sp['face'], size=LEC_FACE_MAX, **{'class': 'face'}, **fw)
         chip = ('[Speakers]\n' if len(sps) > 1 else '[Speaker]\n') if k == 0 else ''
         out += ('<div class="lec-sp">'
                 + layers('div', 'lecbio', copy_html('lecbio', chip + sp.get('bio', '')))
