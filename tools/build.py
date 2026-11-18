@@ -430,7 +430,7 @@ SIGNUP = '#'
 TIME = 'New York / 9am EDT\nLondon / 2pm BST'
 TIME_GMT = 'New York / 9am EDT\nLondon / 1pm GMT'
 TIME_EST = 'New York / 8am EST\nLondon / 1pm GMT'
-TIME_EST9 = 'New York / 9am EST\nLondon / 1pm GMT'
+TIME_EST9 = 'New York / 9am EST\nLondon / 2pm GMT'
 
 # One row per segment of the spine, top to bottom: segment 0 is the top vertebra.
 # `when`, `who` and `lang` are one line each; `what` is the title; `about` is prose, and
