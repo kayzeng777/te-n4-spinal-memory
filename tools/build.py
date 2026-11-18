@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Build index.html (repo, file fonts) and artifact.html (inline fonts) from parts."""
-import base64, html, json, os, re
+import base64, datetime as dt, html, json, os, re
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
@@ -449,6 +449,8 @@ TIME_EST9 = 'New York / 9am EST\nLondon / 2pm GMT'
 # (None for a picture without one), set under its picture. `pics_cap` is one
 # caption for the pictures together, set under the last. Both are prose like
 # `bio`: `*text*` is italic.
+# `until` is the last day a lecture's replay is offered (an ISO date). It is
+# written on the replay's entry and on its page, and ends what a browser keeps.
 # `replay` is optional: a YouTube video id. The recording sits above `about` as a
 # poster frame, and is loaded only when it is played (REPLAY_JS).
 LECTURES = [
@@ -456,6 +458,7 @@ LECTURES = [
          what='Horses and Songs: Multispecies Rhythm and Voice in Inner Asia',
          lang='English',
          signup='https://luma.com/nm7vu01t',
+         until='2026-12-10',
          about='When Tyva people say that the horse is everything in life, this is not a metaphor—it comes from the lived experience of the people who have been mobile pastoralists for millennia, whose lives and identities have been continuously shaped by horses. Drawing on her personal experience and research among mobile pastoralists between the Altai and Sayan mountain ranges in the transnational region of Inner Asia, Dr. Victoria Soyan Peemot explores how Tyvan understandings of voice, sound, and music are rooted in multispecies relationships, with a particular focus on human-equine belonging.\n\nHer research brings together horses and their rich sound world with the people and land to which they co-belong. The lecture discusses how the rhythms and lyrics of Tyvan songs and Tyvan ways of understanding the human voice itself emerge from belonging to the land and cohabiting it with other beings.',
          pics=['lecture images/1-1.JPG', 'lecture images/1-2.jpg'],
          pic_caps=['East Taiga, northern Mongolia, June 2023. Photo: Stanislav Krupař',
@@ -465,6 +468,7 @@ LECTURES = [
          what='If There’s No Reply, Is That Silence Still Love?',
          lang='English',
          signup='https://luma.com/3zuyg46f',
+         until='2026-12-11',
          about='Wantanee Siripattananuntakul has lived with Beuys, an African grey parrot, since 2013. After more than a decade together, she has come to know Beuys’ voices, movements, routines, fears, and desires. She has also kept Beuys’ feathers, images, objects, and documents, and turned to science to learn how parrots see, hear, and navigate the world. Yet the more she knows about Beuys, the more aware she becomes of what she cannot know: what the world is like for Beuys.\n\nThat distance extends beyond her relationship with Beuys into her wider artistic practice: when she reconstructs what is no longer there from what remains, traces histories she was never there to witness, or measures a distance exactly and still finds that the number cannot tell her what that distance means. Wantanee keeps looking anyway. She is no longer only asking what she can know, but what makes her think she has received an answer. What makes something an answer, and who decides? And if there is no reply, how does she know that what she calls silence is silence at all?',
          pics=['lecture images/2-1.jpg'],
          pic_caps=['Beuys. Photo: Wantanee Siripattananuntakul'],
@@ -473,6 +477,7 @@ LECTURES = [
          what='Do We Need Zoos?',
          lang='English',
          signup='https://luma.com/clizyb3n',
+         until='2026-12-17',
          about='Do we need zoos? Why do we enjoy looking at animals? What lies behind the simple human desire to feel connected to animals? These are the questions Terezie Štindlová set out to ask through her platform [[ZOO Index]], an open archive of visual and textual zoo related material questioning its relevance in contemporary society. In this lecture, Terezie traces the development of [[ZOO Index]] from her initial interests in Zoo design and architecture toward broader questions about human ways of relating to animals, following this thinking as it takes shape through the publication process, the collaborations behind it, and the project’s possible futures.\n\nBefore the talk, the session opens with a short excerpt from a sound piece by artist Qihang Li, an immersive soundscape originally composed for ZOO Index’s book launch in Amsterdam.',
          pics=['lecture images/3-1.jpeg', 'lecture images/3-2.png'],
          pic_caps=[None, '*ZOO Index Reader (Volume 1)*, published in 2024. Editor: Terezie Štindlová'],
@@ -481,6 +486,7 @@ LECTURES = [
          what='Stories, Poetry, and Birdsong',
          lang='English',
          signup='https://luma.com/r415f2wl',
+         until='2026-12-24',
          about='Boria Sax has long studied how animals have moved through human culture, stories, and mythology. This lecture argues that birdsong is similar to the poetry of Dylan Thomas or John Ashbery, where there is almost no literal meaning but a great deal of suggestiveness. Human beings organize experience primarily through storytelling, which serves, among other things, to construct identities, build communities, teach lessons, and set goals. Animals from wolves to fireflies are also constantly exchanging messages. This is especially apparent in birds, for whom songs and calls are used for courtship, proclaiming territory, issuing warnings, and affirming bonds, all of which are also central motifs in the tales told by human beings.\n\nThese vocalizations also resemble human stories in that they modulate their tempo for purposes such as the building or release of dramatic tension. They differ from human stories, and even more from products of artificial intelligence, in that they are profoundly embedded in the world to a point where the question of “truth” or “falsity” can become irrelevant.\n\nThe lecture will be joined by artist Ruoyi Shi as guest moderator.',
          pics=['lecture images/4-1.jpg', 'lecture images/4-2.JPG'],
          pic_caps=['Simon de Myle, *Noah’s Ark on Mount Arafat*, Flanders, 1570.',
@@ -491,6 +497,7 @@ LECTURES = [
          what='Seeing Forest: Encounters, Evidence and Ways of Knowing',
          lang='English',
          signup='https://luma.com/o544mqdl',
+         until='2026-12-25',
          about='How do we come to know a forest through the encounters we have within it? Similar questions extend across Robert Zhao Renhui’s practice: what can we know from what we observe and document, and how much can such evidence really tell us?\n\nIn this lecture, Robert shares the fieldwork and artistic processes behind his investigations into Singapore’s secondary forests. Moving between the [[Institute of Critical Zoologists]] which he founded in 2018 and his project *Seeing Forest*, he traces how repeated visits, camera observations and found objects become photographs, moving images, installations and publications. Through stories from the field, this lecture reflects on what images reveal, what remains uncertain, and how sustained attention can change our understanding of the lives and histories that make up a place.',
          pics=['lecture images/5-1.jpg', 'lecture images/5-2.jpg'],
          pic_caps=['“I was told by the local boys in the township that the bears frequent the rubbish dump. I put 2 cameras looking at the rubbish dump for 2 months,” Hampi, 2025. Photo: Robert Zhao Renhui',
@@ -500,6 +507,7 @@ LECTURES = [
          what='The Rhizomatic Archive: Interspecies Library',
          lang='English',
          signup='https://luma.com/ek6lzccj',
+         until='2026-12-31',
          about='Interspecies Library is an independent archive launched in a Brooklyn apartment in 2019, as an experiment in mapping a growing, species-wide fascination with more-than-human worlds. In this lecture, founder and curator Oscar Salguero traces the story of this living archive, from informal salon-style gatherings to large-scale gallery exhibitions, original book commissions and limited editions, and, more recently, collaborations to develop an itinerant version of the library that brings these works into new environments and cross-pollinating dialogues.\n\nToday, the archive stewards over 500 volumes by international artists and independent presses, documenting how the book, an ancient human technology, continues to serve as a portal to imagining and embodying shared fungal, bacterial, plant, animal, and viral futures.',
          pics=['lecture images/6-1.jpg', 'lecture images/6-2.jpg'],
          pics_cap='The books from the Interspecies Library. Image courtesy of Oscar Salguero',
@@ -508,6 +516,7 @@ LECTURES = [
          what='Specimen of Suffering',
          lang='Chinese (with Zoom translated captions)',
          signup='https://luma.com/event/evt-I5aICYx7KZLnxSw',
+         until='2027-01-07',
          about='This lecture moves from a mallard at Natural History Museum Rotterdam, killed after flying into a glass panel, to the Przewalski’s horses of Mongolia; from the Nazi-era attempt to breed back the extinct Tarpan, to the beasts executed at Taipei Yuan-Shan Zoo during wartime; and on to the pathological specimens held at Amsterdam’s Museum Vrolik—research the artist has pursued across moving image, writing, archival research, and near-forensic methodologies.\n\nTheir works keep asking: how do specimens reconstruct memory? How do they conceal historical violence, or become monuments to their own suffering? This lecture invites us to reconsider how museums, science, and political ideology shape the stories behind these specimens. Beyond this, Hsu and Chen will also discuss the research behind their essay *Suffering and the Specimen*, and drawing on their own works, to trace how these histories move between fieldwork, archival material, and working method.',
          pics=['lecture images/7-1.jpg', 'lecture images/7-2.jpg'],
          pic_caps=['Hsu Che-Yu and Chen Wan-Yin’s lecture performance *Zoo Hypothesis* (《動物園假說》), presented in Frankfurt.',
@@ -518,6 +527,7 @@ LECTURES = [
          what='Writing a Cow: From Surveillance Data to Fiction',
          lang='Chinese (with Zoom translated captions)',
          signup='https://luma.com/event/evt-nM4qZM7TCLIBj6Z',
+         until='2027-01-07',
          about='Every cow on the farm has its own number. How much it eats, how far it walks, when it goes into heat, how much milk it gives—all of it is quietly logged by the machines. In 2021, Sha Shuang spent six months at an animal-monitoring data company in Xundian, Yunnan, working alongside a team of programmers. Months of fieldwork left her with a realization: the production system of a cattle farm and human social life aren’t so different after all—both made of bodies, labor, reproduction, care, and the daily experience of being logged and managed by one system or another.\n\nHer essay *Finding the Steppes* grew directly out of these field experiences. This lecture begins with that piece of semi-fiction, tracing why she moved from “monitoring cows” to “writing cows,” and how years of fieldwork among dairy cows, grasslands, milk, data, and ecological systems slowly found their way into her art practice.',
          pics=['lecture images/8-1.png', 'lecture images/8-2.JPG'],
          pics_cap='Image courtesy of Sha Shuang',
@@ -2111,6 +2121,9 @@ ROOM_CSS = '''
     text-align:left;cursor:pointer;max-width:100%}
   .lec .signup .pl{display:inline-block;width:.95em;height:.95em;margin-right:.32em;
     vertical-align:-.13em;overflow:visible}
+  /* the entry's second line: how long the replay is offered */
+  .lec .signup .rexp{display:block;margin-top:.45em;font-size:.82em;letter-spacing:.035em;
+    line-height:1.1;text-align:left}
   .lec .signup .lk{display:inline-block;width:.72em;height:.84em;margin-left:.2em;
     vertical-align:-.04em;overflow:visible}
   /* The code. Everything on it is the poster's layered type: the hint, the box
@@ -2188,6 +2201,7 @@ ROOM_CSS = '''
   .rpage-d{font-size:__RPD__;letter-spacing:.035em;line-height:.98}
   .rpage-head .rpage-w{margin-top:18px;font-size:__RPW__;letter-spacing:.017em;line-height:.95}
   .rpage-head .rpage-t{margin-top:4px;font-size:__RPT__;letter-spacing:-.02em;line-height:1}
+  .rpage-head .rpage-exp{margin-top:10px;font-size:__RPD__;letter-spacing:.035em;line-height:1.1;opacity:.85}
   .rpage-head .rpage-chips{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;font-size:__RPD__;letter-spacing:.035em}
   /* the lecture block's chip, as .t .chip draws it: .78 of the line's size, the
      padding trimmed to the capitals where text-box is supported */
@@ -2248,9 +2262,12 @@ ROOM_JS = r'''<script>(function(){
   // thirty days on it is dropped anyway, as the replay's own note says.
   const KEY="te-replay",TTL=30*864e5,fp=i=>D.rooms[i].ct.slice(0,24);
   const mem=()=>{try{return JSON.parse(localStorage.getItem(KEY))||{};}catch(e){return {};}};
-  const keep=(i,r)=>{try{const m=mem();m[i]={f:fp(i),t:Date.now(),r:r};localStorage.setItem(KEY,JSON.stringify(m));}catch(e){}};
+  // a kept key ends thirty days on or at the replay's last day, whichever is first
+  const endOf=u=>{const d=u&&new Date(u+"T23:59:59");return d&&!isNaN(d)?+d:Infinity;};
+  const keep=(i,r,u)=>{try{const m=mem();m[i]={f:fp(i),t:Date.now(),x:Math.min(Date.now()+TTL,endOf(u)),r:r};
+    localStorage.setItem(KEY,JSON.stringify(m));}catch(e){}};
   const kept=i=>{const m=mem()[i];
-    return m&&m.f===fp(i)&&Date.now()-m.t<TTL&&m.r&&typeof m.r==="object"?m.r:null;};
+    return m&&m.f===fp(i)&&Date.now()<(m.x||m.t+TTL)&&m.r&&typeof m.r==="object"?m.r:null;};
   let current=null;
   async function unlock(i,pw){
     if(!(window.crypto&&crypto.subtle))throw new Error("secure");
@@ -2310,7 +2327,7 @@ ROOM_JS = r'''<script>(function(){
     inp.addEventListener("keydown",e=>{if(e.key==="Escape"){e.stopPropagation();cancel();}});
     f.addEventListener("submit",async e=>{
       e.preventDefault();setErr("");const pw=inp.value.trim();if(!pw)return;go.disabled=true;
-      try{l.__r=await unlock(i,pw);keep(i,l.__r);inp.value="";echo();set(false);
+      try{l.__r=await unlock(i,pw);keep(i,l.__r,box.dataset.until);inp.value="";echo();set(false);
         lockOpen();show(l);}
       catch(x){setErr(x.message==="secure"?"This needs a secure (https) page.":"Invalid code.");
         inp.select();}
@@ -2330,6 +2347,14 @@ def has_room(i):
     return bool(ROOM) and str(i) in ROOM['rooms']
 
 
+def until_text(lec):
+    """The last day of a lecture's replay, in words; '' when it has none."""
+    if not lec.get('until'):
+        return ''
+    d = dt.date.fromisoformat(lec['until'])
+    return f'Available until {d:%b} {d.day}, {d.year}'
+
+
 def signup_html(i, lec):
     """Sign up -- or, for a lecture that has a Reading Room entry, its replay
     behind a lock. It keeps the class `signup`: the phone layout moves that
@@ -2338,20 +2363,23 @@ def signup_html(i, lec):
         return ('<button class="signup room-open" type="button" aria-expanded="false" '
                 'aria-controls="room-%d">' % i
                 + layers('p', 'lecs', PLAY + '<span class="u">Lecture replay</span>'
-                         ' ' + LOCK) + '</button>')
+                         ' ' + LOCK
+                         + (f'<span class="rexp">{until_text(lec)}</span>'
+                            if until_text(lec) else '')) + '</button>')
     return (f'<a class="signup" href="{tagged(lec.get("signup", SIGNUP))}" target="_blank" '
             f'rel="noopener">'
             + layers('p', 'lecs', '<span class="u">Sign up</span> ↗') + '</a>')
 
 
-def room_box(i):
+def room_box(i, lec=None):
     """Where the password goes: hidden until the lock is clicked. Every word is
     set in the poster's type (layers), so it has the glow the rest has; the field
     is the one thing that cannot be, and takes the glow as a drop-shadow."""
     if not has_room(i):
         return ''
     word = lambda role, t: layers('p', role, copy_html(role, t))
-    return (f'<div class="lec-room" id="room-{i}" hidden>'
+    until = (lec or {}).get('until', '')
+    return (f'<div class="lec-room" id="room-{i}" data-until="{until}" hidden>'
             + word('lecd', 'Enter the code you received to open lecture replay.')
             + '<form class="room-form" autocomplete="off">'
             # the field itself is clear and only keeps the caret and the keys;
@@ -2405,7 +2433,9 @@ def room_pages():
             f'<p class="rpage-d">{"<br>".join(e(x) for x in [lec["when"]] + lec.get("time", TIME).split(chr(10)))}</p>'
             f'<p class="rpage-w">{e(lec["who"])}</p>'
             f'<h1 class="rpage-t">{e(lec["what"])}</h1>'
-            f'<p class="rpage-chips"><span class="rpage-chip">{e(lec["lang"])}</span></p></header>'
+            f'<p class="rpage-chips"><span class="rpage-chip">{e(lec["lang"])}</span></p>'
+            + (f'<p class="rpage-exp">{until_text(lec)}</p>' if until_text(lec) else '')
+            + '</header>'
             '<div class="rpage-player"></div><div class="rpage-extra"></div>'
             f'<div class="rpage-about">{copy_html("lecb", lec["about"])}</div>'
             + ('<div class="rpage-pics">' + ''.join(
@@ -2550,7 +2580,7 @@ def lectures_html():
             + layers('div', 'lecl', copy_html('lecl', f"[{lec['lang']}]"))
             + signup_html(i, lec)
             # the code field sits with the button, outside what scrolls
-            + room_box(i)
+            + room_box(i, lec)
             + '<div class="scroll">'
             + lec_replay(lec)
             + layers('div', 'lecb', copy_html('lecb', lec['about']))
