@@ -1098,10 +1098,10 @@
   // What a code has opened is kept in this browser (localStorage): the decrypted
   // entry, the start of its ciphertext, and when. A lecture that is sealed again
   // is a new lock (new ciphertext) and drops the key kept for the old one; and
-  // thirty days on it is dropped anyway, as the replay's own note says.
-  const KEY="te-replay",TTL=30*864e5,fp=i=>D.rooms[i].ct.slice(0,24);
+  // two months on it is dropped anyway, as the replay's own note says.
+  const KEY="te-replay",TTL=62*864e5,fp=i=>D.rooms[i].ct.slice(0,24);
   const mem=()=>{try{return JSON.parse(localStorage.getItem(KEY))||{};}catch(e){return {};}};
-  // a kept key ends thirty days on or at the replay's last day, whichever is first
+  // a kept key ends two months (62 days) on or at the replay's last day, whichever is first
   const endOf=u=>{const d=u&&new Date(u+"T23:59:59");return d&&!isNaN(d)?+d:Infinity;};
   const keep=(i,r,u)=>{try{const m=mem();m[i]={f:fp(i),t:Date.now(),x:Math.min(Date.now()+TTL,endOf(u)),r:r};
     localStorage.setItem(KEY,JSON.stringify(m));}catch(e){}};
