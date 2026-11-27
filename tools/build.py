@@ -536,7 +536,6 @@ LECTURES = [
          what='Are Fish More Intelligent, Beautiful, and Romantic Than Humans? \u2014 Angling for Nonartificial Intelligence',
          lang='Chinese (with Zoom translated captions)',
          signup='https://luma.com/9c56vo7r',
-         cover='../Calendar/09.jpg',
          about='Starting with fish, this lecture considers how humans define intelligence and aesthetics. Drawing on projects from 2013 to 2026, Yi Xin Tong shares how he has spent time with fish in nature, sensing and imagining their ways of being through the body and letting them stand as allegorical mirrors for humans. Surf fishing keeps Tong at the water\u2019s edge, where he lures research topics and poems up from depths he cannot fathom.\n\nA fisherman for over a decade, Tong has turned a GoPro into a lure, kept a journal of hundreds of trips, and admits that most days, the fish win. The lecture asks whether species can be compared, who we are as a species, and where our future might lie.',
          pics=['lecture images/9-1.jpg', 'lecture images/9-2.jpg', 'lecture images/9-3.jpg'],
          pics_cap='Image courtesy of Yi Xin Tong.',
