@@ -574,19 +574,16 @@ GRAIN = dict(cell=2.2, tile=96, opacity=.9, mean=.732)
 
 
 def grain_url():
-    g = GRAIN
-    shift = f'{0.5 - g["mean"]:.3f}'
-    transfer = ('<feComponentTransfer>'
-                + ''.join(f"<feFunc{c} type='linear' slope='1' intercept='{shift}'/>"
-                          for c in 'RGB')
-                + '</feComponentTransfer>')
-    return ("url(\"data:image/svg+xml;utf8,"
-            f"<svg xmlns='http://www.w3.org/2000/svg' width='{g['tile']}' height='{g['tile']}'><filter id='n'>"
-            f"<feTurbulence type='fractalNoise' baseFrequency='{1/g['cell']:.4f}' "
-            "numOctaves='2' stitchTiles='stitch'/>"
-            "<feColorMatrix type='saturate' values='0'/>"
-            f"{transfer}</filter>"
-            "<rect width='100%' height='100%' filter='url(%23n)'/></svg>\")")
+    """The grain as a real bitmap (tools/grain.png: the feTurbulence tile below,
+    rendered once at 1 unit = 1 px, grey + alpha). As an SVG background iOS Safari
+    rasterises it at CSS px and scales it up by the dpr, so on a 3x phone the grain
+    came out three times coarse and blocky; a bitmap is drawn 1:1 in device px.
+    The numbers in GRAIN are what the tile was rendered with:
+      feTurbulence fractalNoise baseFrequency 1/cell, numOctaves 2, stitchTiles,
+      saturate 0, feFunc{R,G,B} linear slope 1 intercept 0.5 - mean."""
+    import base64, pathlib
+    png = (pathlib.Path(__file__).parent / 'grain.png').read_bytes()
+    return 'url("data:image/png;base64,' + base64.b64encode(png).decode() + '")'
 
 
 def type_css():
