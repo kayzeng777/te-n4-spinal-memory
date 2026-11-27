@@ -914,6 +914,14 @@ HEAD = '''<title>te online lecture</title>
   .nocues .cue{display:none !important}   /* ?nocues, ?clean */
   .clean .role-link:has(.t-joinzh),.clean .t-joinzh{display:none !important}   /* ?clean */
   .hidecursor .lens{display:none !important}   /* ?hidecursor: hide the X-ray circle (combine: ?clean&hidecursor) */
+  .hidenumbers .t-lecno{display:none !important}   /* ?hidenumbers: the 01-08 on the spine */
+  .onlyspine .poster,.onlyspine .themes,.onlyspine .view,.onlyspine .cue,.onlyspine .lecs,.onlyspine .t-lecno{display:none !important}   /* ?onlyspine: the spine and nothing else */
+  /* ...and no room kept under it for the information panel (narrow screens) */
+  html.onlyspine{--info-panel:0px;--panel:0px;--panel-fade:0px;--post:0px}
+  html.onlyspine main{padding-bottom:0}
+  /* ...and it keeps one size at every width (the design size); ?cell=<px> still overrides */
+  html.onlyspine{--cell:9px}
+  html.onlyspine main::before,html.onlyspine main::after{display:none}   /* no fade at the top or foot */
   .cue .t-cue{--glowR:3.4em;--bloomR:10px}
   /* over the spine, on a soft patch of the ground so they read there */
   .cue-soft::before{content:"";position:absolute;z-index:-1;left:50%;top:50%;
@@ -2510,6 +2518,10 @@ def cues():
             'document.documentElement.classList.add("clean");'
             'if(/[?&]hidecursor\\b/.test(location.search))'
             'document.documentElement.classList.add("hidecursor");'
+            'if(/[?&]hidenumbers\\b/.test(location.search))'
+            'document.documentElement.classList.add("hidenumbers");'
+            'if(/[?&]onlyspine\\b/.test(location.search))'
+            'document.documentElement.classList.add("onlyspine","nocues");'
             'addEventListener("DOMContentLoaded",()=>{'
             'const end=(c,sc)=>{if(c&&sc)c.classList.toggle("end",'
             'sc.scrollHeight-sc.clientHeight-sc.scrollTop<4);};'
