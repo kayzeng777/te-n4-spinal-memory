@@ -225,9 +225,9 @@ def theme_css():
         h = f'html[data-theme="{n}"]'
         out += [f'{h} .t .bloom{{filter:blur(var(--bloomR)){x}}}',
                 f'{h} .t .ink{{filter:blur(var(--soft)){x}}}',
-                f'{h} .t-logo .bloom svg{{filter:blur(var(--bloomR)){x}}}',
-                f'{h} .t-logo .ink svg{{filter:blur(var(--soft)){x}}}',
-                f'{h} .t-logo .tight svg{{filter:drop-shadow(0 0 calc(var(--glowR) * .35) var(--glow)) '
+                f'{h} .t-logo .bloom{{filter:blur(calc(var(--bloomR) * 1.414)){x}}}',
+                f'{h} .t-logo .ink{{filter:blur(calc(var(--soft) * 1.414)){x}}}',
+                f'{h} .t-logo .tight{{filter:drop-shadow(0 0 calc(var(--glowR) * .35) var(--glow)) '
                 f'drop-shadow(0 0 var(--glowR) var(--glow)){x}}}']
     # A flat colour behind the type only matches the ground where the gradient
     # is that colour; on a dark page the rest shows as a paler slab, so a
@@ -670,10 +670,15 @@ TYPE_CSS = '''.t{--fit:var(--col-fit, calc(100vw - 2 * var(--pad) - var(--tools,
   .t-logo{line-height:0}
   .t-logo svg{height:var(--fs);width:auto;display:block;overflow:visible}
   .t-logo .slab svg{fill:#000}
-  .t-logo .bloom svg{fill:var(--bloom);filter:blur(var(--bloomR));opacity:1}
-  .t-logo .tight svg{fill:var(--glow);
-    filter:drop-shadow(0 0 calc(var(--glowR) * .35) var(--glow)) drop-shadow(0 0 var(--glowR) var(--glow))}
-  .t-logo .ink svg{fill:var(--ink);filter:blur(var(--soft))}
+  /* The filters sit on the layer's div, not on the <svg>: WebKit repaints only an
+     <svg> root's own box and leaves the blur that reaches past it as a square edge.
+     (The div already blurs once, so the old svg blur is folded in as x1.414.) */
+  .t-logo .bloom svg{fill:var(--bloom)}
+  .t-logo .bloom{filter:blur(calc(var(--bloomR) * 1.414))}
+  .t-logo .tight svg{fill:var(--glow)}
+  .t-logo .tight{filter:drop-shadow(0 0 calc(var(--glowR) * .35) var(--glow)) drop-shadow(0 0 var(--glowR) var(--glow))}
+  .t-logo .ink svg{fill:var(--ink)}
+  .t-logo .ink{filter:blur(calc(var(--soft) * 1.414))}
   .t-logo .core{opacity:var(--solid)}
   .t-logo .core svg{fill:var(--ink)}'''
 

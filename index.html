@@ -152,10 +152,15 @@
   .t-logo{line-height:0}
   .t-logo svg{height:var(--fs);width:auto;display:block;overflow:visible}
   .t-logo .slab svg{fill:#000}
-  .t-logo .bloom svg{fill:var(--bloom);filter:blur(var(--bloomR));opacity:1}
-  .t-logo .tight svg{fill:var(--glow);
-    filter:drop-shadow(0 0 calc(var(--glowR) * .35) var(--glow)) drop-shadow(0 0 var(--glowR) var(--glow))}
-  .t-logo .ink svg{fill:var(--ink);filter:blur(var(--soft))}
+  /* The filters sit on the layer's div, not on the <svg>: WebKit repaints only an
+     <svg> root's own box and leaves the blur that reaches past it as a square edge.
+     (The div already blurs once, so the old svg blur is folded in as x1.414.) */
+  .t-logo .bloom svg{fill:var(--bloom)}
+  .t-logo .bloom{filter:blur(calc(var(--bloomR) * 1.414))}
+  .t-logo .tight svg{fill:var(--glow)}
+  .t-logo .tight{filter:drop-shadow(0 0 calc(var(--glowR) * .35) var(--glow)) drop-shadow(0 0 var(--glowR) var(--glow))}
+  .t-logo .ink svg{fill:var(--ink)}
+  .t-logo .ink{filter:blur(calc(var(--soft) * 1.414))}
   .t-logo .core{opacity:var(--solid)}
   .t-logo .core svg{fill:var(--ink)}
   .tools{position:fixed;right:0;top:0;bottom:0;z-index:200;width:272px;overflow:auto;
@@ -741,14 +746,14 @@
   @media (max-width:760px){html[data-theme="dark"] .lec-close .t-lecx{--slabF:url(#bl-t20-s--dark)}}
   html[data-theme="paper"] .t .bloom{filter:blur(var(--bloomR)) opacity(1)}
   html[data-theme="paper"] .t .ink{filter:blur(var(--soft)) opacity(1)}
-  html[data-theme="paper"] .t-logo .bloom svg{filter:blur(var(--bloomR)) opacity(1)}
-  html[data-theme="paper"] .t-logo .ink svg{filter:blur(var(--soft)) opacity(1)}
-  html[data-theme="paper"] .t-logo .tight svg{filter:drop-shadow(0 0 calc(var(--glowR) * .35) var(--glow)) drop-shadow(0 0 var(--glowR) var(--glow)) opacity(1)}
+  html[data-theme="paper"] .t-logo .bloom{filter:blur(calc(var(--bloomR) * 1.414)) opacity(1)}
+  html[data-theme="paper"] .t-logo .ink{filter:blur(calc(var(--soft) * 1.414)) opacity(1)}
+  html[data-theme="paper"] .t-logo .tight{filter:drop-shadow(0 0 calc(var(--glowR) * .35) var(--glow)) drop-shadow(0 0 var(--glowR) var(--glow)) opacity(1)}
   html[data-theme="dark"] .t .bloom{filter:blur(var(--bloomR)) opacity(1) opacity(1)}
   html[data-theme="dark"] .t .ink{filter:blur(var(--soft)) opacity(1) opacity(1)}
-  html[data-theme="dark"] .t-logo .bloom svg{filter:blur(var(--bloomR)) opacity(1) opacity(1)}
-  html[data-theme="dark"] .t-logo .ink svg{filter:blur(var(--soft)) opacity(1) opacity(1)}
-  html[data-theme="dark"] .t-logo .tight svg{filter:drop-shadow(0 0 calc(var(--glowR) * .35) var(--glow)) drop-shadow(0 0 var(--glowR) var(--glow)) opacity(1) opacity(1)}
+  html[data-theme="dark"] .t-logo .bloom{filter:blur(calc(var(--bloomR) * 1.414)) opacity(1) opacity(1)}
+  html[data-theme="dark"] .t-logo .ink{filter:blur(calc(var(--soft) * 1.414)) opacity(1) opacity(1)}
+  html[data-theme="dark"] .t-logo .tight{filter:drop-shadow(0 0 calc(var(--glowR) * .35) var(--glow)) drop-shadow(0 0 var(--glowR) var(--glow)) opacity(1) opacity(1)}
   html[data-theme="dark"] .t:not(.t-lecno) .slab{visibility:hidden}
   html[data-theme] .spine [fill="#F28532" i]{fill:var(--sp-orange)}
   html[data-theme] .spine [fill="#F8BC60" i]{fill:var(--sp-cream)}
