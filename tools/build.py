@@ -1610,8 +1610,9 @@ __LECS__
       // segment goes to the middle of everything above it -- the logo floats
       // over the top of that and does not count
       const room=viewH()-(narrow.matches?cssPx('--lec-panel'):0);
-      if(clear&&b.bottom<=room){tween=null;want=[0,0];return false;}
-      const at=clear?room-b.height/2:room/2;
+      const AIR=60;   // px between its foot and the panel
+      if(clear&&b.bottom<=room-AIR){tween=null;want=[0,0];return false;}
+      const at=clear?room-AIR-b.height/2:room/2;
       lend(g,at);
       const c=g.getBoundingClientRect();
       const to=Math.max(0,Math.min(getY()+(c.top+c.bottom)/2-at,maxY()));
