@@ -1599,7 +1599,7 @@
   // judged on. Both of these are full-viewport composites and they are stacked:
   // the lens blends with everything under it and moves with the pointer, and the
   // grain blends over everything including the lens. ?nolens / ?nograin / ?flat.
-  if(q.has('nolens')||q.has('flat')||q.has('plain'))lens.remove();
+  if(q.has('nolens')||q.has('flat')||q.has('plain')||matchMedia('(max-width:760px)').matches||matchMedia('(hover:none)').matches)lens.remove();   // phones: no lens at all
   if(q.has('nograin')||q.has('flat')||q.has('plain')){const g=document.querySelector('.grain');if(g)g.remove();}
   // ?nogrid drops the dotted grid. On a phone it is main's own background,
   // scrolling with it (attachment:local), and may be repainted every frame
