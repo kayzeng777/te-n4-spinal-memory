@@ -2760,8 +2760,9 @@ SCHED_CSS = '''
       --sw:max(100%, min(calc(var(--room) - 80px), 640px), var(--fill));
       width:var(--sw);margin-left:calc((100% - var(--sw)) / 2);margin-top:14px}
   }
-  html.sched-on .stage>.spine,html.sched-on .t-lecno,html.sched-on .grid{display:none !important}
-  html.sched-on main{background-image:none !important}
+  /* the ground's grid stays under the calendar */
+  html.sched-on .sched{position:relative;z-index:1}
+  html.sched-on .stage>.spine,html.sched-on .t-lecno{display:none !important}
   /* The switch, fixed top centre of the page's own column (the tools panel,
      when up, takes its width off the right). It is set as a chip is -- the
      same size, line and padding round the capitals, drawn inside the type's
