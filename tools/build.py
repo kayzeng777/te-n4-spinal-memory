@@ -1602,12 +1602,16 @@ __LECS__
     function cssPx(name){
       probe.style.height=getComputedStyle(root).getPropertyValue(name);
       return probe.offsetHeight;}
-    function glide(g,l){
+    // `clear` (?stay, on a phone): not to the middle, only far enough up that
+    // the panel does not cover it, and not at all if it already stands clear
+    function glide(g,l,clear){
       const b=g.getBoundingClientRect();
       // on a phone the block is the panel over the foot of the screen, so the
       // segment goes to the middle of everything above it -- the logo floats
       // over the top of that and does not count
-      const at=(viewH()-(narrow.matches?cssPx('--lec-panel'):0))/2;
+      const room=viewH()-(narrow.matches?cssPx('--lec-panel'):0);
+      if(clear&&b.bottom<=room){tween=null;want=[0,0];return false;}
+      const at=clear?room-b.height/2:room/2;
       lend(g,at);
       const c=g.getBoundingClientRect();
       const to=Math.max(0,Math.min(getY()+(c.top+c.bottom)/2-at,maxY()));
@@ -1690,10 +1694,11 @@ __LECS__
         if(open===i){note(mores[i]);const sc=scrolls[i];
           if(sc){sc.scrollTop=0;setTimeout(()=>ends(sc),300);}}
         // ?stay: the last segment opens where it stands, the page does not
-        // carry it to the middle (beside the spine only -- on a phone the
-        // panel would cover it)
-        if(open===i&&STAY&&i===segs.length-1&&!narrow.matches){tween=null;held=false;want=[0,0];}
-        else if(open===i){px=e.clientX;py=e.clientY;held=glide(g,lecs[i]);}
+        // carry it to the middle; on a phone it moves only as far as it takes
+        // to come out from under the panel
+        const stay=STAY&&i===segs.length-1;
+        if(open===i&&stay&&!narrow.matches){tween=null;held=false;want=[0,0];}
+        else if(open===i){px=e.clientX;py=e.clientY;held=glide(g,lecs[i],stay);}
         else release();
         e.stopPropagation();});
     });
@@ -1705,7 +1710,7 @@ __LECS__
         sync();
         if(open===i){if(!narrow.matches)arrive(lecs[i]);note(mores[i]);const sc=scrolls[i];
           if(sc){sc.scrollTop=0;setTimeout(()=>ends(sc),300);}
-          if(narrow.matches){px=e.clientX;py=e.clientY;held=glide(c,lecs[i]);}}
+          if(narrow.matches){px=e.clientX;py=e.clientY;held=glide(c,lecs[i],STAY&&i===segs.length-1);}}
         else release();
         e.stopPropagation();});});
     // The open block takes clicks now -- to select its text, to follow its
