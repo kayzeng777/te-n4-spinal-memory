@@ -1062,7 +1062,9 @@ HEAD = '''<title>te online lecture</title>
   .lens{--lens:__LENS__;--feather:__FEATHER__}
   .lens{position:fixed;left:0;top:0;width:var(--lens,100px);height:var(--lens,100px);border-radius:50%;--lens-rgb:138 138 138;background:rgb(var(--lens-rgb));filter:blur(var(--feather,8px));
     mix-blend-mode:difference;pointer-events:none;z-index:100;transform:translate(-1000px,-1000px);will-change:transform;display:none}
-  @media (hover:hover) and (pointer:fine){.lens{display:block}}
+  @media (hover:hover) and (pointer:fine) and (min-width:761px){.lens{display:block}}
+  /* a phone never gets the lens, whatever it reports about hover: the difference blend
+     of its grey over the green-tinted photos comes out purple-magenta. */
   /* ?bakedlens draws the same Gaussian into an image once instead of running
      the filter on every frame. It is cheaper -- a blend cannot be cached and
      the filter widens the patch of backdrop it has to read -- but the live
@@ -1800,7 +1802,7 @@ __LECS__
   // a high-polling-rate mouse fires far more than once a frame, and the lens blends
   // against the whole page, so each write is expensive: coalesce onto one frame.
   let lx=0,ly=0,lqueued=false;
-  addEventListener('pointermove',e=>{lx=e.clientX;ly=e.clientY;
+  addEventListener('pointermove',e=>{if(e.pointerType==='touch')return;lx=e.clientX;ly=e.clientY;
     if(lqueued)return;lqueued=true;
     requestAnimationFrame(()=>{lqueued=false;
       lens.style.transform=`translate(${lx}px,${ly}px) translate(-50%,-50%)`;});},{passive:true});
