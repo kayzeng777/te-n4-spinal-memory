@@ -1681,6 +1681,7 @@ __LECS__
       tween=null;held=false;},{passive:true});
     ['touchstart','keydown'].forEach(e=>
       addEventListener(e,()=>{tween=null;held=false;},{passive:true}));
+    const STAY=/[?&]stay\\b/.test(location.search);
     segs.forEach((g,i)=>{
       // a finger does not hover, so on a phone what is lit is what is open
       g.addEventListener('click',e=>{open=(open===i?-1:i);hot=narrow.matches?open:i;
@@ -1688,7 +1689,11 @@ __LECS__
         if(open===i&&!narrow.matches)arrive(lecs[i]);
         if(open===i){note(mores[i]);const sc=scrolls[i];
           if(sc){sc.scrollTop=0;setTimeout(()=>ends(sc),300);}}
-        if(open===i){px=e.clientX;py=e.clientY;held=glide(g,lecs[i]);}
+        // ?stay: the last segment opens where it stands, the page does not
+        // carry it to the middle (beside the spine only -- on a phone the
+        // panel would cover it)
+        if(open===i&&STAY&&i===segs.length-1&&!narrow.matches){tween=null;held=false;want=[0,0];}
+        else if(open===i){px=e.clientX;py=e.clientY;held=glide(g,lecs[i]);}
         else release();
         e.stopPropagation();});
     });
